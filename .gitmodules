@@ -1,0 +1,6 @@
+[submodule "third_party/lvgl"]
+	path = third_party/lvgl
+	url = https://github.com/lvgl/lvgl.git
+[submodule "third_party/ihslib"]
+	path = third_party/ihslib
+	url = git@github.com:mariotaku/ihslib.git
