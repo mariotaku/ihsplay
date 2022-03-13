@@ -19,7 +19,18 @@ target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/ui/lv_conf.h)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(ihsplay app/main.c app/app.c app/ui/app_ui.c)
+add_executable(ihsplay
+        app/main.c
+        app/app.c
+        app/backend/hosts_manager.c
+        app/lvgl/display.c
+        app/lvgl/mouse.c
+        app/lvgl/lv_gridview.c
+        app/ui/app_ui.c
+        app/ui/hosts/hosts_fragment.c
+        app/util/array_list.c
+        )
+target_include_directories(ihsplay PRIVATE app)
 
 target_link_libraries(ihsplay PRIVATE lvgl ihslib)
 

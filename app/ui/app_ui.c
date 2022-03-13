@@ -2,20 +2,23 @@
 #include <lvgl.h>
 
 #include "app_ui.h"
+#include "hosts/hosts_fragment.h"
 
 typedef struct app_root_fragment {
     lv_fragment_t base;
+    app_t *app;
     lv_coord_t col_dsc[3], row_dsc[7];
+    lv_obj_t *nav_content;
 } app_root_fragment;
 
-static void ctor(lv_fragment_t *self, void *arg);
+static void constructor(lv_fragment_t *self, void *arg);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
 static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt);
 
 static const lv_fragment_class_t app_root_fragment_class = {
-        .constructor_cb = ctor,
+        .constructor_cb = constructor,
         .create_obj_cb = create_obj,
         .instance_size = sizeof(app_root_fragment),
 };
@@ -36,8 +39,9 @@ void app_ui_destroy(app_ui_t *ui) {
     free(ui);
 }
 
-static void ctor(lv_fragment_t *self, void *arg) {
+static void constructor(lv_fragment_t *self, void *arg) {
     app_root_fragment *fragment = (app_root_fragment *) self;
+    fragment->app = arg;
     fragment->col_dsc[0] = LV_DPX(200);
     fragment->col_dsc[1] = LV_GRID_FR(1);
     fragment->col_dsc[2] = LV_GRID_TEMPLATE_LAST;
@@ -76,10 +80,13 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_SPACE_AROUND, 4, 1);
 
     lv_obj_t *nav_content = lv_obj_create(root);
-    lv_obj_set_style_bg_color(nav_content, lv_color_make(255, 0, 0), 0);
     lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 2, 4);
+    fragment->nav_content = nav_content;
 
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
+
+    lv_fragment_t *f = lv_fragment_create(&hosts_fragment_class, fragment->app);
+    lv_fragment_manager_replace(self->child_manager, f, &fragment->nav_content);
     return root;
 }
 
