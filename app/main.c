@@ -4,6 +4,7 @@
 #include "app.h"
 #include "lvgl/display.h"
 #include "lvgl/mouse.h"
+#include "lvgl/theme.h"
 
 static void process_events();
 
@@ -29,6 +30,11 @@ int main(int argc, char *argv[]) {
                                           SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP);
     lv_disp_t *disp = app_lv_disp_init(window);
     lv_disp_set_default(disp);
+    lv_theme_t theme;
+    lv_memset_00(&theme, sizeof(lv_theme_t));
+    lv_theme_set_parent(&theme, lv_disp_get_theme(disp));
+    app_theme_init(&theme);
+    lv_disp_set_theme(disp, &theme);
     app_lv_mouse_init();
 
     app = app_create(disp);

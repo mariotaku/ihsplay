@@ -25,7 +25,6 @@ typedef struct app_ui_t app_ui_t;
 typedef struct app_t {
     bool running;
     app_ui_t *ui;
-    IHS_Client *client;
     host_manager_t *hosts_manager;
 } app_t;
 

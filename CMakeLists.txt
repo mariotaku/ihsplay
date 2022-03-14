@@ -14,7 +14,7 @@ add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES})
-target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/ui/lv_conf.h)
+target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
 
 set(CMAKE_C_STANDARD 11)
@@ -25,8 +25,11 @@ add_executable(ihsplay
         app/backend/hosts_manager.c
         app/lvgl/display.c
         app/lvgl/mouse.c
+        app/lvgl/theme.c
         app/lvgl/lv_gridview.c
         app/ui/app_ui.c
+        app/ui/launcher.c
+        app/ui/session.c
         app/ui/hosts/hosts_fragment.c
         app/util/array_list.c
         )

@@ -155,21 +155,21 @@
  * Themes
  *----------*/
  /*A simple, impressive and very complete theme*/
-#define LV_USE_THEME_DEFAULT    1
+#define LV_USE_THEME_DEFAULT    0
 #if LV_USE_THEME_DEFAULT
 
 /*0: Light mode; 1: Dark mode*/
 # define LV_THEME_DEFAULT_DARK     0
 
 /*1: Enable grow on press*/
-# define LV_THEME_DEFAULT_GROW              1
+# define LV_THEME_DEFAULT_GROW              0
 
 /*Default transition time in [ms]*/
 # define LV_THEME_DEFAULT_TRANSITON_TIME    80
 #endif /*LV_USE_THEME_DEFAULT*/
 
 /*An very simple them that is a good starting point for a custom theme*/
-#define LV_USE_THEME_BASIC    0
+#define LV_USE_THEME_BASIC    1
 
 /*A theme designed for monochrome displays*/
 #define LV_USE_THEME_MONO       0
