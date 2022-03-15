@@ -7,6 +7,8 @@ typedef struct host_manager_t host_manager_t;
 
 typedef struct host_manager_listener_t {
     void (*hosts_reloaded)(array_list_t *list, void *context);
+
+    void (*session_started)(const IHS_SessionConfig *config, void *context);
 } host_manager_listener_t;
 
 host_manager_t *host_manager_create(app_t *app);

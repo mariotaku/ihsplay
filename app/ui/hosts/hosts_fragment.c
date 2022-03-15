@@ -13,10 +13,10 @@ typedef struct hosts_fragment {
     lv_obj_t *grid_view;
 } hosts_fragment;
 
-typedef struct host_viewholder {
+typedef struct host_obj_holder {
     lv_obj_t *name;
     int position;
-} host_viewholder;
+} host_obj_holder;
 
 static void constructor(lv_fragment_t *self, void *arg);
 
@@ -29,6 +29,8 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
 static void hosts_reloaded(array_list_t *list, void *context);
+
+static void session_started(const IHS_SessionConfig *config, void *context);
 
 static int host_item_count(lv_obj_t *grid, void *data);
 
@@ -52,7 +54,8 @@ const lv_fragment_class_t hosts_fragment_class = {
 };
 
 static const host_manager_listener_t host_manager_listener = {
-        .hosts_reloaded = hosts_reloaded
+        .hosts_reloaded = hosts_reloaded,
+        .session_started = session_started,
 };
 
 static const lv_gridview_adapter_t hosts_adapter = {
@@ -101,6 +104,11 @@ static void hosts_reloaded(array_list_t *list, void *context) {
     lv_gridview_set_data(fragment->grid_view, list);
 }
 
+static void session_started(const IHS_SessionConfig *config, void *context) {
+    hosts_fragment *fragment = (hosts_fragment *) context;
+    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, (void *) config);
+}
+
 static int host_item_count(lv_obj_t *grid, void *data) {
     LV_UNUSED(grid);
     return array_list_size(data);
@@ -117,9 +125,9 @@ static lv_obj_t *host_item_create(lv_obj_t *grid) {
     lv_obj_set_layout(item_view, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(item_view, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(item_view, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    host_viewholder *viewholder = malloc(sizeof(host_viewholder));
-    item_view->user_data = viewholder;
-    viewholder->name = lv_label_create(item_view);
+    host_obj_holder *holder = malloc(sizeof(host_obj_holder));
+    item_view->user_data = holder;
+    holder->name = lv_label_create(item_view);
     lv_obj_add_event_cb(item_view, host_item_delete, LV_EVENT_DELETE, NULL);
     lv_obj_set_size(item_view, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_add_flag(item_view, LV_OBJ_FLAG_EVENT_BUBBLE);
@@ -131,10 +139,11 @@ static void host_item_delete(lv_event_t *e) {
 }
 
 static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int position) {
-    host_viewholder *viewholder = item_view->user_data;
-    viewholder->position = position;
+    LV_UNUSED(grid);
+    host_obj_holder *holder = item_view->user_data;
+    holder->position = position;
     IHS_HostInfo *item = array_list_get(data, position);
-    lv_label_set_text(viewholder->name, item->hostname);
+    lv_label_set_text(holder->name, item->hostname);
 }
 
 static void host_item_clicked(lv_event_t *e) {
@@ -142,8 +151,7 @@ static void host_item_clicked(lv_event_t *e) {
     lv_obj_t *target = lv_event_get_target(e);
     lv_obj_t *grid = fragment->grid_view;
     if (target->parent != grid) return;
-    host_viewholder *viewholder = target->user_data;
-    IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), viewholder->position);
+    host_obj_holder *holder = target->user_data;
+    IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), holder->position);
     host_manager_start_session(fragment->app->hosts_manager, item);
-//    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, item);
 }

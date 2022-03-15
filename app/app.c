@@ -6,9 +6,23 @@
 #include "ui/app_ui.h"
 #include "backend/hosts_manager.h"
 
+static const uint64_t deviceId = 11451419190810;
+
+static const uint8_t secretKey[32] = {
+        11, 45, 14, 19, 19, 8, 1, 0,
+        11, 45, 14, 19, 19, 8, 1, 0,
+        11, 45, 14, 19, 19, 8, 1, 0,
+        11, 45, 14, 19, 19, 8, 1, 0,
+};
+
+static const char deviceName[] = "BABYLON STAGE34\0";
+
+static const IHS_ClientConfig clientConfig = {deviceId, secretKey, deviceName};
+
 app_t *app_create(lv_disp_t *disp) {
     app_t *app = calloc(1, sizeof(app_t));
     app->running = true;
+    app->client_config = clientConfig;
     app->hosts_manager = host_manager_create(app);
     app->ui = app_ui_create(app, disp);
     return app;

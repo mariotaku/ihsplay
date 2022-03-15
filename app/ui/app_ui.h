@@ -20,3 +20,5 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp);
 void app_ui_destroy(app_ui_t *ui);
 
 void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args);
+
+void app_ui_pop_fragment(app_ui_t *ui);

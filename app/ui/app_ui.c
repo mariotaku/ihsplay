@@ -24,3 +24,7 @@ void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *ar
     lv_fragment_t *f = lv_fragment_create(cls, &fargs);
     lv_fragment_manager_push(ui->fm, f, &ui->root);
 }
+
+void app_ui_pop_fragment(app_ui_t *ui) {
+    lv_fragment_manager_pop(ui->fm);
+}

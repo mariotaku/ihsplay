@@ -1,0 +1,8 @@
+{
+  "id": "org.mariotaku.ihsplay",
+  "type": "native",
+  "main": "ihsplay",
+  "icon": "icon.png",
+  "title": "IHSplay",
+  "version": "0.0.1"
+}

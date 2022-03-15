@@ -14,11 +14,12 @@ void app_theme_init(lv_theme_t *theme) {
     lv_theme_set_apply_cb(theme, apply_cb);
 
     lv_style_init(&styles.scr);
-    lv_style_set_bg_color(&styles.scr, lv_color_make(0, 0, 0xFF));
+    lv_style_set_bg_color(&styles.scr, lv_color_black());
     lv_style_set_bg_opa(&styles.scr, LV_OPA_COVER);
 
     lv_style_init(&styles.obj);
     lv_style_set_text_color(&styles.obj, lv_color_white());
+    lv_style_set_pad_gap(&styles.obj, LV_DPX(10));
 
     lv_style_init(&styles.btn);
     lv_style_set_pad_all(&styles.btn, LV_DPX(10));
