@@ -55,6 +55,8 @@ host_manager_t *host_manager_create(app_t *app) {
 }
 
 void host_manager_destroy(host_manager_t *manager) {
+    IHS_ClientStop(manager->client);
+    IHS_ClientThreadedJoin(manager->client);
     IHS_ClientDestroy(manager->client);
     _lv_ll_clear(&manager->listeners);
     array_list_destroy(manager->hosts);

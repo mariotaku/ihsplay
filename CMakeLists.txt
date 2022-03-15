@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 3.16)
 
 project(ihsplay VERSION 0.0.1 LANGUAGES C)
 
+option(ENABLE_SANITIZER "Enable memory sanitizer (only for debug builds)" OFF)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
+if (ENABLE_SANITIZER)
+    string(APPEND CMAKE_C_FLAGS_DEBUG " -fno-omit-frame-pointer -fsanitize=address")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer -fsanitize=address")
+    string(APPEND CMAKE_LINKER_FLAGS_DEBUG " -fno-omit-frame-pointer -fsanitize=address")
+    message("-- Sanitizer enabled")
+endif ()
 
 # Use `pkg-config` to link needed libraries.
 find_package(PkgConfig REQUIRED)
@@ -13,9 +22,9 @@ pkg_check_modules(PROTOBUF_C libprotobuf-c)
 
 find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
-if("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
+if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
-endif()
+endif ()
 
 if (NOT PROTOBUF_C_FOUND)
     option(BUILD_PROTOC "Disable protoc-c" OFF)
@@ -23,7 +32,7 @@ if (NOT PROTOBUF_C_FOUND)
     set(PROTOBUF_C_FOUND 1)
     set(PROTOBUF_C_LIBRARIES protobuf-c)
     set(PROTOBUF_C_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/third_party/protobuf-c)
-endif()
+endif ()
 
 if (NOT MBEDCRYPTO_LIBRARY)
     option(ENABLE_TESTING "Disable MbedTLS testing" OFF)
@@ -31,7 +40,7 @@ if (NOT MBEDCRYPTO_LIBRARY)
     add_subdirectory(third_party/mbedtls EXCLUDE_FROM_ALL)
     set(MBEDTLS_FOUND 1)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
-endif()
+endif ()
 
 add_subdirectory(third_party/ihslib)
 
@@ -76,6 +85,6 @@ target_link_libraries(ihsplay PRIVATE ihsplay-mod-common)
 if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE ihsplay-mod-ndl)
     include(PackageWebOS)
-else()
+else ()
     target_link_libraries(ihsplay PRIVATE ihsplay-mod-raspi)
 endif ()
