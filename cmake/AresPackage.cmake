@@ -1,1 +1,1 @@
-execute_process(COMMAND ares-package "${CPACK_TEMPORARY_DIRECTORY}")
+execute_process(COMMAND ares-package "${CPACK_TEMPORARY_DIRECTORY}" -o "${CPACK_PACKAGE_DIRECTORY}")

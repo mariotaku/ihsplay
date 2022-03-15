@@ -6,8 +6,6 @@
 #include "ui/app_ui.h"
 #include "backend/hosts_manager.h"
 
-static const uint64_t deviceId = 11451419190810;
-
 static const uint8_t secretKey[32] = {
         11, 45, 14, 19, 19, 8, 1, 0,
         11, 45, 14, 19, 19, 8, 1, 0,
@@ -15,9 +13,11 @@ static const uint8_t secretKey[32] = {
         11, 45, 14, 19, 19, 8, 1, 0,
 };
 
-static const char deviceName[] = "BABYLON STAGE34\0";
-
-static const IHS_ClientConfig clientConfig = {deviceId, secretKey, deviceName};
+static const IHS_ClientConfig clientConfig = {
+        .deviceId = 11451419190810,
+        .secretKey = secretKey,
+        .deviceName = "BABYLON STAGE34"
+};
 
 app_t *app_create(lv_disp_t *disp) {
     app_t *app = calloc(1, sizeof(app_t));

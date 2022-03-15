@@ -41,6 +41,8 @@ static void constructor(lv_fragment_t *self, void *arg) {
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     app_root_fragment *fragment = (app_root_fragment *) self;
     lv_obj_t *root = lv_obj_create(container);
+    lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(root, lv_color_black(), 0);
     lv_obj_set_layout(root, LV_LAYOUT_GRID);
     lv_obj_set_grid_dsc_array(root, fragment->col_dsc, fragment->row_dsc);
 

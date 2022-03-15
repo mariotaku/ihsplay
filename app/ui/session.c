@@ -1,3 +1,4 @@
+#include <module.h>
 #include "session.h"
 #include "ihslib.h"
 #include "app_ui.h"
@@ -39,6 +40,8 @@ static void constructor(lv_fragment_t *self, void *args) {
     fragment->app = fargs->app;
     fragment->session = IHS_SessionCreate(&fragment->app->client_config, fargs->data);
     IHS_SessionSetSessionCallbacks(fragment->session, &session_callbacks, fragment);
+    IHS_SessionSetAudioCallbacks(fragment->session, module_audio_callbacks(), NULL);
+    IHS_SessionSetVideoCallbacks(fragment->session, module_video_callbacks(), NULL);
     IHS_SessionThreadedRun(fragment->session);
 }
 

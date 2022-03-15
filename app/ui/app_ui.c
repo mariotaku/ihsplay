@@ -10,6 +10,8 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->root = lv_disp_get_scr_act(disp);
     ui->fm = lv_fragment_manager_create(NULL);
 
+    lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
+
     app_ui_push_fragment(ui, &launcher_fragment_class, NULL);
     return ui;
 }

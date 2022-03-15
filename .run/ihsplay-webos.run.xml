@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ihsplay" type="com.jetbrains.cidr.remote.gdbserver.type" factoryName="com.jetbrains.cidr.remote.gdbserver.factory" PROGRAM_PARAMS=":1234 ihsplay" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file:///media/developer/apps/usr/palm/applications/org.mariotaku.ihsplay" PASS_PARENT_ENVS_2="false" PROJECT_NAME="ihsplay" TARGET_NAME="ihsplay-install" CONFIG_NAME="webOS Debug" version="1" RUN_TARGET_PROJECT_NAME="ihsplay" RUN_TARGET_NAME="ihsplay">
+    <envs>
+      <env name="APPID" value="org.mariotaku.ihsplay" />
+      <env name="LD_LIBRARY_PATH" value="/media/developer/apps/usr/palm/applications/org.mariotaku.ihsplay/lib" />
+      <env name="HOME" value="/media/developer/apps/usr/palm/applications/org.mariotaku.ihsplay" />
+      <env name="XDG_RUNTIME_DIR" value="/tmp/xdg" />
+    </envs>
+    <custom-gdb-server version="1" gdb-connect="lgtv:1234" executable="/media/developer/bin/gdbserver" warmup-ms="0" download-type="NONE" sshConfigName="root@hometv" uploadFile="/tmp/CLion/debug/ihsplay" defaultGdbServerArgs=":1234 /tmp/CLion/debug/ihsplay">
+      <debugger kind="GDB" isBundled="true" />
+    </custom-gdb-server>
+    <method v="2">
+      <option name="CLION.COMPOUND.BUILD" enabled="true" />
+    </method>
+  </configuration>
+</component>

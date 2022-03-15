@@ -2,6 +2,7 @@
 #include <lvgl.h>
 
 #include "app.h"
+#include "module.h"
 #include "lvgl/display.h"
 #include "lvgl/mouse.h"
 #include "lvgl/theme.h"
@@ -13,6 +14,7 @@ static app_t *app = NULL;
 int main(int argc, char *argv[]) {
     (void) argc;
     (void) argv;
+    module_init(argc, argv);
     SDL_Init(SDL_INIT_VIDEO);
     SDL_RegisterEvents(APP_EVENT_SIZE);
     lv_init();
@@ -28,6 +30,8 @@ int main(int argc, char *argv[]) {
     /* Caveat: Don't use SDL_WINDOW_FULLSCREEN_DESKTOP on webOS. On older platforms it's not supported. */
     SDL_Window *window = SDL_CreateWindow("myapp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
                                           SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    module_post_init(argc, argv);
+
     lv_disp_t *disp = app_lv_disp_init(window);
     lv_disp_set_default(disp);
     lv_theme_t theme;

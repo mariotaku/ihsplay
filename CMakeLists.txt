@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(ihsplay VERSION 0.0.1 LANGUAGES C)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
 # Use `pkg-config` to link needed libraries.
 find_package(PkgConfig REQUIRED)
 
@@ -11,17 +13,23 @@ pkg_check_modules(PROTOBUF_C libprotobuf-c)
 
 find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
+if("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
+    set(TARGET_WEBOS TRUE)
+endif()
+
 if (NOT PROTOBUF_C_FOUND)
     option(BUILD_PROTOC "Disable protoc-c" OFF)
     add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
     set(PROTOBUF_C_FOUND 1)
     set(PROTOBUF_C_LIBRARIES protobuf-c)
+    set(PROTOBUF_C_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/third_party/protobuf-c)
 endif()
 
 if (NOT MBEDCRYPTO_LIBRARY)
     option(ENABLE_TESTING "Disable MbedTLS testing" OFF)
     option(ENABLE_PROGRAMS "Disable MbedTLS programs" OFF)
     add_subdirectory(third_party/mbedtls EXCLUDE_FROM_ALL)
+    set(MBEDTLS_FOUND 1)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
 endif()
 
@@ -58,16 +66,16 @@ target_link_libraries(ihsplay PRIVATE lvgl ihslib)
 target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES})
 
-if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
-    install(TARGETS ihsplay RUNTIME DESTINATION .)
-    install(DIRECTORY deploy/webos DESTINATION .)
+if (TARGET_WEBOS)
+    add_subdirectory(system/webos/tv-native-apis)
+endif ()
 
-    set(CPACK_GENERATOR "External")
-    set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/AresPackage.cmake")
-    set(CPACK_EXTERNAL_ENABLE_STAGING TRUE)
-    set(CPACK_MONOLITHIC_INSTALL TRUE)
+add_subdirectory(modules)
+target_link_libraries(ihsplay PRIVATE ihsplay-mod-common)
 
-    include(CPack)
-
-    add_custom_target(ihsplay-package COMMAND cpack)
+if (TARGET_WEBOS)
+    target_link_libraries(ihsplay PRIVATE ihsplay-mod-ndl)
+    include(PackageWebOS)
+else()
+    target_link_libraries(ihsplay PRIVATE ihsplay-mod-raspi)
 endif ()
