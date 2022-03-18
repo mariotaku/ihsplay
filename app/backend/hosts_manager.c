@@ -100,6 +100,7 @@ void host_manager_unregister_listener(host_manager_t *manager, const host_manage
     }
     if (item == NULL) return;
     _lv_ll_remove(&manager->listeners, item);
+    lv_mem_free(item);
 }
 
 static Uint32 discovery_timer(Uint32 interval, void *param) {

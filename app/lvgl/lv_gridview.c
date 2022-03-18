@@ -288,6 +288,8 @@ static void lv_gridview_destructor(const lv_obj_class_t *class_p, lv_obj_t *obj)
         lv_mem_free(grid->row_dsc);
     }
     lv_mem_free(grid->col_dsc);
+    lv_style_reset(&grid->style_scrollbar);
+    lv_style_reset(&grid->style_scrollbar_scrolled);
 }
 
 static void lv_gridview_event(const lv_obj_class_t *class_p, lv_event_t *e) {

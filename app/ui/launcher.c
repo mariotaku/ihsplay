@@ -6,7 +6,7 @@
 typedef struct app_root_fragment {
     lv_fragment_t base;
     app_t *app;
-    lv_coord_t col_dsc[3], row_dsc[7];
+    lv_coord_t col_dsc[3], row_dsc[8];
     lv_obj_t *nav_content;
 } app_root_fragment;
 
@@ -15,6 +15,8 @@ static void constructor(lv_fragment_t *self, void *arg);
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
 static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt);
+
+static void launcher_quit(lv_event_t *e);
 
 const lv_fragment_class_t launcher_fragment_class = {
         .constructor_cb = constructor,
@@ -34,8 +36,9 @@ static void constructor(lv_fragment_t *self, void *arg) {
     fragment->row_dsc[2] = LV_GRID_CONTENT;
     fragment->row_dsc[3] = LV_GRID_CONTENT;
     fragment->row_dsc[4] = LV_GRID_CONTENT;
-    fragment->row_dsc[5] = LV_GRID_FR(1);
-    fragment->row_dsc[6] = LV_GRID_TEMPLATE_LAST;
+    fragment->row_dsc[5] = LV_GRID_CONTENT;
+    fragment->row_dsc[6] = LV_GRID_FR(1);
+    fragment->row_dsc[7] = LV_GRID_TEMPLATE_LAST;
 }
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
@@ -65,8 +68,12 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_t *btn_support = nav_btn_create(root, "Support");
     lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_SPACE_AROUND, 4, 1);
 
+    lv_obj_t *btn_quit = nav_btn_create(root, "Quit");
+    lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_SPACE_AROUND, 5, 1);
+    lv_obj_add_event_cb(btn_quit, launcher_quit, LV_EVENT_CLICKED, fragment->app);
+
     lv_obj_t *nav_content = lv_obj_create(root);
-    lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 2, 4);
+    lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 2, 5);
     fragment->nav_content = nav_content;
 
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
@@ -81,4 +88,8 @@ static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt) {
     lv_obj_t *label = lv_label_create(btn);
     lv_label_set_text(label, txt);
     return btn;
+}
+
+static void launcher_quit(lv_event_t *e) {
+    app_quit(lv_event_get_user_data(e));
 }
