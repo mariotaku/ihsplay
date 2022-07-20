@@ -9,6 +9,7 @@ typedef struct session_fragment_t {
     app_t *app;
     IHS_Session *session;
     array_list_t *cursors;
+    uint64_t cursor_id;
 } session_fragment_t;
 
 typedef struct cursor_t {
@@ -103,6 +104,7 @@ static void session_show_cursor(IHS_Session *session, float x, float y, void *co
 
 static bool session_set_cursor(IHS_Session *session, uint64_t cursorId, void *context) {
     session_fragment_t *fragment = context;
+    fragment->cursor_id = cursorId;
     cursor_t *cursor = NULL;
     for (int i = 0, j = array_list_size(fragment->cursors); i < j; ++i) {
         cursor_t *item = array_list_get(fragment->cursors, i);
@@ -138,6 +140,10 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
     cursor->id = image->cursorId;
     cursor->cursor = SDL_CreateColorCursor(surface, image->hotX, image->hotY);
     SDL_FreeSurface(surface);
+
+    if (fragment->cursor_id == cursor->id) {
+        SDL_SetCursor(cursor->cursor);
+    }
 }
 
 static void session_log(IHS_LogLevel level, const char *message) {
