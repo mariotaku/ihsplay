@@ -7,10 +7,15 @@ typedef struct app_root_fragment {
     lv_fragment_t base;
     app_t *app;
     lv_coord_t col_dsc[3], row_dsc[8];
+    struct {
+        lv_style_t root;
+    } styles;
     lv_obj_t *nav_content;
 } app_root_fragment;
 
 static void constructor(lv_fragment_t *self, void *arg);
+
+static void destructor(lv_fragment_t *self);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
@@ -20,6 +25,7 @@ static void launcher_quit(lv_event_t *e);
 
 const lv_fragment_class_t launcher_fragment_class = {
         .constructor_cb = constructor,
+        .destructor_cb = destructor,
         .create_obj_cb = create_obj,
         .instance_size = sizeof(app_root_fragment),
 };
@@ -39,13 +45,25 @@ static void constructor(lv_fragment_t *self, void *arg) {
     fragment->row_dsc[5] = LV_GRID_CONTENT;
     fragment->row_dsc[6] = LV_GRID_FR(1);
     fragment->row_dsc[7] = LV_GRID_TEMPLATE_LAST;
+
+    lv_style_init(&fragment->styles.root);
+    lv_style_set_pad_row(&fragment->styles.root, LV_DPX(10));
+    lv_style_set_pad_column(&fragment->styles.root, LV_DPX(40));
+    lv_style_set_pad_hor(&fragment->styles.root, LV_DPX(30));
+    lv_style_set_pad_ver(&fragment->styles.root, LV_DPX(40));
+    lv_style_set_bg_opa(&fragment->styles.root, LV_OPA_COVER);
+    lv_style_set_bg_color(&fragment->styles.root, lv_color_black());
+}
+
+static void destructor(lv_fragment_t *self) {
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    lv_style_reset(&fragment->styles.root);
 }
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     app_root_fragment *fragment = (app_root_fragment *) self;
     lv_obj_t *root = lv_obj_create(container);
-    lv_obj_set_style_bg_opa(root, LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(root, lv_color_black(), 0);
+    lv_obj_add_style(root, &fragment->styles.root, 0);
     lv_obj_set_layout(root, LV_LAYOUT_GRID);
     lv_obj_set_grid_dsc_array(root, fragment->col_dsc, fragment->row_dsc);
 

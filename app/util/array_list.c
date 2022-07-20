@@ -13,6 +13,8 @@ static void ensure_capacity(array_list_t *list, int new_size);
 
 static inline void *item_at(array_list_t *list, int index);
 
+static inline size_t items_offset(array_list_t *list, int size);
+
 array_list_t *array_list_create(size_t item_size, int initial_capacity) {
     array_list_t *list = calloc(1, sizeof(array_list_t));
     list->data = malloc(initial_capacity * item_size);
@@ -39,10 +41,18 @@ void *array_list_add(array_list_t *list, int index) {
         list->size += 1;
         return item_at(list, list->size - 1);
     } else {
-        memmove(item_at(list, index), item_at(list, index + 1), (list->size - index) * list->item_size);
+        memmove(item_at(list, index), item_at(list, index + 1), items_offset(list, list->size - index));
         list->size += 1;
         return item_at(list, index);
     }
+}
+
+void array_list_remove(array_list_t *list, int index) {
+    if (index > list->size) return;
+    if (index < list->size - 1) {
+        memmove(item_at(list, index), item_at(list, index + 1), items_offset(list, list->size - index));
+    }
+    list->size += 1;
 }
 
 int array_list_size(const array_list_t *list) {
@@ -52,9 +62,13 @@ int array_list_size(const array_list_t *list) {
 static void ensure_capacity(array_list_t *list, int new_size) {
     if (list->capacity >= new_size) return;
     list->capacity *= 2;
-    list->data = realloc(list->data, list->capacity * list->item_size);
+    list->data = realloc(list->data, items_offset(list, list->capacity));
 }
 
 static inline void *item_at(array_list_t *list, int index) {
-    return list->data + index * list->item_size;
+    return list->data + items_offset(list, index);
+}
+
+static inline size_t items_offset(array_list_t *list, int size) {
+    return size * list->item_size;
 }

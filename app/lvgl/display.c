@@ -17,6 +17,7 @@ lv_disp_t *app_lv_disp_init(SDL_Window *window) {
 
     lv_draw_sdl_drv_param_t *param = lv_mem_alloc(sizeof(lv_draw_sdl_drv_param_t));
     param->renderer = renderer;
+    param->user_data = window;
     driver->user_data = param;
     driver->draw_buf = draw_buf;
     driver->flush_cb = flush_cb;

@@ -1,12 +1,16 @@
 #include <stdlib.h>
+
 #include <lvgl.h>
+#include <src/draw/sdl/lv_draw_sdl.h>
 
 #include "app_ui.h"
 #include "launcher.h"
 
 app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
+    lv_draw_sdl_drv_param_t *param = disp->driver->user_data;
     app_ui_t *ui = calloc(1, sizeof(app_ui_t));
     ui->app = app;
+    ui->window = param->user_data;
     ui->root = lv_disp_get_scr_act(disp);
     ui->fm = lv_fragment_manager_create(NULL);
 

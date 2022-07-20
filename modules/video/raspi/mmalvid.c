@@ -40,6 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ihslib.h>
 
+#include <SDL.h>
+
 #include "decoders.h"
 #include "sps_parser.h"
 
@@ -170,7 +172,12 @@ static int setup_decoder(uint32_t width, uint32_t height) {
     param.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
     param.set = MMAL_DISPLAY_SET_LAYER | MMAL_DISPLAY_SET_NUM | MMAL_DISPLAY_SET_FULLSCREEN |
                 MMAL_DISPLAY_SET_TRANSFORM;
-    param.layer = 10000;
+    const char *vdrv = SDL_GetCurrentVideoDriver();
+    if (strcmp(vdrv, "KMSDRM") == 0 || strcmp(vdrv, "RPI") == 0) {
+        param.layer = 10000;
+    } else {
+        param.layer = 0;
+    }
     param.display_num = 0;
     param.fullscreen = true;
     param.transform = MMAL_DISPLAY_ROT0;
@@ -253,7 +260,6 @@ static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uin
             SizeChanged(&decoder->input[0]->format->es->video, &dimension)) {
             ChangedSize(session, &dimension);
         }
-        printf("keyframe %d x %d\n", dimension.width, dimension.height);
     }
     MMAL_STATUS_T status;
     MMAL_BUFFER_HEADER_T *buf;

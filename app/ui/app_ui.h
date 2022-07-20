@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lvgl.h>
+#include <SDL.h>
 
 typedef struct app_t app_t;
 
@@ -8,6 +9,7 @@ typedef struct app_ui_t {
     app_t *app;
     lv_obj_t *root;
     lv_fragment_manager_t *fm;
+    SDL_Window *window;
 } app_ui_t;
 
 typedef struct app_ui_fragment_args_t {

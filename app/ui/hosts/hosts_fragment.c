@@ -20,6 +20,8 @@ typedef struct host_obj_holder {
 
 static void constructor(lv_fragment_t *self, void *arg);
 
+static void destructor(lv_fragment_t *self);
+
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
 static void obj_created(lv_fragment_t *self, lv_obj_t *obj);
@@ -46,6 +48,7 @@ static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int 
 
 const lv_fragment_class_t hosts_fragment_class = {
         .constructor_cb = constructor,
+        .destructor_cb = destructor,
         .create_obj_cb = create_obj,
         .obj_created_cb = obj_created,
         .obj_will_delete_cb = obj_will_delete,
@@ -70,11 +73,14 @@ static void constructor(lv_fragment_t *self, void *arg) {
     fragment->app = arg;
 }
 
+static void destructor(lv_fragment_t *self) {
+}
+
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     fragment->grid_view = lv_gridview_create(container);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
-    lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(100), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
+    lv_gridview_set_config(fragment->grid_view, 4, LV_DPX(100), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
     return fragment->grid_view;
 }

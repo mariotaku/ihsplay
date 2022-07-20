@@ -10,6 +10,6 @@ target_include_directories(ihsplay-mod-raspi SYSTEM PUBLIC ${CMAKE_CURRENT_SOURC
 target_link_libraries(ihsplay-mod-raspi PRIVATE ihsplay-mod-common)
 
 target_include_directories(ihsplay-mod-raspi PRIVATE ${CMAKE_SOURCE_DIR}/samples SYSTEM PRIVATE
-        ${BROADCOM_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS} ${ALSA_INCLUDE_DIRS})
+        ${BROADCOM_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS} ${ALSA_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS})
 target_link_libraries(ihsplay-mod-raspi PRIVATE Threads::Threads ${BROADCOM_MMAL_LIBRARIES}
-        ${OPUS_LIBRARIES} ${ALSA_LIBRARIES})
+        ${OPUS_LIBRARIES} ${ALSA_LIBRARIES} ${SDL2_LIBRARIES})
