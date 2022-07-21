@@ -14,6 +14,7 @@ typedef struct app_t {
     app_ui_t *ui;
     IHS_ClientConfig client_config;
     host_manager_t *hosts_manager;
+    IHS_Session *active_session;
 } app_t;
 
 typedef enum app_event_type_t {

@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <SDL.h>
 
 #include "app.h"
@@ -35,6 +34,9 @@ void app_destroy(app_t *app) {
 }
 
 void app_quit(app_t *app) {
+    if (app->active_session) {
+        IHS_SessionDisconnect(app->active_session);
+    }
     app->running = false;
 }
 

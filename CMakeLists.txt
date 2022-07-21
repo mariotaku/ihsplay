@@ -42,6 +42,7 @@ if (NOT MBEDCRYPTO_LIBRARY)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
 endif ()
 
+set(IHSLIB_SAMPLES ON)
 add_subdirectory(third_party/ihslib)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)

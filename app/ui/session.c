@@ -9,7 +9,9 @@ typedef struct session_fragment_t {
     app_t *app;
     IHS_Session *session;
     array_list_t *cursors;
+    SDL_Cursor *blank_cursor;
     uint64_t cursor_id;
+    bool cursor_visible;
 } session_fragment_t;
 
 typedef struct cursor_t {
@@ -40,9 +42,13 @@ static void session_disconnected_main(app_t *app, void *context);
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context);
 
+static void session_hide_cursor(IHS_Session *session, void *context);
+
 static bool session_set_cursor(IHS_Session *session, uint64_t cursorId, void *context);
 
 static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCursorImage *image, void *context);
+
+static const cursor_t *session_current_cursor(session_fragment_t *fragment);
 
 static const IHS_StreamSessionCallbacks session_callbacks = {
         .initialized = session_initialized,
@@ -50,6 +56,7 @@ static const IHS_StreamSessionCallbacks session_callbacks = {
 };
 static const IHS_StreamInputCallbacks input_callbacks = {
         .showCursor = session_show_cursor,
+        .hideCursor = session_hide_cursor,
         .setCursor = session_set_cursor,
         .cursorImage = session_cursor_image,
 };
@@ -67,13 +74,18 @@ static void constructor(lv_fragment_t *self, void *args) {
     IHS_SessionSetAudioCallbacks(session, module_audio_callbacks(), NULL);
     IHS_SessionSetVideoCallbacks(session, module_video_callbacks(), NULL);
     IHS_SessionThreadedRun(session);
+    fragment->app->active_session = session;
+    const static Uint8 blank_pixel[1] = {0};
+    fragment->blank_cursor = SDL_CreateCursor(blank_pixel, blank_pixel, 1, 1, 0, 0);
 }
 
 static void destructor(lv_fragment_t *self) {
     session_fragment_t *fragment = (session_fragment_t *) self;
     IHS_SessionThreadedJoin(fragment->session);
     IHS_SessionDestroy(fragment->session);
+    fragment->app->active_session = NULL;
     array_list_destroy(fragment->cursors);
+    SDL_FreeCursor(fragment->blank_cursor);
 }
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
@@ -92,6 +104,7 @@ static void session_disconnected(IHS_Session *session, void *context) {
 
 static void session_disconnected_main(app_t *app, void *context) {
     LV_UNUSED(context);
+    SDL_SetCursor(SDL_GetDefaultCursor());
     app_ui_pop_fragment(app->ui);
 }
 
@@ -100,24 +113,46 @@ static void session_show_cursor(IHS_Session *session, float x, float y, void *co
     int w = 0, h = 0;
     SDL_GetWindowSize(fragment->app->ui->window, &w, &h);
     SDL_WarpMouseInWindow(fragment->app->ui->window, (int) (x * w), (int) (y * h));
+    if (!fragment->cursor_visible) {
+        fragment->cursor_visible = true;
+        const cursor_t *cursor = session_current_cursor(fragment);
+        if (cursor != NULL) {
+            SDL_SetCursor(cursor->cursor);
+        }
+    }
 }
 
 static bool session_set_cursor(IHS_Session *session, uint64_t cursorId, void *context) {
     session_fragment_t *fragment = context;
     fragment->cursor_id = cursorId;
+    const cursor_t *cursor = session_current_cursor(fragment);
+    if (!cursor) {
+        return false;
+    }
+    if (fragment->cursor_visible) {
+        SDL_SetCursor(cursor->cursor);
+    }
+    return true;
+}
+
+static void session_hide_cursor(IHS_Session *session, void *context) {
+    session_fragment_t *fragment = context;
+    if (fragment->cursor_visible) {
+        fragment->cursor_visible = false;
+        SDL_SetCursor(fragment->blank_cursor);
+    }
+}
+
+static const cursor_t *session_current_cursor(session_fragment_t *fragment) {
     cursor_t *cursor = NULL;
     for (int i = 0, j = array_list_size(fragment->cursors); i < j; ++i) {
         cursor_t *item = array_list_get(fragment->cursors, i);
-        if (item->id == cursorId) {
+        if (item->id == fragment->cursor_id) {
             cursor = item;
             break;
         }
     }
-    if (!cursor) {
-        return false;
-    }
-    SDL_SetCursor(cursor->cursor);
-    return true;
+    return cursor;
 }
 
 static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCursorImage *image, void *context) {
@@ -141,7 +176,7 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
     cursor->cursor = SDL_CreateColorCursor(surface, image->hotX, image->hotY);
     SDL_FreeSurface(surface);
 
-    if (fragment->cursor_id == cursor->id) {
+    if (fragment->cursor_visible && fragment->cursor_id == cursor->id) {
         SDL_SetCursor(cursor->cursor);
     }
 }
@@ -149,7 +184,7 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
 static void session_log(IHS_LogLevel level, const char *message) {
     if (level >= IHS_BaseLogLevelWarn) {
         fprintf(stderr, "[IHSSession] %s\n", message);
-    } else if (level >= IHS_BaseLogLevelInfo) {
+    } else {
         printf("[IHSSession] %s\n", message);
     }
 }
