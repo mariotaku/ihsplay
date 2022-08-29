@@ -67,6 +67,7 @@ add_executable(ihsplay
         app/ui/session.c
         app/ui/hosts/hosts_fragment.c
         app/util/array_list.c
+        app/settings/settings.c
         )
 target_include_directories(ihsplay PRIVATE app)
 

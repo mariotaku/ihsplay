@@ -36,7 +36,11 @@ const lv_fragment_class_t session_fragment_class = {
 
 static void session_initialized(IHS_Session *session, void *context);
 
+static void session_connected(IHS_Session *session, void *context);
+
 static void session_disconnected(IHS_Session *session, void *context);
+
+static void session_connected_main(app_t *app, void *context);
 
 static void session_disconnected_main(app_t *app, void *context);
 
@@ -52,6 +56,7 @@ static const cursor_t *session_current_cursor(session_fragment_t *fragment);
 
 static const IHS_StreamSessionCallbacks session_callbacks = {
         .initialized = session_initialized,
+        .connected = session_connected,
         .disconnected = session_disconnected,
 };
 static const IHS_StreamInputCallbacks input_callbacks = {
@@ -97,22 +102,35 @@ static void session_initialized(IHS_Session *session, void *context) {
     IHS_SessionConnect(session);
 }
 
+static void session_connected(IHS_Session *session, void *context) {
+    LV_UNUSED(session);
+    session_fragment_t *fragment = context;
+    app_run_on_main(fragment->app, session_connected_main, context);
+}
+
 static void session_disconnected(IHS_Session *session, void *context) {
+    LV_UNUSED(session);
     session_fragment_t *fragment = context;
     app_run_on_main(fragment->app, session_disconnected_main, context);
 }
 
+static void session_connected_main(app_t *app, void *context) {
+    LV_UNUSED(context);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
 static void session_disconnected_main(app_t *app, void *context) {
     LV_UNUSED(context);
+    SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_SetCursor(SDL_GetDefaultCursor());
     app_ui_pop_fragment(app->ui);
 }
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {
     session_fragment_t *fragment = context;
-    int w = 0, h = 0;
-    SDL_GetWindowSize(fragment->app->ui->window, &w, &h);
-    SDL_WarpMouseInWindow(fragment->app->ui->window, (int) (x * w), (int) (y * h));
+//    int w = 0, h = 0;
+//    SDL_GetWindowSize(fragment->app->ui->window, &w, &h);
+//    SDL_WarpMouseInWindow(fragment->app->ui->window, (int) (x * w), (int) (y * h));
     if (!fragment->cursor_visible) {
         fragment->cursor_visible = true;
         const cursor_t *cursor = session_current_cursor(fragment);

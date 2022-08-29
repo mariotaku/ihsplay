@@ -6,12 +6,14 @@
 
 #include "ihslib.h"
 #include "backend/hosts_manager.h"
+#include "settings/app_settings.h"
 
 typedef struct app_ui_t app_ui_t;
 
 typedef struct app_t {
     bool running;
     app_ui_t *ui;
+    app_settings_t settings;
     IHS_ClientConfig client_config;
     host_manager_t *hosts_manager;
     IHS_Session *active_session;

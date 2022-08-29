@@ -2,6 +2,7 @@
 #include <lvgl.h>
 
 #include "app.h"
+#include "ui/app_ui.h"
 #include "module.h"
 #include "lvgl/display.h"
 #include "lvgl/mouse.h"
@@ -60,6 +61,72 @@ static void process_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
+            case SDL_MOUSEMOTION: {
+                IHS_Session *session = app->active_session;
+                if (!session) {
+                    break;
+                }
+                if (app->settings.relmouse) {
+                    IHS_SessionSendMouseMovement(session, event.motion.xrel, event.motion.yrel);
+                } else {
+                    int w, h;
+                    SDL_GetWindowSize(app->ui->window, &w, &h);
+                    IHS_SessionSendMousePosition(session, (float) event.motion.x / (float) w,
+                                                 (float) event.motion.y / (float) h);
+                }
+                break;
+            }
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP: {
+                IHS_Session *session = app->active_session;
+                if (!session) {
+                    break;
+                }
+                IHS_StreamInputMouseButton button = 0;
+                switch (event.button.button) {
+                    case SDL_BUTTON_LEFT:
+                        button = IHS_MOUSE_BUTTON_LEFT;
+                        break;
+                    case SDL_BUTTON_RIGHT:
+                        button = IHS_MOUSE_BUTTON_RIGHT;
+                        break;
+                    case SDL_BUTTON_MIDDLE:
+                        button = IHS_MOUSE_BUTTON_MIDDLE;
+                        break;
+                    case SDL_BUTTON_X1:
+                        button = IHS_MOUSE_BUTTON_X1;
+                        break;
+                    case SDL_BUTTON_X2:
+                        button = IHS_MOUSE_BUTTON_X2;
+                        break;
+                }
+                if (button != 0) {
+                    if (event.button.state == SDL_RELEASED) {
+                        IHS_SessionSendMouseUp(session, button);
+                    } else {
+                        IHS_SessionSendMouseDown(session, button);
+                    }
+                }
+                break;
+            }
+            case SDL_MOUSEWHEEL: {
+                IHS_Session *session = app->active_session;
+                if (!session) {
+                    break;
+                }
+                Sint32 x = event.wheel.x, y = event.wheel.y;
+                if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+                    x *= -1;
+                    y *= -1;
+                }
+                if (x != 0) {
+                    IHS_SessionSendMouseWheel(session, x < 0 ? IHS_MOUSE_WHEEL_LEFT : IHS_MOUSE_WHEEL_RIGHT);
+                }
+                if (y != 0) {
+                    IHS_SessionSendMouseWheel(session, y > 0 ? IHS_MOUSE_WHEEL_UP : IHS_MOUSE_WHEEL_DOWN);
+                }
+                break;
+            }
             case SDL_QUIT:
                 app_quit(app);
                 break;

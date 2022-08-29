@@ -139,9 +139,6 @@ static void client_host_discovered(IHS_Client *client, IHS_HostInfo host, void *
     host_manager_t *manager = context;
     IHS_HostInfo *host_copy = SDL_calloc(1, sizeof(IHS_HostInfo));
     *host_copy = host;
-    char *ip_str = IHS_IPAddressToString(&host.address.ip);
-    fprintf(stderr, "[IHSClient] discovered %s: %s\n", ip_str, host.hostname);
-    free(ip_str);
     app_run_on_main(manager->app, client_host_discovered_main, host_copy);
 }
 

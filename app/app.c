@@ -20,6 +20,7 @@ static const IHS_ClientConfig clientConfig = {
 
 app_t *app_create(lv_disp_t *disp) {
     app_t *app = calloc(1, sizeof(app_t));
+    app_settings_initialize(&app->settings);
     app->running = true;
     app->client_config = clientConfig;
     app->hosts_manager = host_manager_create(app);
