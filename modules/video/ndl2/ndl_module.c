@@ -21,7 +21,9 @@ static void media_unload();
 
 static int media_reload();
 
+static bool media_initialized = false;
 static bool media_loaded = false;
+
 static NDL_DIRECTMEDIA_DATA_INFO media_info = {
         .audio.type = 0,
         .video.type = 0
@@ -40,11 +42,14 @@ static const IHS_StreamVideoCallbacks video_callbacks = {
 };
 
 void module_init(int argc, char *argv[]) {
-    NDL_DirectMediaInit(getenv("APPID"), NULL);
 }
 
 void module_post_init(int argc, char *argv[]) {
-
+    if (NDL_DirectMediaInit(getenv("APPID"), NULL) == 0) {
+        media_initialized = true;
+    } else {
+        media_initialized = false;
+    }
 }
 
 const IHS_StreamAudioCallbacks *module_audio_callbacks() {
@@ -97,6 +102,7 @@ static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config
     }
     media_info.video.width = (int) config->width;
     media_info.video.height = (int) config->height;
+    media_info.video.unknown1 = 0;
     return media_reload();
 }
 
@@ -114,13 +120,22 @@ static void media_load_callback(int type, long long numValue, const char *strVal
 }
 
 static void media_unload() {
-    if (!media_loaded) return;
-    NDL_DirectMediaUnload();
-    media_loaded = false;
+    if (media_loaded) {
+        NDL_DirectMediaUnload();
+        media_loaded = false;
+    }
+    if (media_initialized) {
+        NDL_DirectMediaQuit();
+        media_initialized = false;
+    }
 }
 
 static int media_reload() {
     media_unload();
+    if (!media_initialized) {
+        NDL_DirectMediaInit(getenv("APPID"), NULL);
+        media_initialized = true;
+    }
     int ret = NDL_DirectMediaLoad(&media_info, media_load_callback);
     media_loaded = ret == 0;
     return ret;

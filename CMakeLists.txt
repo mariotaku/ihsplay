@@ -35,7 +35,10 @@ if (NOT MBEDCRYPTO_LIBRARY)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
 endif ()
 
-set(IHSLIB_SAMPLES ON)
+if (NOT TARGET_WEBOS)
+    set(IHSLIB_SAMPLES ON)
+endif ()
+
 add_subdirectory(third_party/ihslib)
 add_sanitizers(ihslib)
 add_sanitizers(sample-stream)
@@ -74,6 +77,7 @@ target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES})
 
 if (TARGET_WEBOS)
+    target_link_libraries(ihsplay PRIVATE rt)
     add_subdirectory(system/webos/tv-native-apis)
 endif ()
 
