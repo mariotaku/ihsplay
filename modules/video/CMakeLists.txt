@@ -1,5 +1,5 @@
 if (TARGET_WEBOS)
-    add_subdirectory(ndl)
+    add_subdirectory(ndl2)
 else()
     add_subdirectory(raspi)
 endif()

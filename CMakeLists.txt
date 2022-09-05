@@ -2,19 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 
 project(ihsplay VERSION 0.0.1 LANGUAGES C)
 
-option(ENABLE_SANITIZER "Enable memory sanitizer (only for debug builds)" OFF)
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
-if (ENABLE_SANITIZER)
-    string(APPEND CMAKE_C_FLAGS_DEBUG " -fno-omit-frame-pointer -fsanitize=address")
-    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-omit-frame-pointer -fsanitize=address")
-    string(APPEND CMAKE_LINKER_FLAGS_DEBUG " -fno-omit-frame-pointer -fsanitize=address")
-    message("-- Sanitizer enabled")
-endif ()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
 
 # Use `pkg-config` to link needed libraries.
 find_package(PkgConfig REQUIRED)
+
+find_package(Sanitizers)
 
 # Use SDL2 for window creation and event handling.
 pkg_check_modules(SDL2 REQUIRED sdl2)
@@ -44,6 +37,9 @@ endif ()
 
 set(IHSLIB_SAMPLES ON)
 add_subdirectory(third_party/ihslib)
+add_sanitizers(ihslib)
+add_sanitizers(sample-stream)
+add_sanitizers(sample-discover)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 
@@ -90,3 +86,5 @@ if (TARGET_WEBOS)
 else ()
     target_link_libraries(ihsplay PRIVATE ihsplay-mod-raspi)
 endif ()
+
+add_sanitizers(ihsplay)
