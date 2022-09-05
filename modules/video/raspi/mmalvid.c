@@ -50,6 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ALIGN(x, a) (((x)+(a)-1)&~((a)-1))
 
 
+static bool started = false;
 static VCOS_SEMAPHORE_T semaphore;
 static MMAL_COMPONENT_T *decoder = NULL, *renderer = NULL;
 static MMAL_POOL_T *pool_in = NULL, *pool_out = NULL;
@@ -233,10 +234,12 @@ static int setup_decoder(uint32_t width, uint32_t height) {
     }
 
     printf("mmal decoder initialized\n");
+    started = true;
     return 0;
 }
 
 static void Stop(IHS_Session *session, void *context) {
+    started = false;
     if (decoder)
         mmal_component_destroy(decoder);
 
@@ -252,9 +255,12 @@ static void Stop(IHS_Session *session, void *context) {
     vcos_semaphore_delete(&semaphore);
 }
 
-static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uint16_t sequence,
+static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uint16_t sequence, uint16_t slice,
                   IHS_StreamVideoFrameFlag flags, void *context) {
-    if (flags == IHS_StreamVideoFrameKeyFrame) {
+    if (!started) {
+        return DR_NEED_IDR;
+    }
+    if (flags == IHS_StreamVideoFrameKeyFrame && slice == 0) {
         sps_dimension_t dimension;
         if (sps_parse_dimension_h264(&data[4], &dimension) &&
             SizeChanged(&decoder->input[0]->format->es->video, &dimension)) {
@@ -280,7 +286,7 @@ static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uin
 //        buf->flags |= MMAL_BUFFER_HEADER_FLAG_FRAME_START;
 //        first_entry = true;
 //    }
-    if (flags & IHS_StreamVideoFrameKeyFrame) {
+    if (flags & IHS_StreamVideoFrameKeyFrame && slice == 0) {
         buf->flags |= MMAL_BUFFER_HEADER_FLAG_KEYFRAME;
     }
 
