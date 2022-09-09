@@ -12,8 +12,8 @@ static void audio_stop(IHS_Session *session, void *context);
 
 static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config, void *context);
 
-static int video_submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uint16_t sequence,
-                        IHS_StreamVideoFrameFlag flags, void *context);
+static int video_submit(IHS_Session *session, const uint8_t *data, size_t dataLen, IHS_StreamVideoFrameFlag flags,
+                        void *context);
 
 static void video_stop(IHS_Session *session, void *context);
 
@@ -106,8 +106,8 @@ static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config
     return media_reload();
 }
 
-static int video_submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uint16_t sequence,
-                        IHS_StreamVideoFrameFlag flags, void *context) {
+static int video_submit(IHS_Session *session, const uint8_t *data, size_t dataLen, IHS_StreamVideoFrameFlag flags,
+                        void *context) {
     return NDL_DirectVideoPlay(data, dataLen, 0);
 }
 

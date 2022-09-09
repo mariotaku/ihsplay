@@ -255,12 +255,12 @@ static void Stop(IHS_Session *session, void *context) {
     vcos_semaphore_delete(&semaphore);
 }
 
-static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uint16_t sequence, uint16_t slice,
-                  IHS_StreamVideoFrameFlag flags, void *context) {
+static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, IHS_StreamVideoFrameFlag flags,
+                  void *context) {
     if (!started) {
         return DR_NEED_IDR;
     }
-    if (flags == IHS_StreamVideoFrameKeyFrame && slice == 0) {
+    if (flags == IHS_StreamVideoFrameKeyFrame) {
         sps_dimension_t dimension;
         if (sps_parse_dimension_h264(&data[4], &dimension) &&
             SizeChanged(&decoder->input[0]->format->es->video, &dimension)) {
@@ -286,7 +286,7 @@ static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, uin
 //        buf->flags |= MMAL_BUFFER_HEADER_FLAG_FRAME_START;
 //        first_entry = true;
 //    }
-    if (flags & IHS_StreamVideoFrameKeyFrame && slice == 0) {
+    if (flags & IHS_StreamVideoFrameKeyFrame) {
         buf->flags |= MMAL_BUFFER_HEADER_FLAG_KEYFRAME;
     }
 
