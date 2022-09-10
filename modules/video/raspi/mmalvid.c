@@ -255,14 +255,14 @@ static void Stop(IHS_Session *session, void *context) {
     vcos_semaphore_delete(&semaphore);
 }
 
-static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, IHS_StreamVideoFrameFlag flags,
+static int Submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoFrameFlag flags,
                   void *context) {
     if (!started) {
         return DR_NEED_IDR;
     }
     if (flags == IHS_StreamVideoFrameKeyFrame) {
         sps_dimension_t dimension;
-        if (sps_parse_dimension_h264(&data[4], &dimension) &&
+        if (sps_parse_dimension_h264(IHS_BufferPointerAt(data, 4), &dimension) &&
             SizeChanged(&decoder->input[0]->format->es->video, &dimension)) {
             ChangedSize(session, &dimension);
         }
@@ -290,13 +290,13 @@ static int Submit(IHS_Session *session, const uint8_t *data, size_t dataLen, IHS
         buf->flags |= MMAL_BUFFER_HEADER_FLAG_KEYFRAME;
     }
 
-    if (dataLen + buf->length > buf->alloc_size) {
+    if (data->size + buf->length > buf->alloc_size) {
         fprintf(stderr, "Video decoder buffer too small\n");
         mmal_buffer_header_release(buf);
         return DR_NEED_IDR;
     }
-    memcpy(buf->data + buf->length, data, dataLen);
-    buf->length += dataLen;
+    IHS_BufferCopyToMem(data, buf->data + buf->length, data->size);
+    buf->length += data->size;
 
     if ((status = mmal_port_send_buffer(decoder->input[0], buf)) != MMAL_SUCCESS) {
         mmal_buffer_header_release(buf);
