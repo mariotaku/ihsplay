@@ -39,7 +39,7 @@ if (NOT TARGET_WEBOS)
     set(IHSLIB_SAMPLES ON)
 endif ()
 
-add_subdirectory(third_party/ihslib)
+add_subdirectory(core)
 add_sanitizers(ihslib)
 add_sanitizers(sample-stream)
 add_sanitizers(sample-discover)
