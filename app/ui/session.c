@@ -200,7 +200,7 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
 }
 
 static void session_log(IHS_LogLevel level, const char *message) {
-    if (level >= IHS_BaseLogLevelWarn) {
+    if (level >= IHS_LogLevelWarn) {
         fprintf(stderr, "[IHSSession] %s\n", message);
     } else {
         printf("[IHSSession] %s\n", message);

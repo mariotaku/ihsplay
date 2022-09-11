@@ -17,7 +17,11 @@ include(CPack)
 add_custom_target(ihsplay-package COMMAND cpack DEPENDS ihsplay)
 
 add_custom_target(ihsplay-install
-        COMMAND echo ${WEBOS_PACKAGE_PATH}
-        COMMAND ares-install ${CMAKE_SOURCE_DIR}/dist/org.mariotaku.ihsplay_0.0.1_arm.ipk
+        COMMAND ares-install ${CMAKE_SOURCE_DIR}/dist/org.mariotaku.ihsplay_${PROJECT_VERSION}_arm.ipk
         DEPENDS ihsplay-package
+        )
+
+add_custom_target(ihsplay-launch
+        COMMAND ares-launch org.mariotaku.ihsplay
+        DEPENDS ihsplay-install
         )

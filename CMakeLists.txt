@@ -19,7 +19,7 @@ if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
 endif ()
 
-if (NOT PROTOBUF_C_FOUND)
+if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDE_DIRS)
     option(BUILD_PROTOC "Disable protoc-c" OFF)
     add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
     set(PROTOBUF_C_FOUND 1)
