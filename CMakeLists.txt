@@ -35,10 +35,6 @@ if (NOT MBEDCRYPTO_LIBRARY)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
 endif ()
 
-if (NOT TARGET_WEBOS)
-    set(IHSLIB_SAMPLES ON)
-endif ()
-
 add_subdirectory(core)
 add_sanitizers(ihslib)
 add_sanitizers(sample-authorize)

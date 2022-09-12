@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ihslib.h>
+#include "ihslib.h"
 
 void module_init(int argc, char *argv[]);
 
