@@ -146,7 +146,7 @@ static void client_streaming_success(IHS_Client *client, IHS_SocketAddress addre
                                      size_t sessionKeyLen, void *context) {
     LV_UNUSED(client);
     host_manager_t *manager = context;
-    IHS_SessionConfig *config = SDL_calloc(1, sizeof(IHS_SessionConfig));
+    IHS_SessionInfo *config = SDL_calloc(1, sizeof(IHS_SessionInfo));
     config->address = address;
     SDL_memcpy(config->sessionKey, sessionKey, sessionKeyLen);
     config->sessionKeyLen = sessionKeyLen;
@@ -181,7 +181,7 @@ static void client_host_discovered_main(app_t *app, void *data) {
 
 static void client_streaming_success_main(app_t *app, void *data) {
     host_manager_t *manager = app->hosts_manager;
-    IHS_SessionConfig *config = data;
+    IHS_SessionInfo *config = data;
 
     LISTENERS_NOTIFY(manager, session_started, config);
     SDL_free(config);

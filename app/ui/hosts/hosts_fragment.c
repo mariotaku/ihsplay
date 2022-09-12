@@ -32,7 +32,7 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
 static void hosts_reloaded(array_list_t *list, void *context);
 
-static void session_started(const IHS_SessionConfig *config, void *context);
+static void session_started(const IHS_SessionInfo *config, void *context);
 
 static int host_item_count(lv_obj_t *grid, void *data);
 
@@ -110,7 +110,7 @@ static void hosts_reloaded(array_list_t *list, void *context) {
     lv_gridview_set_data(fragment->grid_view, list);
 }
 
-static void session_started(const IHS_SessionConfig *config, void *context) {
+static void session_started(const IHS_SessionInfo *config, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
     app_ui_push_fragment(fragment->app->ui, &session_fragment_class, (void *) config);
 }

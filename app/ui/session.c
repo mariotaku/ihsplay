@@ -36,6 +36,8 @@ const lv_fragment_class_t session_fragment_class = {
 
 static void session_initialized(IHS_Session *session, void *context);
 
+static void session_configuring(IHS_Session *session, IHS_SessionConfig *config, void *context);
+
 static void session_connected(IHS_Session *session, void *context);
 
 static void session_disconnected(IHS_Session *session, void *context);
@@ -56,6 +58,7 @@ static const cursor_t *session_current_cursor(session_fragment_t *fragment);
 
 static const IHS_StreamSessionCallbacks session_callbacks = {
         .initialized = session_initialized,
+        .configuring = session_configuring,
         .connected = session_connected,
         .disconnected = session_disconnected,
 };
@@ -100,6 +103,10 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 static void session_initialized(IHS_Session *session, void *context) {
     LV_UNUSED(context);
     IHS_SessionConnect(session);
+}
+
+static void session_configuring(IHS_Session *session, IHS_SessionConfig *config, void *context) {
+    config->enableHevc = true;
 }
 
 static void session_connected(IHS_Session *session, void *context) {
