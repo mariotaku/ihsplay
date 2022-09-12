@@ -1,6 +1,7 @@
 #include "launcher.h"
 #include "app.h"
 #include "ui/hosts/hosts_fragment.h"
+#include "ui/settings/settings.h"
 #include "app_ui.h"
 
 typedef struct app_root_fragment {
@@ -20,6 +21,12 @@ static void destructor(lv_fragment_t *self);
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
 static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt);
+
+static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t *cls);
+
+static void launcher_hosts(lv_event_t *e);
+
+static void launcher_settings(lv_event_t *e);
 
 static void launcher_quit(lv_event_t *e);
 
@@ -79,9 +86,11 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 
     lv_obj_t *btn_servers = nav_btn_create(root, "Start Playing");
     lv_obj_set_grid_cell(btn_servers, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_SPACE_AROUND, 2, 1);
+    lv_obj_add_event_cb(btn_servers, launcher_hosts, LV_EVENT_CLICKED, fragment);
 
     lv_obj_t *btn_settings = nav_btn_create(root, "Settings");
     lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_SPACE_AROUND, 3, 1);
+    lv_obj_add_event_cb(btn_settings, launcher_settings, LV_EVENT_CLICKED, fragment);
 
     lv_obj_t *btn_support = nav_btn_create(root, "Support");
     lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_SPACE_AROUND, 4, 1);
@@ -96,8 +105,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
 
-    lv_fragment_t *f = lv_fragment_create(&hosts_fragment_class, fragment->app);
-    lv_fragment_manager_replace(self->child_manager, f, &fragment->nav_content);
+    launcher_open(fragment, &hosts_fragment_class);
     return root;
 }
 
@@ -106,6 +114,26 @@ static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt) {
     lv_obj_t *label = lv_label_create(btn);
     lv_label_set_text(label, txt);
     return btn;
+}
+
+static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t *cls) {
+    lv_fragment_manager_t *manager = ((lv_fragment_t *) fragment)->child_manager;
+    lv_fragment_t *current = lv_fragment_manager_find_by_container(manager, fragment->nav_content);
+    if (current != NULL && current->cls == cls) {
+        return;
+    }
+    lv_fragment_t *f = lv_fragment_create(cls, fragment->app);
+    lv_fragment_manager_replace(manager, f, &fragment->nav_content);
+}
+
+static void launcher_hosts(lv_event_t *e) {
+    app_root_fragment *fragment = lv_event_get_user_data(e);
+    launcher_open(fragment, &hosts_fragment_class);
+}
+
+static void launcher_settings(lv_event_t *e) {
+    app_root_fragment *fragment = lv_event_get_user_data(e);
+    launcher_open(fragment, &settings_fragment_class);
 }
 
 static void launcher_quit(lv_event_t *e) {

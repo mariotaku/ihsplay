@@ -3,8 +3,8 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake/sanitizers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/core" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/system/webos/tv-native-apis" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/third_party/ihslib" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third_party/lvgl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third_party/mbedtls" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third_party/protobuf-c" vcs="Git" />

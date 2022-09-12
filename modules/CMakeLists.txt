@@ -1,5 +1,5 @@
 add_library(ihslib-interface INTERFACE)
-target_include_directories(ihslib-interface SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/third_party/ihslib/include)
+target_include_directories(ihslib-interface SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/core/include)
 
 add_subdirectory(common)
 

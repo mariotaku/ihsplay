@@ -25,7 +25,7 @@ static void destructor(lv_fragment_t *self);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
-static void session_log(IHS_LogLevel level, const char *message);
+static void session_log(IHS_LogLevel level, const char *tag, const char *message);
 
 const lv_fragment_class_t session_fragment_class = {
         .constructor_cb = constructor,
@@ -199,10 +199,22 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
     }
 }
 
-static void session_log(IHS_LogLevel level, const char *message) {
-    if (level >= IHS_LogLevelWarn) {
-        fprintf(stderr, "[IHSSession] %s\n", message);
-    } else {
-        printf("[IHSSession] %s\n", message);
+static void session_log(IHS_LogLevel level, const char *tag, const char *message) {
+    switch (level) {
+        case IHS_LogLevelInfo:
+            fprintf(stderr, "[IHS.%s]\x1b[36m %s\x1b[0m\n", tag, message);
+            break;
+        case IHS_LogLevelWarn:
+            fprintf(stderr, "[IHS.%s]\x1b[33m %s\x1b[0m\n", tag, message);
+            break;
+        case IHS_LogLevelError:
+            fprintf(stderr, "[IHS.%s]\x1b[31m %s\x1b[0m\n", tag, message);
+            break;
+        case IHS_LogLevelFatal:
+            fprintf(stderr, "[IHS.%s]\x1b[41m %s\x1b[0m\n", tag, message);
+            break;
+        default:
+            fprintf(stderr, "[IHS.%s] %s\n", tag, message);
+            break;
     }
 }

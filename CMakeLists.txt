@@ -41,6 +41,7 @@ endif ()
 
 add_subdirectory(core)
 add_sanitizers(ihslib)
+add_sanitizers(sample-authorize)
 add_sanitizers(sample-stream)
 add_sanitizers(sample-discover)
 
@@ -65,6 +66,7 @@ add_executable(ihsplay
         app/ui/launcher.c
         app/ui/session.c
         app/ui/hosts/hosts_fragment.c
+        app/ui/settings/settings.c
         app/util/array_list.c
         app/settings/settings.c
         )

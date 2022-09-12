@@ -36,7 +36,7 @@ static short *pcmBuffer;
 static size_t pcmBufferSize;
 static int samplesPerFrame;
 
-static int alsa_renderer_init(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
+static int alsaaud_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
     int rc;
     unsigned char alsaMapping[MAX_CHANNEL_COUNT];
 
@@ -106,7 +106,7 @@ static int alsa_renderer_init(IHS_Session *session, const IHS_StreamAudioConfig 
     return 0;
 }
 
-static void alsa_renderer_cleanup() {
+static void alsaaud_stop() {
     if (decoder != NULL)
         opus_multistream_decoder_destroy(decoder);
 
@@ -121,14 +121,17 @@ static void alsa_renderer_cleanup() {
     }
 }
 
-static int alsa_renderer_decode_and_play_sample(IHS_Session *session, const uint8_t *data, size_t length, void *context) {
-    int decodeLen = opus_multistream_decode(decoder, data, length, pcmBuffer, pcmBufferSize, 0);
+static int alsaaud_submit(IHS_Session *session, IHS_Buffer *data, void *context) {
+    (void) context;
+    int decodeLen = opus_multistream_decode(decoder, IHS_BufferPointer(data), (int) data->size,
+                                            pcmBuffer, (int) pcmBufferSize, 0);
     if (decodeLen > 0) {
         int rc;
-        if ((rc = snd_pcm_writei(handle, pcmBuffer, decodeLen) == -EPIPE)) {
+        if ((rc = snd_pcm_writei(handle, pcmBuffer, decodeLen)) == -EPIPE) {
             snd_pcm_prepare(handle);
-        } else if (rc < 0)
+        } else if (rc < 0) {
             fprintf(stderr, "ALSA error from writei: %d\n", rc);
+        }
     } else {
         fprintf(stderr, "Opus error from decode: %d\n", decodeLen);
     }
@@ -136,9 +139,9 @@ static int alsa_renderer_decode_and_play_sample(IHS_Session *session, const uint
 }
 
 const IHS_StreamAudioCallbacks AudioCallbacks = {
-        .start = alsa_renderer_init,
-        .stop = alsa_renderer_cleanup,
-        .submit = alsa_renderer_decode_and_play_sample,
+        .start = alsaaud_start,
+        .stop = alsaaud_stop,
+        .submit = alsaaud_submit,
 };
 
 const IHS_StreamAudioCallbacks *module_audio_callbacks() {

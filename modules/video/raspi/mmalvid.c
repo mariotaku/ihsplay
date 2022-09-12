@@ -295,7 +295,7 @@ static int Submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoFrameFl
         mmal_buffer_header_release(buf);
         return DR_NEED_IDR;
     }
-    IHS_BufferCopyToMem(data, buf->data + buf->length, data->size);
+    IHS_BufferReadMem(data, 0, buf->data + buf->length, data->size);
     buf->length += data->size;
 
     if ((status = mmal_port_send_buffer(decoder->input[0], buf)) != MMAL_SUCCESS) {
