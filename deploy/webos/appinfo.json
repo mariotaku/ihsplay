@@ -3,6 +3,7 @@
   "type": "native",
   "main": "ihsplay",
   "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
   "iconColor": "#ffffff",
   "title": "IHSplay",
   "version": "0.0.1"
