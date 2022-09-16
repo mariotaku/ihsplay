@@ -19,7 +19,7 @@ void host_manager_discovery_start(host_manager_t *manager);
 
 void host_manager_discovery_stop(host_manager_t *manager);
 
-void host_manager_start_session(host_manager_t *manager, const IHS_HostInfo *host);
+void host_manager_request_session(host_manager_t *manager, const IHS_HostInfo *host);
 
 void host_manager_register_listener(host_manager_t *manager, const host_manager_listener_t *listener, void *context);
 

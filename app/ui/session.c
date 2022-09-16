@@ -1,17 +1,24 @@
-#include <module.h>
 #include "session.h"
 #include "ihslib.h"
 #include "app_ui.h"
 #include "app.h"
+#include "ui/common/progress_dialog.h"
+#include "util/array_list.h"
+#include "backend/stream_manager.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;
     app_t *app;
+    IHS_HostInfo host;
+
+    lv_obj_t *progress;
+
     IHS_Session *session;
     array_list_t *cursors;
     SDL_Cursor *blank_cursor;
     uint64_t cursor_id;
     bool cursor_visible;
+    bool requested_disconnect;
 } session_fragment_t;
 
 typedef struct cursor_t {
@@ -25,26 +32,22 @@ static void destructor(lv_fragment_t *self);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
-static void session_log(IHS_LogLevel level, const char *tag, const char *message);
+static void obj_created(lv_fragment_t *self, lv_obj_t *obj);
+
+static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
 const lv_fragment_class_t session_fragment_class = {
         .constructor_cb = constructor,
         .destructor_cb = destructor,
         .create_obj_cb = create_obj,
+        .obj_created_cb = obj_created,
+        .obj_will_delete_cb = obj_will_delete,
         .instance_size = sizeof(session_fragment_t)
 };
 
-static void session_initialized(IHS_Session *session, void *context);
+const static stream_manager_listener_t stream_manager_listener = {
 
-static void session_configuring(IHS_Session *session, IHS_SessionConfig *config, void *context);
-
-static void session_connected(IHS_Session *session, void *context);
-
-static void session_disconnected(IHS_Session *session, void *context);
-
-static void session_connected_main(app_t *app, void *context);
-
-static void session_disconnected_main(app_t *app, void *context);
+};
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context);
 
@@ -56,12 +59,8 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
 
 static const cursor_t *session_current_cursor(session_fragment_t *fragment);
 
-static const IHS_StreamSessionCallbacks session_callbacks = {
-        .initialized = session_initialized,
-        .configuring = session_configuring,
-        .connected = session_connected,
-        .disconnected = session_disconnected,
-};
+static void disconnected_dialog_cb(lv_event_t *e);
+
 static const IHS_StreamInputCallbacks input_callbacks = {
         .showCursor = session_show_cursor,
         .hideCursor = session_hide_cursor,
@@ -72,65 +71,71 @@ static const IHS_StreamInputCallbacks input_callbacks = {
 static void constructor(lv_fragment_t *self, void *args) {
     session_fragment_t *fragment = (session_fragment_t *) self;
     const app_ui_fragment_args_t *fargs = args;
-    IHS_Session *session = IHS_SessionCreate(&fargs->app->client_config, fargs->data);
     fragment->app = fargs->app;
-    fragment->session = session;
+    fragment->host = *(const IHS_HostInfo *) fargs->data;
     fragment->cursors = array_list_create(sizeof(cursor_t), 16);
-    IHS_SessionSetLogFunction(session, session_log);
-    IHS_SessionSetSessionCallbacks(session, &session_callbacks, fragment);
-    IHS_SessionSetInputCallbacks(session, &input_callbacks, fragment);
-    IHS_SessionSetAudioCallbacks(session, module_audio_callbacks(), NULL);
-    IHS_SessionSetVideoCallbacks(session, module_video_callbacks(), NULL);
-    IHS_SessionThreadedRun(session);
-    fragment->app->active_session = session;
     const static Uint8 blank_pixel[1] = {0};
     fragment->blank_cursor = SDL_CreateCursor(blank_pixel, blank_pixel, 1, 1, 0, 0);
 }
 
 static void destructor(lv_fragment_t *self) {
     session_fragment_t *fragment = (session_fragment_t *) self;
-    IHS_SessionThreadedJoin(fragment->session);
-    IHS_SessionDestroy(fragment->session);
-    fragment->app->active_session = NULL;
+    if (fragment->session != NULL) {
+        IHS_SessionThreadedJoin(fragment->session);
+        IHS_SessionDestroy(fragment->session);
+    }
     array_list_destroy(fragment->cursors);
     SDL_FreeCursor(fragment->blank_cursor);
 }
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
-    return lv_obj_create(container);
+    lv_obj_t *obj = lv_obj_create(container);
+    lv_obj_remove_style_all(obj);
+    lv_obj_set_size(obj, LV_PCT(100), LV_PCT(100));
+    return obj;
 }
 
-static void session_initialized(IHS_Session *session, void *context) {
-    LV_UNUSED(context);
-    IHS_SessionConnect(session);
+static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
+    session_fragment_t *fragment = (session_fragment_t *) self;
+
+    fragment->progress = progress_dialog_create("Requesting stream");
+    stream_manager_t *stream_manager = fragment->app->stream_manager;
+    stream_manager_register_listener(stream_manager, &stream_manager_listener, fragment);
+    stream_manager_start(stream_manager, &fragment->host);
 }
 
-static void session_configuring(IHS_Session *session, IHS_SessionConfig *config, void *context) {
-    config->enableHevc = true;
-}
+static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
+    session_fragment_t *fragment = (session_fragment_t *) self;
 
-static void session_connected(IHS_Session *session, void *context) {
-    LV_UNUSED(session);
-    session_fragment_t *fragment = context;
-    app_run_on_main(fragment->app, session_connected_main, context);
-}
+    if (fragment->progress != NULL) {
+        lv_msgbox_close(fragment->progress);
+        fragment->progress = NULL;
+    }
 
-static void session_disconnected(IHS_Session *session, void *context) {
-    LV_UNUSED(session);
-    session_fragment_t *fragment = context;
-    app_run_on_main(fragment->app, session_disconnected_main, context);
+    stream_manager_unregister_listener(fragment->app->stream_manager, &stream_manager_listener);
 }
 
 static void session_connected_main(app_t *app, void *context) {
-    LV_UNUSED(context);
+    session_fragment_t *fragment = (session_fragment_t *) context;
     SDL_SetRelativeMouseMode(SDL_TRUE);
+
+    if (fragment->progress != NULL) {
+        lv_msgbox_close(fragment->progress);
+        fragment->progress = NULL;
+    }
 }
 
 static void session_disconnected_main(app_t *app, void *context) {
-    LV_UNUSED(context);
+    session_fragment_t *fragment = (session_fragment_t *) context;
     SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_SetCursor(SDL_GetDefaultCursor());
-    app_ui_pop_fragment(app->ui);
+    if (!fragment->requested_disconnect) {
+        static const char *btn_txts[] = {"OK", ""};
+        lv_obj_t *mbox = lv_msgbox_create(NULL, NULL, "Disconnected.", btn_txts, false);
+        lv_obj_add_event_cb(mbox, disconnected_dialog_cb, LV_EVENT_VALUE_CHANGED, NULL);
+        lv_obj_center(mbox);
+    }
+    lv_fragment_manager_pop(app->ui->fm);
 }
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {
@@ -206,22 +211,7 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
     }
 }
 
-static void session_log(IHS_LogLevel level, const char *tag, const char *message) {
-    switch (level) {
-        case IHS_LogLevelInfo:
-            fprintf(stderr, "[IHS.%s]\x1b[36m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelWarn:
-            fprintf(stderr, "[IHS.%s]\x1b[33m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelError:
-            fprintf(stderr, "[IHS.%s]\x1b[31m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelFatal:
-            fprintf(stderr, "[IHS.%s]\x1b[41m %s\x1b[0m\n", tag, message);
-            break;
-        default:
-            fprintf(stderr, "[IHS.%s] %s\n", tag, message);
-            break;
-    }
+static void disconnected_dialog_cb(lv_event_t *e) {
+    lv_obj_t *msgbox = lv_event_get_current_target(e);
+    lv_msgbox_close_async(msgbox);
 }

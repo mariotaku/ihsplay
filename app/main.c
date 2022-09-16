@@ -2,11 +2,16 @@
 #include <lvgl.h>
 
 #include "app.h"
-#include "ui/app_ui.h"
 #include "module.h"
+
+#include "ui/app_ui.h"
+
 #include "lvgl/display.h"
 #include "lvgl/mouse.h"
 #include "lvgl/theme.h"
+
+#include "backend/host_manager.h"
+#include "backend/stream_manager.h"
 
 static void process_events();
 
@@ -39,6 +44,7 @@ int main(int argc, char *argv[]) {
     lv_memset_00(&theme, sizeof(lv_theme_t));
     lv_theme_set_parent(&theme, lv_disp_get_theme(disp));
     app_theme_init(&theme);
+    theme.font_large = &lv_font_montserrat_48;
     lv_disp_set_theme(disp, &theme);
     app_lv_mouse_init();
 
@@ -62,7 +68,7 @@ static void process_events() {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_MOUSEMOTION: {
-                IHS_Session *session = app->active_session;
+                IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
                 }
@@ -78,7 +84,7 @@ static void process_events() {
             }
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP: {
-                IHS_Session *session = app->active_session;
+                IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
                 }
@@ -110,7 +116,7 @@ static void process_events() {
                 break;
             }
             case SDL_MOUSEWHEEL: {
-                IHS_Session *session = app->active_session;
+                IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
                 }

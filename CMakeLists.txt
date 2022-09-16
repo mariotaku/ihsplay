@@ -37,9 +37,6 @@ endif ()
 
 add_subdirectory(core)
 add_sanitizers(ihslib)
-add_sanitizers(sample-authorize)
-add_sanitizers(sample-stream)
-add_sanitizers(sample-discover)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 
@@ -53,7 +50,8 @@ set(CMAKE_C_STANDARD 11)
 add_executable(ihsplay
         app/main.c
         app/app.c
-        app/backend/hosts_manager.c
+        app/backend/host_manager.c
+        app/backend/stream_manager.c
         app/lvgl/display.c
         app/lvgl/mouse.c
         app/lvgl/theme.c
@@ -63,7 +61,9 @@ add_executable(ihsplay
         app/ui/session.c
         app/ui/hosts/hosts_fragment.c
         app/ui/settings/settings.c
+        app/ui/common/progress_dialog.c
         app/util/array_list.c
+        app/util/listeners_list.c
         app/settings/settings.c
         )
 target_include_directories(ihsplay PRIVATE app)
