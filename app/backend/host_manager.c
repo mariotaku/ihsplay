@@ -28,15 +28,13 @@ static void client_host_discovered_main(app_t *app, void *data);
 
 static void client_streaming_success_main(app_t *app, void *data);
 
-static void client_log(IHS_LogLevel level, const char *tag, const char *message);
-
 static const IHS_ClientDiscoveryCallbacks discovery_callbacks = {
         .discovered = client_host_discovered
 };
 
 static const IHS_ClientStreamingCallbacks streaming_callbacks = {
         .success = client_streaming_success,
-        .failed =client_streaming_failed,
+        .failed = client_streaming_failed,
 };
 
 host_manager_t *host_manager_create(app_t *app) {
@@ -45,7 +43,7 @@ host_manager_t *host_manager_create(app_t *app) {
     manager->client = IHS_ClientCreate(&app->client_config);
     manager->hosts = array_list_create(sizeof(IHS_HostInfo), 16);
     manager->listeners = listeners_list_create();
-    IHS_ClientSetLogFunction(manager->client, client_log);
+    IHS_ClientSetLogFunction(manager->client, app_ihs_log);
     IHS_ClientSetStreamingCallbacks(manager->client, &streaming_callbacks, manager);
     IHS_ClientSetDiscoveryCallbacks(manager->client, &discovery_callbacks, manager);
     IHS_ClientThreadedStart(manager->client);
@@ -150,22 +148,3 @@ static void client_streaming_success_main(app_t *app, void *data) {
     SDL_free(config);
 }
 
-static void client_log(IHS_LogLevel level, const char *tag, const char *message) {
-    switch (level) {
-        case IHS_LogLevelInfo:
-            fprintf(stderr, "[IHS.%s]\x1b[36m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelWarn:
-            fprintf(stderr, "[IHS.%s]\x1b[33m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelError:
-            fprintf(stderr, "[IHS.%s]\x1b[31m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelFatal:
-            fprintf(stderr, "[IHS.%s]\x1b[41m %s\x1b[0m\n", tag, message);
-            break;
-        default:
-            fprintf(stderr, "[IHS.%s] %s\n", tag, message);
-            break;
-    }
-}

@@ -50,6 +50,8 @@ set(CMAKE_C_STANDARD 11)
 add_executable(ihsplay
         app/main.c
         app/app.c
+        app/app_events.c
+        app/app_logging.c
         app/backend/host_manager.c
         app/backend/stream_manager.c
         app/lvgl/display.c

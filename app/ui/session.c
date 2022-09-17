@@ -13,7 +13,6 @@ typedef struct session_fragment_t {
 
     lv_obj_t *progress;
 
-    IHS_Session *session;
     array_list_t *cursors;
     SDL_Cursor *blank_cursor;
     uint64_t cursor_id;
@@ -45,8 +44,13 @@ const lv_fragment_class_t session_fragment_class = {
         .instance_size = sizeof(session_fragment_t)
 };
 
-const static stream_manager_listener_t stream_manager_listener = {
+static void session_connected_main(const IHS_SessionInfo *info, void *context);
 
+static void session_disconnected_main(const IHS_SessionInfo *info, void *context);
+
+const static stream_manager_listener_t stream_manager_listener = {
+        .connected = session_connected_main,
+        .disconnected = session_disconnected_main,
 };
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context);
@@ -80,10 +84,6 @@ static void constructor(lv_fragment_t *self, void *args) {
 
 static void destructor(lv_fragment_t *self) {
     session_fragment_t *fragment = (session_fragment_t *) self;
-    if (fragment->session != NULL) {
-        IHS_SessionThreadedJoin(fragment->session);
-        IHS_SessionDestroy(fragment->session);
-    }
     array_list_destroy(fragment->cursors);
     SDL_FreeCursor(fragment->blank_cursor);
 }
@@ -115,7 +115,8 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
     stream_manager_unregister_listener(fragment->app->stream_manager, &stream_manager_listener);
 }
 
-static void session_connected_main(app_t *app, void *context) {
+static void session_connected_main(const IHS_SessionInfo *info, void *context) {
+    LV_UNUSED(info);
     session_fragment_t *fragment = (session_fragment_t *) context;
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -125,7 +126,8 @@ static void session_connected_main(app_t *app, void *context) {
     }
 }
 
-static void session_disconnected_main(app_t *app, void *context) {
+static void session_disconnected_main(const IHS_SessionInfo *info, void *context) {
+    LV_UNUSED(info);
     session_fragment_t *fragment = (session_fragment_t *) context;
     SDL_SetRelativeMouseMode(SDL_FALSE);
     SDL_SetCursor(SDL_GetDefaultCursor());
@@ -135,7 +137,7 @@ static void session_disconnected_main(app_t *app, void *context) {
         lv_obj_add_event_cb(mbox, disconnected_dialog_cb, LV_EVENT_VALUE_CHANGED, NULL);
         lv_obj_center(mbox);
     }
-    lv_fragment_manager_pop(app->ui->fm);
+    lv_fragment_manager_pop(fragment->app->ui->fm);
 }
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {

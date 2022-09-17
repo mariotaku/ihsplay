@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <SDL.h>
 
 #include "app.h"
 #include "ui/app_ui.h"
@@ -40,12 +39,4 @@ void app_destroy(app_t *app) {
 void app_quit(app_t *app) {
     stream_manager_stop_active(app->stream_manager);
     app->running = false;
-}
-
-void app_run_on_main(app_t *app, void(*action)(app_t *, void *), void *data) {
-    SDL_Event event;
-    event.user.type = APP_RUN_ON_MAIN;
-    event.user.data1 = action;
-    event.user.data2 = data;
-    SDL_PushEvent(&event);
 }

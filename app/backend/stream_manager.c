@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "stream_manager.h"
 
 #include "app.h"
@@ -21,12 +22,14 @@ static void session_connected_main(app_t *app, void *context);
 
 static void session_disconnected_main(app_t *app, void *context);
 
-static void session_log(IHS_LogLevel level, const char *tag, const char *message);
+static void destroy_session_main(app_t *app, void *context);
 
 typedef enum stream_manager_state_t {
     STREAM_MANAGER_STATE_IDLE,
     STREAM_MANAGER_STATE_REQUESTING,
-    STREAM_MANAGER_STATE_STARTED,
+    STREAM_MANAGER_STATE_CONNECTING,
+    STREAM_MANAGER_STATE_STREAMING,
+    STREAM_MANAGER_STATE_DISCONNECTING,
 } stream_manager_state_t;
 
 struct stream_manager_t {
@@ -45,6 +48,11 @@ struct stream_manager_t {
         } streaming;
     } state;
 };
+
+typedef struct event_context_t {
+    stream_manager_t *manager;
+    void *arg1;
+} event_context_t;
 
 static const IHS_StreamSessionCallbacks session_callbacks = {
         .initialized = session_initialized,
@@ -68,6 +76,16 @@ stream_manager_t *stream_manager_create(app_t *app, host_manager_t *host_manager
 }
 
 void stream_manager_destroy(stream_manager_t *manager) {
+    switch (manager->state.code) {
+        case STREAM_MANAGER_STATE_IDLE:
+        case STREAM_MANAGER_STATE_REQUESTING: {
+            break;
+        }
+        default: {
+            destroy_session_main(manager->app, manager->state.streaming.session);
+            break;
+        }
+    }
     host_manager_unregister_listener(manager->host_manager, &host_manager_listener);
     listeners_list_destroy(manager->listeners);
     free(manager);
@@ -82,24 +100,25 @@ void stream_manager_unregister_listener(stream_manager_t *manager, const stream_
     listeners_list_remove(manager->listeners, listener);
 }
 
-void stream_manager_start(stream_manager_t *manager, const IHS_HostInfo *host) {
+bool stream_manager_start(stream_manager_t *manager, const IHS_HostInfo *host) {
     if (manager->state.code != STREAM_MANAGER_STATE_IDLE) {
-        return;
+        return false;
     }
     manager->state.code = STREAM_MANAGER_STATE_REQUESTING;
     manager->state.requesting.host = *host;
     host_manager_request_session(manager->host_manager, host);
+    return true;
 }
 
 IHS_Session *stream_manager_active_session(const stream_manager_t *manager) {
-    if (manager->state.code != STREAM_MANAGER_STATE_STARTED) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
         return NULL;
     }
     return manager->state.streaming.session;
 }
 
 void stream_manager_stop_active(stream_manager_t *manager) {
-    if (manager->state.code != STREAM_MANAGER_STATE_STARTED) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
         return;
     }
     IHS_SessionDisconnect(manager->state.streaming.session);
@@ -114,50 +133,84 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
         return;
     }
     IHS_Session *session = IHS_SessionCreate(&manager->app->client_config, info);
-    manager->state.code = STREAM_MANAGER_STATE_STARTED;
-    manager->state.streaming.session = session;
-    IHS_SessionSetLogFunction(session, session_log);
+    IHS_SessionSetLogFunction(session, app_ihs_log);
     IHS_SessionSetSessionCallbacks(session, &session_callbacks, manager);
     IHS_SessionSetAudioCallbacks(session, module_audio_callbacks(), NULL);
     IHS_SessionSetVideoCallbacks(session, module_video_callbacks(), NULL);
+    manager->state.code = STREAM_MANAGER_STATE_CONNECTING;
+    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
+    manager->state.streaming.session = session;
+
     IHS_SessionThreadedRun(session);
 }
 
 static void session_initialized(IHS_Session *session, void *context) {
-    (void) context;
+    stream_manager_t *manager = (stream_manager_t *) context;
+    assert (manager->state.code == STREAM_MANAGER_STATE_CONNECTING);
+    const IHS_SessionInfo *info = IHS_SessionGetInfo(session);
+    assert (IHS_IPAddressCompare(&manager->state.requesting.host.address.ip, &info->address.ip) == 0);
     IHS_SessionConnect(session);
 }
 
 static void session_finalized(IHS_Session *session, void *context) {
-
+    stream_manager_t *manager = (stream_manager_t *) context;
+    assert(manager->state.code == STREAM_MANAGER_STATE_DISCONNECTING);
+    assert(manager->state.streaming.session == session);
+    manager->state.code = STREAM_MANAGER_STATE_IDLE;
+    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to IDLE");
+    app_run_on_main(manager->app, destroy_session_main, session);
 }
 
 static void session_configuring(IHS_Session *session, IHS_SessionConfig *config, void *context) {
+    (void) session;
+    (void) context;
     config->enableHevc = false;
 }
 
 static void session_connected(IHS_Session *session, void *context) {
+    stream_manager_t *manager = (stream_manager_t *) context;
+    assert(manager->state.code == STREAM_MANAGER_STATE_CONNECTING);
+    assert(manager->state.streaming.session == session);
+    manager->state.code = STREAM_MANAGER_STATE_STREAMING;
+    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to STREAMING");
+    event_context_t ec = {
+            .manager = manager,
+            .arg1 = (void *) IHS_SessionGetInfo(session),
+    };
+    app_run_on_main_sync(manager->app, session_connected_main, &ec);
 }
 
 static void session_disconnected(IHS_Session *session, void *context) {
+    stream_manager_t *manager = (stream_manager_t *) context;
+    assert(manager->state.code == STREAM_MANAGER_STATE_STREAMING);
+    assert(manager->state.streaming.session == session);
+    manager->state.code = STREAM_MANAGER_STATE_DISCONNECTING;
+    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to DISCONNECTING");
+    event_context_t ec = {
+            .manager = manager,
+            .arg1 = (void *) IHS_SessionGetInfo(session),
+    };
+    app_run_on_main_sync(manager->app, session_disconnected_main, &ec);
 }
 
-static void session_log(IHS_LogLevel level, const char *tag, const char *message) {
-    switch (level) {
-        case IHS_LogLevelInfo:
-            fprintf(stderr, "[IHS.%s]\x1b[36m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelWarn:
-            fprintf(stderr, "[IHS.%s]\x1b[33m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelError:
-            fprintf(stderr, "[IHS.%s]\x1b[31m %s\x1b[0m\n", tag, message);
-            break;
-        case IHS_LogLevelFatal:
-            fprintf(stderr, "[IHS.%s]\x1b[41m %s\x1b[0m\n", tag, message);
-            break;
-        default:
-            fprintf(stderr, "[IHS.%s] %s\n", tag, message);
-            break;
-    }
+static void session_connected_main(app_t *app, void *context) {
+    (void) app;
+    event_context_t *ec = context;
+    stream_manager_t *manager = ec->manager;
+    listeners_list_notify(manager->listeners, stream_manager_listener_t, connected, (const IHS_SessionInfo *) ec->arg1);
+}
+
+static void session_disconnected_main(app_t *app, void *context) {
+    (void) app;
+    event_context_t *ec = context;
+    stream_manager_t *manager = ec->manager;
+    listeners_list_notify(manager->listeners, stream_manager_listener_t, disconnected,
+                          (const IHS_SessionInfo *) ec->arg1);
+}
+
+static void destroy_session_main(app_t *app, void *context) {
+    (void) app;
+    IHS_Session *session = context;
+    IHS_SessionThreadedJoin(session);
+    IHS_SessionDestroy(session);
 }

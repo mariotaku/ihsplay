@@ -1,9 +1,10 @@
 #pragma once
 
-#include "util/array_list.h"
+#include <ihslib.h>
 
 typedef struct app_t app_t;
 typedef struct host_manager_t host_manager_t;
+typedef struct array_list_t array_list_t;
 
 typedef struct host_manager_listener_t {
     void (*hosts_reloaded)(array_list_t *list, void *context);

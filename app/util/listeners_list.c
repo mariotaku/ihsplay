@@ -25,7 +25,7 @@ void listeners_list_add(array_list_t *list, const void *listener, void *context)
 void listeners_list_remove(array_list_t *list, const void *listener) {
     registered_listener_t *to_unregister = NULL;
     int i;
-    for (i = array_list_size(list) - 1; i >= 0; i--) {
+    for (i = array_list_size(list) - 1; i >= 0; --i) {
         registered_listener_t *item = array_list_get(list, i);
         if (item->listener == listener) {
             to_unregister = item;
