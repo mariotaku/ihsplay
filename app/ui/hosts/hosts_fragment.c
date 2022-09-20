@@ -5,6 +5,7 @@
 #include "lvgl/lv_gridview.h"
 #include "ui/app_ui.h"
 #include "ui/session.h"
+#include "util/array_list.h"
 
 typedef struct hosts_fragment {
     lv_fragment_t base;

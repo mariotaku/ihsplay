@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" compareModeInSync="TIMESTAMP">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeDeletion="false" compareModeInSync="TIMESTAMP">
+    <option name="confirmBeforeDeletion" value="false" />
     <serverData>
       <paths name="Raspberry Pi (507c3167-fe20-430f-9262-8d2f2c0442fd)">
         <serverdata>
@@ -8,13 +9,8 @@
             <mapping deploy="/tmp/tmp.dum7kapgb7" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/build/linux-debug" />
-            <excludedPath local="true" path="$PROJECT_DIR$/build/webos-debug" />
-            <excludedPath local="true" path="$PROJECT_DIR$/build/linux-debug" />
             <excludedPath local="true" path="$PROJECT_DIR$/build" />
-            <excludedPath local="true" path="$PROJECT_DIR$/build/webos-debug" />
-            <excludedPath local="true" path="$PROJECT_DIR$/build/raspi-debug" />
-            <excludedPath local="true" path="$PROJECT_DIR$/build/raspi-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/tools/node_modules" />
           </excludedPaths>
         </serverdata>
       </paths>
