@@ -5,6 +5,7 @@
 
 #include "app_ui.h"
 #include "launcher.h"
+#include "lvgl/fonts/material-icons/regular.h"
 
 app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     lv_draw_sdl_drv_param_t *param = disp->driver->user_data;
@@ -14,13 +15,20 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->root = lv_disp_get_scr_act(disp);
     ui->fm = lv_fragment_manager_create(NULL);
 
-    lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
+    app_ui_fontset_set_default_size(ui, &ui->iconfont);
+    app_ui_fontset_init_mem(&ui->iconfont, "MaterialIcons-Regular", ttf_material_icons_regular_data,
+                            ttf_material_icons_regular_size);
 
-    app_ui_push_fragment(ui, &launcher_fragment_class, NULL);
+    lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
     return ui;
 }
 
+void app_ui_created(app_ui_t *ui) {
+    app_ui_push_fragment(ui, &launcher_fragment_class, NULL);
+}
+
 void app_ui_destroy(app_ui_t *ui) {
+    app_ui_fontset_deinit(&ui->iconfont);
     lv_fragment_manager_del(ui->fm);
     free(ui);
 }

@@ -40,6 +40,8 @@
 /* Use 32bit coordinates */
 #define LV_USE_LARGE_COORD  1
 
+#define LV_USE_FREETYPE 1
+
 #define LV_FONT_MONTSERRAT_32    1
 #define LV_FONT_MONTSERRAT_48    1
 

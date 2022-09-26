@@ -26,6 +26,7 @@ app_t *app_create(void *disp) {
     app->hosts_manager = host_manager_create(app);
     app->stream_manager = stream_manager_create(app, app->hosts_manager);
     app->ui = app_ui_create(app, (lv_disp_t *) disp);
+    app_ui_created(app->ui);
     return app;
 }
 

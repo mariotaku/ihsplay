@@ -9,8 +9,11 @@
             <mapping deploy="/tmp/tmp.dum7kapgb7" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/build/linux-debug" />
             <excludedPath local="true" path="$PROJECT_DIR$/tools/node_modules" />
+            <excludedPath local="true" path="$PROJECT_DIR$/build/webos-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/build/raspi-debug" />
           </excludedPaths>
         </serverdata>
       </paths>

@@ -15,8 +15,6 @@ struct host_manager_t {
     array_list_t *listeners;
 };
 
-static Uint32 discovery_timer(Uint32 interval, void *param);
-
 static void client_host_discovered(IHS_Client *client, IHS_HostInfo host, void *context);
 
 static void client_streaming_success(IHS_Client *client, IHS_SocketAddress address, const uint8_t *sessionKey,
@@ -46,7 +44,6 @@ host_manager_t *host_manager_create(app_t *app) {
     IHS_ClientSetLogFunction(manager->client, app_ihs_log);
     IHS_ClientSetStreamingCallbacks(manager->client, &streaming_callbacks, manager);
     IHS_ClientSetDiscoveryCallbacks(manager->client, &discovery_callbacks, manager);
-    IHS_ClientThreadedStart(manager->client);
     return manager;
 }
 
@@ -60,14 +57,11 @@ void host_manager_destroy(host_manager_t *manager) {
 }
 
 void host_manager_discovery_start(host_manager_t *manager) {
-    if (manager->timer) return;
-    manager->timer = SDL_AddTimer(0, discovery_timer, manager);
+    IHS_ClientStartDiscovery(manager->client, 10000);
 }
 
 void host_manager_discovery_stop(host_manager_t *manager) {
-    if (!manager->timer) return;
-    SDL_RemoveTimer(manager->timer);
-    manager->timer = 0;
+    IHS_ClientStopDiscovery(manager->client);
 }
 
 void host_manager_request_session(host_manager_t *manager, const IHS_HostInfo *host) {
@@ -89,12 +83,6 @@ void host_manager_register_listener(host_manager_t *manager, const host_manager_
 
 void host_manager_unregister_listener(host_manager_t *manager, const host_manager_listener_t *listener) {
     listeners_list_remove(manager->listeners, listener);
-}
-
-static Uint32 discovery_timer(Uint32 interval, void *param) {
-    host_manager_t *manager = param;
-    IHS_ClientDiscoveryBroadcast(manager->client);
-    return 10000;
 }
 
 static void client_host_discovered(IHS_Client *client, IHS_HostInfo host, void *context) {

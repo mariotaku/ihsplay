@@ -17,7 +17,7 @@ async function iconfont() {
         }))
         .pipe(binheader({naming: 'snake_case', prefix: 'ttf'}))
         .pipe(rename(file => {
-            file.basename = 'font';
+            file.basename = 'regular';
         }))
         .pipe(dest(outDir));
 }

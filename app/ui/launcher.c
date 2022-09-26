@@ -1,8 +1,13 @@
-#include "launcher.h"
 #include "app.h"
-#include "ui/hosts/hosts_fragment.h"
-#include "ui/settings/settings.h"
 #include "app_ui.h"
+
+#include "launcher.h"
+
+#include "hosts/hosts_fragment.h"
+#include "settings/settings.h"
+
+#include "lvgl/fonts/material-icons/symbols.h"
+#include "ui/settings/basic.h"
 
 typedef struct app_root_fragment {
     lv_fragment_t base;
@@ -10,6 +15,8 @@ typedef struct app_root_fragment {
     lv_coord_t col_dsc[5], row_dsc[3];
     struct {
         lv_style_t root;
+        lv_style_t action_btn;
+        lv_style_t action_btn_label;
     } styles;
     lv_obj_t *nav_content;
 } app_root_fragment;
@@ -20,13 +27,13 @@ static void destructor(lv_fragment_t *self);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
-static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt);
+static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt);
 
 static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t *cls);
 
 static void launcher_hosts(lv_event_t *e);
 
-static void launcher_settings(lv_event_t *e);
+static void open_settings(lv_event_t *e);
 
 static void launcher_quit(lv_event_t *e);
 
@@ -56,10 +63,17 @@ static void constructor(lv_fragment_t *self, void *arg) {
     lv_style_set_pad_ver(&fragment->styles.root, LV_DPX(40));
     lv_style_set_bg_opa(&fragment->styles.root, LV_OPA_COVER);
     lv_style_set_bg_color(&fragment->styles.root, lv_color_black());
+
+    lv_style_init(&fragment->styles.action_btn);
+    lv_style_set_radius(&fragment->styles.action_btn, LV_RADIUS_CIRCLE);
+    lv_style_init(&fragment->styles.action_btn_label);
+    lv_style_set_text_font(&fragment->styles.action_btn_label, fargs->app->ui->iconfont.large);
 }
 
 static void destructor(lv_fragment_t *self) {
     app_root_fragment *fragment = (app_root_fragment *) self;
+    lv_style_reset(&fragment->styles.action_btn_label);
+    lv_style_reset(&fragment->styles.action_btn);
     lv_style_reset(&fragment->styles.root);
 }
 
@@ -77,18 +91,19 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_size(title, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 0, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
 
-    lv_obj_t *btn_settings = nav_btn_create(root, LV_SYMBOL_SETTINGS);
+    lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
     lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
-    lv_obj_add_event_cb(btn_settings, launcher_settings, LV_EVENT_CLICKED, fragment);
+    lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *btn_support = nav_btn_create(root, LV_SYMBOL_OK);
+    lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
     lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
 
-    lv_obj_t *btn_quit = nav_btn_create(root, LV_SYMBOL_POWER);
+    lv_obj_t *btn_quit = nav_btn_create(fragment, root, MAT_SYMBOL_CLOSE);
     lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
     lv_obj_add_event_cb(btn_quit, launcher_quit, LV_EVENT_CLICKED, fragment->app);
 
     lv_obj_t *nav_content = lv_obj_create(root);
+    lv_obj_remove_style_all(nav_content);
     lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 0, 4, LV_GRID_ALIGN_STRETCH, 1, 1);
     fragment->nav_content = nav_content;
 
@@ -98,9 +113,11 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     return root;
 }
 
-static lv_obj_t *nav_btn_create(lv_obj_t *container, const char *txt) {
+static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt) {
     lv_obj_t *btn = lv_btn_create(container);
+    lv_obj_add_style(btn, &fragment->styles.action_btn, 0);
     lv_obj_t *label = lv_label_create(btn);
+    lv_obj_add_style(label, &fragment->styles.action_btn_label, 0);
     lv_label_set_text(label, txt);
     return btn;
 }
@@ -115,14 +132,10 @@ static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t
     lv_fragment_manager_replace(manager, f, &fragment->nav_content);
 }
 
-static void launcher_hosts(lv_event_t *e) {
+static void open_settings(lv_event_t *e) {
     app_root_fragment *fragment = lv_event_get_user_data(e);
-    launcher_open(fragment, &hosts_fragment_class);
-}
-
-static void launcher_settings(lv_event_t *e) {
-    app_root_fragment *fragment = lv_event_get_user_data(e);
-    launcher_open(fragment, &settings_fragment_class);
+    app_t *app = fragment->app;
+    app_ui_push_fragment(app->ui, &settings_basic_fragment_class, app);
 }
 
 static void launcher_quit(lv_event_t *e) {

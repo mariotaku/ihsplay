@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmak
 
 # Use `pkg-config` to link needed libraries.
 find_package(PkgConfig REQUIRED)
+find_package(Freetype REQUIRED)
 
 find_package(Sanitizers)
 
@@ -41,6 +42,8 @@ add_sanitizers(ihslib)
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
+
 target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES})
 target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
@@ -59,10 +62,13 @@ add_executable(ihsplay
         app/lvgl/theme.c
         app/lvgl/lv_gridview.c
         app/ui/app_ui.c
+        app/ui/app_ui_font.c
         app/ui/launcher.c
         app/ui/session.c
         app/ui/hosts/hosts_fragment.c
         app/ui/settings/settings.c
+        app/ui/settings/basic.c
+        app/ui/settings/widgets.c
         app/ui/common/progress_dialog.c
         app/util/array_list.c
         app/util/listeners_list.c
@@ -73,8 +79,8 @@ target_include_directories(ihsplay PRIVATE app)
 target_link_libraries(ihsplay PRIVATE lvgl ihslib)
 
 # Link SDL2
-target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
-target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES})
+target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
+target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
 
 if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE rt)

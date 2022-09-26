@@ -6,6 +6,8 @@
 #include "host_manager.h"
 #include "util/listeners_list.h"
 
+#include "module.h"
+
 static void session_started(const IHS_SessionInfo *info, void *context);
 
 static void session_initialized(IHS_Session *session, void *context);
@@ -141,7 +143,7 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
     manager->state.streaming.session = session;
 
-    IHS_SessionThreadedRun(session);
+    IHS_SessionConnect(session);
 }
 
 static void session_initialized(IHS_Session *session, void *context) {

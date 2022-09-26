@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
     (void) argc;
     (void) argv;
     module_init(argc, argv);
+    IHS_Init();
     SDL_Init(SDL_INIT_VIDEO);
     SDL_RegisterEvents(APP_EVENT_SIZE);
     lv_init();
@@ -60,6 +61,7 @@ int main(int argc, char *argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
+    IHS_Quit();
     return 0;
 }
 
@@ -133,9 +135,10 @@ static void process_events() {
                 }
                 break;
             }
-            case SDL_QUIT:
+            case SDL_QUIT: {
                 app_quit(app);
                 break;
+            }
             case APP_RUN_ON_MAIN: {
                 void (*action)(app_t *, void *) = event.user.data1;
                 void *data = event.user.data2;
