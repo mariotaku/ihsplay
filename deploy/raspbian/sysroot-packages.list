@@ -1,0 +1,5 @@
+libsdl2-dev
+libmbedtls-dev
+libraspberrypi-dev
+libprotobuf-c-dev
+libfreetype6-dev
