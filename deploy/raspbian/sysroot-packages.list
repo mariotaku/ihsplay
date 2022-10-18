@@ -1,4 +1,5 @@
 libsdl2-dev
+libopus-dev
 libmbedtls-dev
 libraspberrypi-dev
 libprotobuf-c-dev
