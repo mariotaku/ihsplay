@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <lvgl.h>
+#include <protobuf-c/protobuf-c.h>
 
 #include "app.h"
 #include "module.h"
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     (void) argv;
     module_init(argc, argv);
     IHS_Init();
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     SDL_RegisterEvents(APP_EVENT_SIZE);
     lv_init();
 
@@ -34,9 +35,16 @@ int main(int argc, char *argv[]) {
         w = mode.w;
         h = mode.h;
     }
+    Uint32 fullscreen_flag;
+#ifdef TARGET_WEBOS
+    fullscreen_flag = SDL_WINDOW_FULLSCREEN;
+#else
+    fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
+    printf("protobuf-c version: %s\n", protobuf_c_version());
     /* Caveat: Don't use SDL_WINDOW_FULLSCREEN_DESKTOP on webOS. On older platforms it's not supported. */
     SDL_Window *window = SDL_CreateWindow("myapp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
-                                          SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN);
+                                          SDL_WINDOW_ALLOW_HIGHDPI | fullscreen_flag);
     module_post_init(argc, argv);
 
     lv_disp_t *disp = app_lv_disp_init(window);
@@ -68,6 +76,7 @@ int main(int argc, char *argv[]) {
 static void process_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        stream_manager_handle_event(app->stream_manager, &event);
         switch (event.type) {
             case SDL_MOUSEMOTION: {
                 IHS_Session *session = stream_manager_active_session(app->stream_manager);

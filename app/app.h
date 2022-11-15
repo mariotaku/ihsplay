@@ -38,3 +38,5 @@ void app_run_on_main(app_t *app, app_run_action_fn action, void *data);
 void app_run_on_main_sync(app_t *app, app_run_action_fn action, void *data);
 
 void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
+
+void app_ihs_vlog(IHS_LogLevel level, const char *tag, const char *fmt,...);

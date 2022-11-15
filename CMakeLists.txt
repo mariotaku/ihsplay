@@ -20,12 +20,13 @@ if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
 endif ()
 
-if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDE_DIRS)
+if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
     option(BUILD_PROTOC "Disable protoc-c" OFF)
     add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
+    message("Using protobuf-c submodule")
     set(PROTOBUF_C_FOUND 1)
     set(PROTOBUF_C_LIBRARIES protobuf-c)
-    set(PROTOBUF_C_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/third_party/protobuf-c)
+    set(PROTOBUF_C_INCLUDEDIR ${CMAKE_SOURCE_DIR}/third_party/protobuf-c)
 endif ()
 
 if (NOT MBEDCRYPTO_LIBRARY)
@@ -76,7 +77,7 @@ add_executable(ihsplay
         )
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib)
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl)
 
 # Link SDL2
 target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
@@ -84,6 +85,7 @@ target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
 
 if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE rt)
+    target_compile_definitions(ihsplay PRIVATE TARGET_WEBOS=1)
     add_subdirectory(system/webos/tv-native-apis)
 endif ()
 

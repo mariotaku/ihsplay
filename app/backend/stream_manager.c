@@ -6,6 +6,8 @@
 #include "host_manager.h"
 #include "util/listeners_list.h"
 
+#include "ihslib/hid/sdl.h"
+
 #include "module.h"
 
 static void session_started(const IHS_SessionInfo *info, void *context);
@@ -38,6 +40,7 @@ struct stream_manager_t {
     app_t *app;
     host_manager_t *host_manager;
     array_list_t *listeners;
+    IHS_HIDProvider *hid_provider;
     union {
         stream_manager_state_t code;
         struct {
@@ -73,6 +76,7 @@ stream_manager_t *stream_manager_create(app_t *app, host_manager_t *host_manager
     manager->app = app;
     manager->host_manager = host_manager;
     manager->listeners = listeners_list_create();
+    manager->hid_provider = IHS_HIDProviderSDLCreate();
     host_manager_register_listener(host_manager, &host_manager_listener, manager);
     return manager;
 }
@@ -90,6 +94,7 @@ void stream_manager_destroy(stream_manager_t *manager) {
     }
     host_manager_unregister_listener(manager->host_manager, &host_manager_listener);
     listeners_list_destroy(manager->listeners);
+    IHS_HIDProviderSDLDestroy(manager->hid_provider);
     free(manager);
 }
 
@@ -126,6 +131,16 @@ void stream_manager_stop_active(stream_manager_t *manager) {
     IHS_SessionDisconnect(manager->state.streaming.session);
 }
 
+bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *event) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
+        return false;
+    }
+    if (IHS_HIDHandleSDLEvent(manager->state.streaming.session, event)) {
+        return IHS_SessionHIDSendReport(manager->state.streaming.session);
+    }
+    return false;
+}
+
 static void session_started(const IHS_SessionInfo *info, void *context) {
     stream_manager_t *manager = (stream_manager_t *) context;
     if (manager->state.code != STREAM_MANAGER_STATE_REQUESTING) {
@@ -139,6 +154,7 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
     IHS_SessionSetSessionCallbacks(session, &session_callbacks, manager);
     IHS_SessionSetAudioCallbacks(session, module_audio_callbacks(), NULL);
     IHS_SessionSetVideoCallbacks(session, module_video_callbacks(), NULL);
+    IHS_SessionHIDAddProvider(session, manager->hid_provider);
     manager->state.code = STREAM_MANAGER_STATE_CONNECTING;
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
     manager->state.streaming.session = session;
@@ -180,6 +196,7 @@ static void session_connected(IHS_Session *session, void *context) {
             .arg1 = (void *) IHS_SessionGetInfo(session),
     };
     app_run_on_main_sync(manager->app, session_connected_main, &ec);
+    IHS_SessionHIDNotifyDeviceChange(session);
 }
 
 static void session_disconnected(IHS_Session *session, void *context) {
