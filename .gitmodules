@@ -16,3 +16,6 @@
 [submodule "cmake/sanitizers"]
 	path = cmake/sanitizers
 	url = https://github.com/arsenm/sanitizers-cmake.git
+[submodule "third_party/ss4s"]
+	path = third_party/ss4s
+	url = https://github.com/mariotaku/ss4s.git

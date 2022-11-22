@@ -3,13 +3,14 @@
 #include <protobuf-c/protobuf-c.h>
 
 #include "app.h"
-#include "module.h"
 
 #include "ui/app_ui.h"
 
 #include "lvgl/display.h"
 #include "lvgl/mouse.h"
 #include "lvgl/theme.h"
+
+#include "ss4s.h"
 
 #include "backend/host_manager.h"
 #include "backend/stream_manager.h"
@@ -19,9 +20,10 @@ static void process_events();
 static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
-    (void) argc;
-    (void) argv;
-    module_init(argc, argv);
+    const static SS4S_Config config = {.appName = "IHSPlay", .audioDriver = "alsa", .videoDriver = "mmal"};
+    SS4S_Init(argc, argv, &config);
+    printf("Audio sink: %s\n", SS4S_GetAudioModuleName());
+    printf("Video sink: %s\n", SS4S_GetVideoModuleName());
     IHS_Init();
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     SDL_RegisterEvents(APP_EVENT_SIZE);
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
     /* Caveat: Don't use SDL_WINDOW_FULLSCREEN_DESKTOP on webOS. On older platforms it's not supported. */
     SDL_Window *window = SDL_CreateWindow("myapp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
                                           SDL_WINDOW_ALLOW_HIGHDPI | fullscreen_flag);
-    module_post_init(argc, argv);
+    SS4S_PostInit(argc, argv);
 
     lv_disp_t *disp = app_lv_disp_init(window);
     lv_disp_set_default(disp);
@@ -70,6 +72,8 @@ int main(int argc, char *argv[]) {
     SDL_DestroyWindow(window);
     SDL_Quit();
     IHS_Quit();
+
+    SS4S_Quit();
     return 0;
 }
 

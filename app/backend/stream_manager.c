@@ -2,13 +2,13 @@
 #include "stream_manager.h"
 
 #include "app.h"
-#include "module.h"
 #include "host_manager.h"
 #include "util/listeners_list.h"
 
 #include "ihslib/hid/sdl.h"
 
-#include "module.h"
+#include "ss4s.h"
+#include "stream_media.h"
 
 static void session_started(const IHS_SessionInfo *info, void *context);
 
@@ -41,6 +41,7 @@ struct stream_manager_t {
     host_manager_t *host_manager;
     array_list_t *listeners;
     IHS_HIDProvider *hid_provider;
+    stream_media_session_t *media;
     union {
         stream_manager_state_t code;
         struct {
@@ -149,11 +150,12 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
     if (IHS_IPAddressCompare(&manager->state.requesting.host.address.ip, &info->address.ip) != 0) {
         return;
     }
+    manager->media = stream_media_create();
     IHS_Session *session = IHS_SessionCreate(&manager->app->client_config, info);
     IHS_SessionSetLogFunction(session, app_ihs_log);
     IHS_SessionSetSessionCallbacks(session, &session_callbacks, manager);
-    IHS_SessionSetAudioCallbacks(session, module_audio_callbacks(), NULL);
-    IHS_SessionSetVideoCallbacks(session, module_video_callbacks(), NULL);
+    IHS_SessionSetAudioCallbacks(session, stream_media_audio_callbacks(), manager->media);
+    IHS_SessionSetVideoCallbacks(session, stream_media_video_callbacks(), manager->media);
     IHS_SessionHIDAddProvider(session, manager->hid_provider);
     manager->state.code = STREAM_MANAGER_STATE_CONNECTING;
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
@@ -232,4 +234,6 @@ static void destroy_session_main(app_t *app, void *context) {
     IHS_Session *session = context;
     IHS_SessionThreadedJoin(session);
     IHS_SessionDestroy(session);
+    stream_media_destroy(app->stream_manager->media);
+    app->stream_manager->media = NULL;
 }

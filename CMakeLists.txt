@@ -13,6 +13,7 @@ find_package(Sanitizers)
 # Use SDL2 for window creation and event handling.
 pkg_check_modules(SDL2 REQUIRED sdl2)
 pkg_check_modules(PROTOBUF_C libprotobuf-c)
+pkg_check_modules(OPUS opus)
 
 find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
@@ -41,6 +42,7 @@ add_subdirectory(core)
 add_sanitizers(ihslib)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/ss4s)
 
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
@@ -58,6 +60,7 @@ add_executable(ihsplay
         app/app_logging.c
         app/backend/host_manager.c
         app/backend/stream_manager.c
+        app/backend/stream_media.c
         app/lvgl/display.c
         app/lvgl/mouse.c
         app/lvgl/theme.c
@@ -77,26 +80,22 @@ add_executable(ihsplay
         )
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl)
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)
 
-# Link SDL2
-target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
-target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
+get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
+
+set_target_properties(ihsplay PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        INSTALL_RPATH "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
+
+target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
+target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${OPUS_LIBRARIES})
 
 if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE rt)
     target_compile_definitions(ihsplay PRIVATE TARGET_WEBOS=1)
     add_subdirectory(system/webos/tv-native-apis)
-endif ()
-
-add_subdirectory(modules)
-target_link_libraries(ihsplay PRIVATE ihsplay-mod-common)
-
-if (TARGET_WEBOS)
-    target_link_libraries(ihsplay PRIVATE ihsplay-mod-ndl)
-    include(PackageWebOS)
-else ()
-    target_link_libraries(ihsplay PRIVATE ihsplay-mod-raspi)
 endif ()
 
 add_sanitizers(ihsplay)
