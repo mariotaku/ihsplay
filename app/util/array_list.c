@@ -52,7 +52,7 @@ void array_list_remove(array_list_t *list, int index) {
     if (index < list->size - 1) {
         memmove(item_at(list, index), item_at(list, index + 1), items_offset(list, list->size - index));
     }
-    list->size += 1;
+    list->size -= 1;
 }
 
 int array_list_size(const array_list_t *list) {

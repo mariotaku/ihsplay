@@ -40,7 +40,10 @@
 /* Use 32bit coordinates */
 #define LV_USE_LARGE_COORD  1
 
+#define LV_USE_FREETYPE 1
+
 #define LV_FONT_MONTSERRAT_32    1
+#define LV_FONT_MONTSERRAT_48    1
 
 #define LV_FONT_DEFAULT &lv_font_montserrat_32
 
@@ -155,11 +158,11 @@
  * Themes
  *----------*/
  /*A simple, impressive and very complete theme*/
-#define LV_USE_THEME_DEFAULT    0
+#define LV_USE_THEME_DEFAULT    1
 #if LV_USE_THEME_DEFAULT
 
 /*0: Light mode; 1: Dark mode*/
-# define LV_THEME_DEFAULT_DARK     0
+# define LV_THEME_DEFAULT_DARK     1
 
 /*1: Enable grow on press*/
 # define LV_THEME_DEFAULT_GROW              0
@@ -169,7 +172,7 @@
 #endif /*LV_USE_THEME_DEFAULT*/
 
 /*An very simple them that is a good starting point for a custom theme*/
-#define LV_USE_THEME_BASIC    1
+#define LV_USE_THEME_BASIC    0
 
 /*A theme designed for monochrome displays*/
 #define LV_USE_THEME_MONO       0

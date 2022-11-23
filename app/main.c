@@ -1,22 +1,31 @@
 #include <SDL.h>
 #include <lvgl.h>
+#include <protobuf-c/protobuf-c.h>
 
 #include "app.h"
+
 #include "ui/app_ui.h"
-#include "module.h"
+
 #include "lvgl/display.h"
 #include "lvgl/mouse.h"
 #include "lvgl/theme.h"
+
+#include "ss4s.h"
+
+#include "backend/host_manager.h"
+#include "backend/stream_manager.h"
 
 static void process_events();
 
 static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
-    (void) argc;
-    (void) argv;
-    module_init(argc, argv);
-    SDL_Init(SDL_INIT_VIDEO);
+    const static SS4S_Config config = {.appName = "IHSPlay", .audioDriver = "alsa", .videoDriver = "mmal"};
+    SS4S_Init(argc, argv, &config);
+    printf("Audio sink: %s\n", SS4S_GetAudioModuleName());
+    printf("Video sink: %s\n", SS4S_GetVideoModuleName());
+    IHS_Init();
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     SDL_RegisterEvents(APP_EVENT_SIZE);
     lv_init();
 
@@ -28,10 +37,17 @@ int main(int argc, char *argv[]) {
         w = mode.w;
         h = mode.h;
     }
+    Uint32 fullscreen_flag;
+#ifdef TARGET_WEBOS
+    fullscreen_flag = SDL_WINDOW_FULLSCREEN;
+#else
+    fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
+    printf("protobuf-c version: %s\n", protobuf_c_version());
     /* Caveat: Don't use SDL_WINDOW_FULLSCREEN_DESKTOP on webOS. On older platforms it's not supported. */
     SDL_Window *window = SDL_CreateWindow("myapp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
-                                          SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_FULLSCREEN);
-    module_post_init(argc, argv);
+                                          SDL_WINDOW_ALLOW_HIGHDPI | fullscreen_flag);
+    SS4S_PostInit(argc, argv);
 
     lv_disp_t *disp = app_lv_disp_init(window);
     lv_disp_set_default(disp);
@@ -39,6 +55,7 @@ int main(int argc, char *argv[]) {
     lv_memset_00(&theme, sizeof(lv_theme_t));
     lv_theme_set_parent(&theme, lv_disp_get_theme(disp));
     app_theme_init(&theme);
+    theme.font_large = &lv_font_montserrat_48;
     lv_disp_set_theme(disp, &theme);
     app_lv_mouse_init();
 
@@ -54,15 +71,19 @@ int main(int argc, char *argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
+    IHS_Quit();
+
+    SS4S_Quit();
     return 0;
 }
 
 static void process_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+        stream_manager_handle_event(app->stream_manager, &event);
         switch (event.type) {
             case SDL_MOUSEMOTION: {
-                IHS_Session *session = app->active_session;
+                IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
                 }
@@ -78,7 +99,7 @@ static void process_events() {
             }
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP: {
-                IHS_Session *session = app->active_session;
+                IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
                 }
@@ -110,7 +131,7 @@ static void process_events() {
                 break;
             }
             case SDL_MOUSEWHEEL: {
-                IHS_Session *session = app->active_session;
+                IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
                 }
@@ -127,9 +148,10 @@ static void process_events() {
                 }
                 break;
             }
-            case SDL_QUIT:
+            case SDL_QUIT: {
                 app_quit(app);
                 break;
+            }
             case APP_RUN_ON_MAIN: {
                 void (*action)(app_t *, void *) = event.user.data1;
                 void *data = event.user.data2;

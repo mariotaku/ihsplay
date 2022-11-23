@@ -1,10 +1,11 @@
 #include "hosts_fragment.h"
 
 #include "app.h"
-#include "backend/hosts_manager.h"
+#include "backend/host_manager.h"
 #include "lvgl/lv_gridview.h"
 #include "ui/app_ui.h"
 #include "ui/session.h"
+#include "util/array_list.h"
 
 typedef struct hosts_fragment {
     lv_fragment_t base;
@@ -32,8 +33,6 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
 static void hosts_reloaded(array_list_t *list, void *context);
 
-static void session_started(const IHS_SessionInfo *config, void *context);
-
 static int host_item_count(lv_obj_t *grid, void *data);
 
 static int host_item_id(lv_obj_t *grid, void *data, int index);
@@ -58,7 +57,6 @@ const lv_fragment_class_t hosts_fragment_class = {
 
 static const host_manager_listener_t host_manager_listener = {
         .hosts_reloaded = hosts_reloaded,
-        .session_started = session_started,
 };
 
 static const lv_gridview_adapter_t hosts_adapter = {
@@ -80,7 +78,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     fragment->grid_view = lv_gridview_create(container);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
-    lv_gridview_set_config(fragment->grid_view, 4, LV_DPX(100), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
+    lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
     return fragment->grid_view;
 }
@@ -108,11 +106,6 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
 static void hosts_reloaded(array_list_t *list, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
     lv_gridview_set_data(fragment->grid_view, list);
-}
-
-static void session_started(const IHS_SessionInfo *config, void *context) {
-    hosts_fragment *fragment = (hosts_fragment *) context;
-    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, (void *) config);
 }
 
 static int host_item_count(lv_obj_t *grid, void *data) {
@@ -159,5 +152,5 @@ static void host_item_clicked(lv_event_t *e) {
     if (target->parent != grid) return;
     host_obj_holder *holder = target->user_data;
     IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), holder->position);
-    host_manager_start_session(fragment->app->hosts_manager, item);
+    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, item);
 }

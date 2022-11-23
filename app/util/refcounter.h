@@ -14,8 +14,9 @@ static inline void refcounter_init(refcounter_t *counter) {
 }
 
 static inline void refcounter_destroy(refcounter_t *counter) {
-    SDL_assert(counter->counter == 0);
+    SDL_assert(counter->counter == 0 && counter->lock != NULL);
     SDL_DestroyMutex(counter->lock);
+    counter->lock = NULL;
 }
 
 static inline void refcounter_ref(refcounter_t *counter) {
@@ -26,6 +27,7 @@ static inline void refcounter_ref(refcounter_t *counter) {
 }
 
 static inline bool refcounter_unref(refcounter_t *counter) {
+    SDL_assert(counter->counter > 0);
     SDL_LockMutex(counter->lock);
     counter->counter--;
     SDL_UnlockMutex(counter->lock);
