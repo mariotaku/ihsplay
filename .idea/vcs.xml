@@ -8,5 +8,6 @@
     <mapping directory="$PROJECT_DIR$/third_party/lvgl" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third_party/mbedtls" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third_party/protobuf-c" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third_party/ss4s" vcs="Git" />
   </component>
 </project>
