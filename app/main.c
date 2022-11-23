@@ -1,6 +1,5 @@
 #include <SDL.h>
 #include <lvgl.h>
-#include <protobuf-c/protobuf-c.h>
 
 #include "app.h"
 
@@ -43,7 +42,6 @@ int main(int argc, char *argv[]) {
 #else
     fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
 #endif
-    printf("protobuf-c version: %s\n", protobuf_c_version());
     /* Caveat: Don't use SDL_WINDOW_FULLSCREEN_DESKTOP on webOS. On older platforms it's not supported. */
     SDL_Window *window = SDL_CreateWindow("myapp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
                                           SDL_WINDOW_ALLOW_HIGHDPI | fullscreen_flag);

@@ -19,3 +19,6 @@
 [submodule "third_party/ss4s"]
 	path = third_party/ss4s
 	url = https://github.com/mariotaku/ss4s.git
+[submodule "third_party/opus"]
+	path = third_party/opus
+	url = https://github.com/xiph/opus.git

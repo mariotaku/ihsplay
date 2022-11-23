@@ -23,11 +23,19 @@ endif ()
 
 if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
     option(BUILD_PROTOC "Disable protoc-c" OFF)
-    add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
     message("Using protobuf-c submodule")
+    add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
     set(PROTOBUF_C_FOUND 1)
     set(PROTOBUF_C_LIBRARIES protobuf-c)
     set(PROTOBUF_C_INCLUDEDIR ${CMAKE_SOURCE_DIR}/third_party/protobuf-c)
+endif ()
+
+if (NOT OPUS_FOUND)
+    message("Using opus submodule")
+    add_subdirectory(third_party/opus EXCLUDE_FROM_ALL)
+    set(OPUS_FOUND 1)
+    set(OPUS_LIBRARIES opus)
+    set(OPUS_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/third_party/opus/include)
 endif ()
 
 if (NOT MBEDCRYPTO_LIBRARY)
@@ -83,6 +91,11 @@ target_include_directories(ihsplay PRIVATE app)
 target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
+get_target_property(SS4S_MODULE_NAMES ss4s SS4S_MODULE_NAMES)
+
+foreach (SS4S_MODULE_NAME ${SS4S_MODULE_NAMES})
+    install(TARGETS ${SS4S_MODULE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endforeach ()
 
 set_target_properties(ihsplay PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
@@ -96,6 +109,7 @@ if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE rt)
     target_compile_definitions(ihsplay PRIVATE TARGET_WEBOS=1)
     add_subdirectory(system/webos/tv-native-apis)
+    include(PackageWebOS)
 endif ()
 
 add_sanitizers(ihsplay)
