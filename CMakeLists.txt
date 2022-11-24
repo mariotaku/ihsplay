@@ -50,7 +50,6 @@ add_subdirectory(core)
 add_sanitizers(ihslib)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
-add_subdirectory(third_party/ss4s)
 
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
@@ -58,6 +57,11 @@ target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
 target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES})
 target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
+
+if (TARGET_WEBOS)
+    add_subdirectory(system/webos/tv-native-apis)
+endif ()
+add_subdirectory(third_party/ss4s)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -107,8 +111,6 @@ target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${
 
 if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE rt)
-    target_compile_definitions(ihsplay PRIVATE TARGET_WEBOS=1)
-    add_subdirectory(system/webos/tv-native-apis)
     include(PackageWebOS)
 endif ()
 
