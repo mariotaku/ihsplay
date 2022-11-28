@@ -4,13 +4,21 @@
 
 static void read_cb(lv_indev_drv_t *drv, lv_indev_data_t *data);
 
-void app_lv_mouse_init() {
+lv_indev_t *app_lv_mouse_indev_init() {
     lv_indev_drv_t *driver = malloc(sizeof(lv_indev_drv_t));
     lv_indev_drv_init(driver);
     driver->type = LV_INDEV_TYPE_POINTER;
     driver->read_cb = read_cb;
     lv_indev_t *indev = lv_indev_drv_register(driver);
     lv_indev_set_group(indev, lv_group_get_default());
+    return indev;
+}
+
+
+void app_lv_mouse_indev_deinit(lv_indev_t *indev) {
+    lv_indev_drv_t *driver = indev->driver;
+    lv_indev_delete(indev);
+    free(driver);
 }
 
 static void read_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {

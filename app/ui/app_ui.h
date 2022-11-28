@@ -22,6 +22,11 @@ typedef struct app_ui_t {
     lv_fragment_manager_t *fm;
     SDL_Window *window;
     app_ui_fontset_t iconfont;
+    lv_group_t *group;
+    struct {
+        lv_indev_t *mouse;
+        lv_indev_t *keypad;
+    } indev;
 } app_ui_t;
 
 typedef struct app_ui_fragment_args_t {
@@ -44,3 +49,5 @@ void app_ui_fontset_set_default_size(const app_ui_t *ui, app_ui_fontset_t *set);
 void app_ui_fontset_init_mem(app_ui_fontset_t *set, const char *name, const void *mem, size_t size);
 
 void app_ui_fontset_deinit(app_ui_fontset_t *set);
+
+void app_ui_sdl_event(app_ui_t *ui, const SDL_Event *event);

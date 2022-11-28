@@ -1,12 +1,12 @@
 #include <SDL.h>
 #include <lvgl.h>
+#include <assert.h>
 
 #include "app.h"
 
 #include "ui/app_ui.h"
 
 #include "lvgl/display.h"
-#include "lvgl/mouse.h"
 #include "lvgl/theme.h"
 
 #include "ss4s.h"
@@ -19,7 +19,7 @@ static void process_events();
 static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
-    const static SS4S_Config config = {.appName = "IHSPlay", .audioDriver = "alsa", .videoDriver = "mmal"};
+    const static SS4S_Config config = {.audioDriver = "alsa", .videoDriver = "mmal"};
     SS4S_Init(argc, argv, &config);
     printf("Audio sink: %s\n", SS4S_GetAudioModuleName());
     printf("Video sink: %s\n", SS4S_GetVideoModuleName());
@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
     app_theme_init(&theme);
     theme.font_large = &lv_font_montserrat_48;
     lv_disp_set_theme(disp, &theme);
-    app_lv_mouse_init();
 
     app = app_create(disp);
 
@@ -144,6 +143,25 @@ static void process_events() {
                 if (y != 0) {
                     IHS_SessionSendMouseWheel(session, y > 0 ? IHS_MOUSE_WHEEL_UP : IHS_MOUSE_WHEEL_DOWN);
                 }
+                break;
+            }
+            case SDL_CONTROLLERDEVICEADDED: {
+                app_ihs_vlog(IHS_LogLevelInfo, "Input", "Controller added, which=%d", event.cdevice.which);
+                SDL_GameControllerOpen(event.cdevice.which);
+                break;
+            }
+            case SDL_CONTROLLERDEVICEREMOVED: {
+                app_ihs_vlog(IHS_LogLevelInfo, "Input", "Controller removed, which=%d", event.cdevice.which);
+                SDL_GameController *controller = SDL_GameControllerFromInstanceID(event.cdevice.which);
+                assert(controller != NULL);
+                SDL_GameControllerClose(controller);
+                break;
+            }
+            case SDL_CONTROLLERBUTTONUP:
+            case SDL_CONTROLLERBUTTONDOWN:
+            case SDL_KEYUP:
+            case SDL_KEYDOWN: {
+                app_ui_sdl_event(app->ui, &event);
                 break;
             }
             case SDL_QUIT: {

@@ -12,7 +12,7 @@
 typedef struct app_root_fragment {
     lv_fragment_t base;
     app_t *app;
-    lv_coord_t col_dsc[5], row_dsc[3];
+    lv_coord_t col_dsc[7], row_dsc[3];
     struct {
         lv_style_t root;
         lv_style_t action_btn;
@@ -48,19 +48,22 @@ static void constructor(lv_fragment_t *self, void *arg) {
     app_ui_fragment_args_t *fargs = arg;
     app_root_fragment *fragment = (app_root_fragment *) self;
     fragment->app = fargs->app;
-    fragment->col_dsc[0] = LV_GRID_FR(1);
-    fragment->col_dsc[1] = LV_DPX(40);
+    fragment->col_dsc[0] = LV_DPX(0);
+    fragment->col_dsc[1] = LV_GRID_FR(1);
     fragment->col_dsc[2] = LV_DPX(40);
     fragment->col_dsc[3] = LV_DPX(40);
-    fragment->col_dsc[4] = LV_GRID_TEMPLATE_LAST;
+    fragment->col_dsc[4] = LV_DPX(40);
+    fragment->col_dsc[5] = LV_DPX(0);
+    fragment->col_dsc[6] = LV_GRID_TEMPLATE_LAST;
     fragment->row_dsc[0] = LV_DPX(40);
     fragment->row_dsc[1] = LV_GRID_FR(1);
     fragment->row_dsc[2] = LV_GRID_TEMPLATE_LAST;
 
     lv_style_init(&fragment->styles.root);
     lv_style_set_pad_gap(&fragment->styles.root, LV_DPX(10));
-    lv_style_set_pad_hor(&fragment->styles.root, LV_DPX(30));
-    lv_style_set_pad_ver(&fragment->styles.root, LV_DPX(40));
+    lv_style_set_pad_hor(&fragment->styles.root, LV_DPX(20));
+    lv_style_set_pad_top(&fragment->styles.root, LV_DPX(40));
+    lv_style_set_pad_bottom(&fragment->styles.root, LV_DPX(30));
     lv_style_set_bg_opa(&fragment->styles.root, LV_OPA_COVER);
     lv_style_set_bg_color(&fragment->styles.root, lv_color_black());
 
@@ -89,22 +92,22 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_style_text_font(title, lv_theme_get_font_large(title), 0);
     lv_label_set_text(title, "IHSplay");
     lv_obj_set_size(title, LV_PCT(100), LV_SIZE_CONTENT);
-    lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 0, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
+    lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 1, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
 
     lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
-    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
     lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 
     lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
-    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
 
     lv_obj_t *btn_quit = nav_btn_create(fragment, root, MAT_SYMBOL_CLOSE);
-    lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 4, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
     lv_obj_add_event_cb(btn_quit, launcher_quit, LV_EVENT_CLICKED, fragment->app);
 
     lv_obj_t *nav_content = lv_obj_create(root);
     lv_obj_remove_style_all(nav_content);
-    lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 0, 4, LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 0, 6, LV_GRID_ALIGN_STRETCH, 1, 1);
     fragment->nav_content = nav_content;
 
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));

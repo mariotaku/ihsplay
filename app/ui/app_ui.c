@@ -6,6 +6,8 @@
 #include "app_ui.h"
 #include "launcher.h"
 #include "lvgl/fonts/material-icons/regular.h"
+#include "lvgl/keypad.h"
+#include "lvgl/mouse.h"
 
 app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     lv_draw_sdl_drv_param_t *param = disp->driver->user_data;
@@ -14,6 +16,14 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->window = param->user_data;
     ui->root = lv_disp_get_scr_act(disp);
     ui->fm = lv_fragment_manager_create(NULL);
+
+    lv_group_t *group = lv_group_create();
+    lv_group_set_editing(group, 0);
+    lv_group_set_default(group);
+    ui->group = group;
+
+    ui->indev.mouse = app_lv_mouse_indev_init();
+    ui->indev.keypad = app_lv_keypad_indev_init();
 
     app_ui_fontset_set_default_size(ui, &ui->iconfont);
     app_ui_fontset_init_mem(&ui->iconfont, "MaterialIcons-Regular", ttf_material_icons_regular_data,
@@ -28,6 +38,12 @@ void app_ui_created(app_ui_t *ui) {
 }
 
 void app_ui_destroy(app_ui_t *ui) {
+    app_lv_keypad_indev_deinit(ui->indev.keypad);
+    app_lv_mouse_indev_deinit(ui->indev.mouse);
+
+    lv_group_set_default(NULL);
+    lv_group_del(ui->group);
+
     app_ui_fontset_deinit(&ui->iconfont);
     lv_fragment_manager_del(ui->fm);
     free(ui);

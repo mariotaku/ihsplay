@@ -75,10 +75,12 @@ add_executable(ihsplay
         app/backend/stream_media.c
         app/lvgl/display.c
         app/lvgl/mouse.c
+        app/lvgl/keypad.c
         app/lvgl/theme.c
         app/lvgl/lv_gridview.c
         app/ui/app_ui.c
         app/ui/app_ui_font.c
+        app/ui/app_ui_event.c
         app/ui/launcher.c
         app/ui/session.c
         app/ui/hosts/hosts_fragment.c
@@ -97,9 +99,11 @@ target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
 get_target_property(SS4S_MODULE_NAMES ss4s SS4S_MODULE_NAMES)
 
-foreach (SS4S_MODULE_NAME ${SS4S_MODULE_NAMES})
-    install(TARGETS ${SS4S_MODULE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endforeach ()
+if (SS4S_MODULE_NAMES)
+    foreach (SS4S_MODULE_NAME ${SS4S_MODULE_NAMES})
+        install(TARGETS ${SS4S_MODULE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endforeach ()
+endif ()
 
 set_target_properties(ihsplay PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE

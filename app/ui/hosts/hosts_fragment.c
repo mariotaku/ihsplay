@@ -77,6 +77,7 @@ static void destructor(lv_fragment_t *self) {
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     fragment->grid_view = lv_gridview_create(container);
+    lv_obj_set_style_pad_all(fragment->grid_view, LV_DPX(10), 0);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
     lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
