@@ -66,7 +66,6 @@ void host_manager_discovery_stop(host_manager_t *manager) {
 
 void host_manager_request_session(host_manager_t *manager, const IHS_HostInfo *host) {
     IHS_StreamingRequest request = {
-            .gamepadCount = 0,
             .audioChannelCount = 2,
             .streamingEnable.audio = true,
             .streamingEnable.video = true,

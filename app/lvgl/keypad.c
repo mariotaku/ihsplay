@@ -93,6 +93,8 @@ static uint32_t key_from_keysym(const SDL_Keysym *keysym) {
             return LV_KEY_ENTER;
         case SDLK_ESCAPE:
             return LV_KEY_ESC;
+        case SDLK_TAB:
+            return keysym->mod & KMOD_SHIFT ? LV_KEY_PREV : LV_KEY_NEXT;
         default:
             return 0;
     }
@@ -107,7 +109,7 @@ static uint32_t key_from_cbutton(uint8_t button) {
         case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
             return LV_KEY_LEFT;
         case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-            return LV_KEY_UP;
+            return LV_KEY_RIGHT;
         case SDL_CONTROLLER_BUTTON_A:
             return LV_KEY_ENTER;
         case SDL_CONTROLLER_BUTTON_B:

@@ -88,6 +88,7 @@ add_executable(ihsplay
         app/ui/settings/basic.c
         app/ui/settings/widgets.c
         app/ui/common/progress_dialog.c
+        app/ui/common/group_utils.c
         app/util/array_list.c
         app/util/listeners_list.c
         app/settings/settings.c

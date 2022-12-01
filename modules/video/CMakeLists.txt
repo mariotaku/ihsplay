@@ -1,0 +1,5 @@
+if (TARGET_WEBOS)
+    add_subdirectory(ndl2)
+elseif(TARGET_RASPI)
+    add_subdirectory(raspi)
+endif()
