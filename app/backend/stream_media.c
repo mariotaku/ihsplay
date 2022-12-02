@@ -133,17 +133,19 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
     if (flags & IHS_StreamVideoFrameKeyFrame) {
         sflgs = SS4S_VIDEO_FEED_DATA_KEYFRAME;
         sps_dimension_t dimension = {0, 0};
+        bool dimension_parsed = false;
         switch (media_session->video_info.codec) {
             case SS4S_VIDEO_H264: {
-                sps_parse_dimension_h264(IHS_BufferPointerAt(data, 4), &dimension);
+                dimension_parsed = sps_parse_dimension_h264(IHS_BufferPointerAt(data, 4), &dimension);
                 break;
             }
             case SS4S_VIDEO_H265: {
-                sps_parse_dimension_hevc(IHS_BufferPointerAt(data, 4), &dimension);
+                dimension_parsed = sps_parse_dimension_hevc(IHS_BufferPointerAt(data, 4), &dimension);
                 break;
             }
         }
-        if (dimension.width != media_session->video_info.width || dimension.height != media_session->video_info.height) {
+        if (dimension_parsed && dimension.width != media_session->video_info.width ||
+            dimension.height != media_session->video_info.height) {
             media_session->video_info.width = dimension.width;
             media_session->video_info.height = dimension.height;
             SS4S_PlayerVideoSizeChanged(media_session->player, dimension.width, dimension.height);
