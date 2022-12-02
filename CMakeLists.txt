@@ -65,34 +65,7 @@ add_subdirectory(third_party/ss4s)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(ihsplay
-        app/main.c
-        app/app.c
-        app/app_events.c
-        app/app_logging.c
-        app/backend/host_manager.c
-        app/backend/stream_manager.c
-        app/backend/stream_media.c
-        app/lvgl/display.c
-        app/lvgl/mouse.c
-        app/lvgl/keypad.c
-        app/lvgl/theme.c
-        app/lvgl/lv_gridview.c
-        app/ui/app_ui.c
-        app/ui/app_ui_font.c
-        app/ui/app_ui_event.c
-        app/ui/launcher.c
-        app/ui/session.c
-        app/ui/hosts/hosts_fragment.c
-        app/ui/settings/settings.c
-        app/ui/settings/basic.c
-        app/ui/settings/widgets.c
-        app/ui/common/progress_dialog.c
-        app/ui/common/group_utils.c
-        app/util/array_list.c
-        app/util/listeners_list.c
-        app/settings/settings.c
-        )
+add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
 target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)

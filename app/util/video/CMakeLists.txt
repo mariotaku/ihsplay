@@ -1,0 +1,1 @@
+target_sources(ihsplay PRIVATE sps_parser.c)

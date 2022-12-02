@@ -102,10 +102,13 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     stream_manager_t *stream_manager = fragment->app->stream_manager;
     stream_manager_register_listener(stream_manager, &stream_manager_listener, fragment);
     stream_manager_start(stream_manager, &fragment->host);
+
+    app_ui_set_ignore_keys(fragment->app->ui, true);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
     session_fragment_t *fragment = (session_fragment_t *) self;
+    app_ui_set_ignore_keys(fragment->app->ui, false);
 
     if (fragment->progress != NULL) {
         lv_msgbox_close(fragment->progress);
