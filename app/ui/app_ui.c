@@ -23,7 +23,7 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->group = group;
 
     ui->indev.mouse = app_lv_mouse_indev_init();
-    ui->indev.keypad = app_lv_keypad_indev_init();
+    ui->indev.keypad = app_indev_keypad_init();
 
     app_ui_fontset_set_default_size(ui, &ui->iconfont);
     app_ui_fontset_init_mem(&ui->iconfont, "MaterialIcons-Regular", ttf_material_icons_regular_data,
@@ -38,7 +38,7 @@ void app_ui_created(app_ui_t *ui) {
 }
 
 void app_ui_destroy(app_ui_t *ui) {
-    app_lv_keypad_indev_deinit(ui->indev.keypad);
+    app_indev_keypad_deinit(ui->indev.keypad);
     app_lv_mouse_indev_deinit(ui->indev.mouse);
 
     lv_group_set_default(NULL);
@@ -47,6 +47,10 @@ void app_ui_destroy(app_ui_t *ui) {
     app_ui_fontset_deinit(&ui->iconfont);
     lv_fragment_manager_del(ui->fm);
     free(ui);
+}
+
+void app_ui_set_ignore_keys(app_ui_t *ui, bool ignore) {
+    app_indev_set_ignore_input(ui->indev.keypad, ignore);
 }
 
 void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args) {

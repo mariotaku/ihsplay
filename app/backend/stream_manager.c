@@ -77,7 +77,7 @@ stream_manager_t *stream_manager_create(app_t *app, host_manager_t *host_manager
     manager->app = app;
     manager->host_manager = host_manager;
     manager->listeners = listeners_list_create();
-    manager->hid_provider = IHS_HIDProviderSDLCreate();
+    manager->hid_provider = IHS_HIDProviderSDLCreate(false);
     host_manager_register_listener(host_manager, &host_manager_listener, manager);
     return manager;
 }

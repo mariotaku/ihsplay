@@ -2,11 +2,14 @@
 #include "stream_media.h"
 
 #include "ss4s.h"
+#include "util/video/sps_parser.h"
 
 #include <opus_multistream.h>
 
 struct stream_media_session_t {
     SS4S_Player *player;
+    SS4S_VideoInfo video_info;
+
     OpusMSDecoder *opus_decoder;
     size_t pcm_unit_size;
     int16_t *pcm_buffer;
@@ -113,6 +116,7 @@ static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config
             .width = (int) config->width,
             .height = (int) config->height,
     };
+    media_session->video_info = info;
     return SS4S_PlayerVideoOpen(media_session->player, &info);
 }
 
@@ -128,6 +132,24 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
     SS4S_VideoFeedFlags sflgs = 0;
     if (flags & IHS_StreamVideoFrameKeyFrame) {
         sflgs = SS4S_VIDEO_FEED_DATA_KEYFRAME;
+        sps_dimension_t dimension = {0, 0};
+        bool dimension_parsed = false;
+        switch (media_session->video_info.codec) {
+            case SS4S_VIDEO_H264: {
+                dimension_parsed = sps_parse_dimension_h264(IHS_BufferPointerAt(data, 4), &dimension);
+                break;
+            }
+            case SS4S_VIDEO_H265: {
+                dimension_parsed = sps_parse_dimension_hevc(IHS_BufferPointerAt(data, 4), &dimension);
+                break;
+            }
+        }
+        if (dimension_parsed && dimension.width != media_session->video_info.width ||
+            dimension.height != media_session->video_info.height) {
+            media_session->video_info.width = dimension.width;
+            media_session->video_info.height = dimension.height;
+            SS4S_PlayerVideoSizeChanged(media_session->player, dimension.width, dimension.height);
+        }
     }
     return SS4S_PlayerVideoFeed(media_session->player, data->data + data->offset, data->size, sflgs);
 }
