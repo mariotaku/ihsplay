@@ -69,6 +69,7 @@ add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
 target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)
+target_compile_definitions(ihslib-hid-sdl PRIVATE IHS_SDL_TARGETVERSION=2000)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
 get_target_property(SS4S_MODULE_NAMES ss4s SS4S_MODULE_NAMES)
