@@ -1,7 +1,6 @@
 target_sources(ihsplay PRIVATE
         app_ui.c
         app_ui_font.c
-        app_ui_event.c
         launcher.c
         session.c
         hosts/hosts_fragment.c

@@ -9,6 +9,7 @@
 typedef struct app_ui_t app_ui_t;
 typedef struct stream_manager_t stream_manager_t;
 typedef struct host_manager_t host_manager_t;
+typedef struct input_manager_t input_manager_t;
 
 typedef struct app_t {
     bool running;
@@ -17,6 +18,7 @@ typedef struct app_t {
     IHS_ClientConfig client_config;
     host_manager_t *hosts_manager;
     stream_manager_t *stream_manager;
+    input_manager_t *input_manager;
 } app_t;
 
 typedef enum app_event_type_t {
@@ -36,6 +38,8 @@ void app_quit(app_t *app);
 void app_run_on_main(app_t *app, app_run_action_fn action, void *data);
 
 void app_run_on_main_sync(app_t *app, app_run_action_fn action, void *data);
+
+void app_sdl_gamepad_event(app_t *app, const SDL_Event *event);
 
 void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
 

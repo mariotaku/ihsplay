@@ -51,5 +51,3 @@ void app_ui_fontset_set_default_size(const app_ui_t *ui, app_ui_fontset_t *set);
 void app_ui_fontset_init_mem(app_ui_fontset_t *set, const char *name, const void *mem, size_t size);
 
 void app_ui_fontset_deinit(app_ui_fontset_t *set);
-
-void app_ui_sdl_event(app_ui_t *ui, const SDL_Event *event);

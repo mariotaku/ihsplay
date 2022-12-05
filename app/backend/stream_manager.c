@@ -136,10 +136,7 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
     if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
         return false;
     }
-    if (IHS_HIDHandleSDLEvent(manager->state.streaming.session, event)) {
-        return IHS_SessionHIDSendReport(manager->state.streaming.session);
-    }
-    return false;
+    return IHS_HIDHandleSDLEvent(manager->state.streaming.session, event);
 }
 
 static void session_started(const IHS_SessionInfo *info, void *context) {

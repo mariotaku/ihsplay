@@ -8,8 +8,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmak
 find_package(PkgConfig REQUIRED)
 find_package(Freetype REQUIRED)
 
-find_package(Sanitizers)
-
 # Use SDL2 for window creation and event handling.
 pkg_check_modules(SDL2 REQUIRED sdl2)
 pkg_check_modules(PROTOBUF_C libprotobuf-c)
@@ -47,7 +45,6 @@ if (NOT MBEDCRYPTO_LIBRARY)
 endif ()
 
 add_subdirectory(core)
-add_sanitizers(ihslib)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 
@@ -93,4 +90,9 @@ if (TARGET_WEBOS)
     include(PackageWebOS)
 endif ()
 
-add_sanitizers(ihsplay)
+
+if (IHSPLAY_SANITIZE_ADDRESS)
+    target_compile_options(ihsplay PRIVATE -fsanitize=address)
+    target_link_options(ihsplay PRIVATE -fsanitize=address -static-libasan)
+    target_link_libraries(ihsplay PRIVATE asan)
+endif ()

@@ -2,6 +2,7 @@ add_executable(ihsplay
         main.c
         app.c
         app_events.c
+        app_gamepad.c
         app_logging.c
         settings/settings.c
         )

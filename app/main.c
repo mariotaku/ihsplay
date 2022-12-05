@@ -145,23 +145,13 @@ static void process_events() {
                 }
                 break;
             }
-            case SDL_CONTROLLERDEVICEADDED: {
-                app_ihs_vlog(IHS_LogLevelInfo, "Input", "Controller added, which=%d", event.cdevice.which);
-                SDL_GameControllerOpen(event.cdevice.which);
-                break;
-            }
-            case SDL_CONTROLLERDEVICEREMOVED: {
-                app_ihs_vlog(IHS_LogLevelInfo, "Input", "Controller removed, which=%d", event.cdevice.which);
-                SDL_GameController *controller = SDL_GameControllerFromInstanceID(event.cdevice.which);
-                assert(controller != NULL);
-                SDL_GameControllerClose(controller);
-                break;
-            }
+            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_CONTROLLERDEVICEREMOVED:
             case SDL_CONTROLLERBUTTONUP:
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_KEYUP:
             case SDL_KEYDOWN: {
-                app_ui_sdl_event(app->ui, &event);
+                app_sdl_gamepad_event(app, &event);
                 break;
             }
             case SDL_QUIT: {
