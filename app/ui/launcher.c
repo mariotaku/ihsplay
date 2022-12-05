@@ -8,6 +8,7 @@
 
 #include "lvgl/fonts/material-icons/symbols.h"
 #include "ui/settings/basic.h"
+#include "ui/common/group_utils.h"
 
 typedef struct app_root_fragment {
     lv_fragment_t base;
@@ -30,6 +31,8 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt);
 
 static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t *cls);
+
+static void focus_content(lv_event_t *e);
 
 static void launcher_hosts(lv_event_t *e);
 
@@ -94,16 +97,17 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_size(title, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 1, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
 
-    lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
-    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
-    lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
+//    lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
+//    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+//    lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
-    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+//    lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
+//    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
 
     lv_obj_t *btn_quit = nav_btn_create(fragment, root, MAT_SYMBOL_CLOSE);
     lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 4, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
     lv_obj_add_event_cb(btn_quit, launcher_quit, LV_EVENT_CLICKED, fragment->app);
+    lv_obj_add_event_cb(btn_quit, focus_content, LV_EVENT_KEY, fragment);
 
     lv_obj_t *nav_content = lv_obj_create(root);
     lv_obj_remove_style_all(nav_content);
@@ -133,6 +137,22 @@ static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t
     }
     lv_fragment_t *f = lv_fragment_create(cls, fragment->app);
     lv_fragment_manager_replace(manager, f, &fragment->nav_content);
+}
+
+static void focus_content(lv_event_t *e) {
+    if (lv_event_get_key(e) != LV_KEY_DOWN) {
+        return;
+    }
+    lv_group_t *group = lv_group_get_default();
+    if (group == NULL) {
+        return;
+    }
+    app_root_fragment *fragment = lv_event_get_user_data(e);
+    lv_obj_t *to_focus = ui_group_first_in_parent(group, fragment->nav_content);
+    if (to_focus == NULL) {
+        return;
+    }
+    lv_group_focus_obj(to_focus);
 }
 
 static void open_settings(lv_event_t *e) {

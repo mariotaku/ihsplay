@@ -43,6 +43,10 @@ static void host_item_delete(lv_event_t *e);
 
 static void host_item_clicked(lv_event_t *e);
 
+static void grid_focused(lv_event_t *e);
+
+static void grid_unfocused(lv_event_t *e);
+
 static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int position);
 
 const lv_fragment_class_t hosts_fragment_class = {
@@ -72,6 +76,7 @@ static void constructor(lv_fragment_t *self, void *arg) {
 }
 
 static void destructor(lv_fragment_t *self) {
+    LV_UNUSED(self);
 }
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
@@ -81,6 +86,8 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
     lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
+    lv_obj_add_event_cb(fragment->grid_view, grid_focused, LV_EVENT_FOCUSED, fragment);
+    lv_obj_add_event_cb(fragment->grid_view, grid_unfocused, LV_EVENT_DEFOCUSED, fragment);
     return fragment->grid_view;
 }
 
@@ -90,6 +97,7 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     host_manager_t *hosts_manager = fragment->app->hosts_manager;
     host_manager_register_listener(hosts_manager, &host_manager_listener, fragment);
     host_manager_discovery_start(hosts_manager);
+    lv_group_focus_obj(fragment->grid_view);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
@@ -106,7 +114,8 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
 
 static void hosts_reloaded(array_list_t *list, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
-    lv_gridview_set_data(fragment->grid_view, list);
+    lv_obj_t *grid = fragment->grid_view;
+    lv_gridview_set_data(grid, list);
 }
 
 static int host_item_count(lv_obj_t *grid, void *data) {
@@ -122,6 +131,7 @@ static int host_item_id(lv_obj_t *grid, void *data, int index) {
 
 static lv_obj_t *host_item_create(lv_obj_t *grid) {
     lv_obj_t *item_view = lv_btn_create(grid);
+    lv_group_remove_obj(item_view);
     lv_obj_set_layout(item_view, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(item_view, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(item_view, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -154,4 +164,19 @@ static void host_item_clicked(lv_event_t *e) {
     host_obj_holder *holder = target->user_data;
     IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), holder->position);
     app_ui_push_fragment(fragment->app->ui, &session_fragment_class, item);
+}
+
+
+static void grid_focused(lv_event_t *e) {
+    if (e->target != e->current_target) return;
+    array_list_t *data = lv_gridview_get_data(e->target);
+    if (data == NULL || array_list_size(data) == 0) {
+        return;
+    }
+    lv_gridview_focus(e->target, 0);
+}
+
+static void grid_unfocused(lv_event_t *e) {
+    if (e->target != e->current_target) return;
+    lv_gridview_focus(e->target, -1);
 }
