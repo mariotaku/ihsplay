@@ -27,6 +27,8 @@
 #define LV_SHADOW_CACHE_SIZE    0
 #define LV_IMG_CACHE_DEF_SIZE       0
 
+#define LV_GRADIENT_MAX_STOPS 8
+
 /* Use SDL draw backend */
 #define LV_USE_GPU_SDL    1
 #define LV_GPU_SDL_INCLUDE_PATH <SDL.h>

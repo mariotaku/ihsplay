@@ -1,10 +1,12 @@
 #include "session.h"
 #include "ihslib.h"
-#include "app_ui.h"
+#include "ui/app_ui.h"
 #include "app.h"
 #include "ui/common/progress_dialog.h"
 #include "util/array_list.h"
 #include "backend/stream_manager.h"
+#include "lvgl/fonts/material-icons/symbols.h"
+#include "streaming_overlay.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;
@@ -17,7 +19,6 @@ typedef struct session_fragment_t {
     SDL_Cursor *blank_cursor;
     uint64_t cursor_id;
     bool cursor_visible;
-    bool requested_disconnect;
 } session_fragment_t;
 
 typedef struct cursor_t {
@@ -46,7 +47,7 @@ const lv_fragment_class_t session_fragment_class = {
 
 static void session_connected_main(const IHS_SessionInfo *info, void *context);
 
-static void session_disconnected_main(const IHS_SessionInfo *info, void *context);
+static void session_disconnected_main(const IHS_SessionInfo *info, bool requested, void *context);
 
 const static stream_manager_listener_t stream_manager_listener = {
         .connected = session_connected_main,
@@ -64,6 +65,8 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
 static const cursor_t *session_current_cursor(session_fragment_t *fragment);
 
 static void disconnected_dialog_cb(lv_event_t *e);
+
+static void screen_clicked_cb(lv_event_t *e);
 
 static const IHS_StreamInputCallbacks input_callbacks = {
         .showCursor = session_show_cursor,
@@ -89,9 +92,11 @@ static void destructor(lv_fragment_t *self) {
 }
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
+    session_fragment_t *fragment = (session_fragment_t *) self;
     lv_obj_t *obj = lv_obj_create(container);
     lv_obj_remove_style_all(obj);
     lv_obj_set_size(obj, LV_PCT(100), LV_PCT(100));
+    lv_obj_add_event_cb(obj, screen_clicked_cb, LV_EVENT_CLICKED, fragment);
     return obj;
 }
 
@@ -102,6 +107,9 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     stream_manager_t *stream_manager = fragment->app->stream_manager;
     stream_manager_register_listener(stream_manager, &stream_manager_listener, fragment);
     stream_manager_start(stream_manager, &fragment->host);
+
+    lv_fragment_t *overlay_fragment = lv_fragment_create(&streaming_overlay_class, fragment->app);
+    lv_fragment_manager_replace(self->child_manager, overlay_fragment, &self->obj);
 
     app_ui_set_ignore_keys(fragment->app->ui, true);
 }
@@ -121,7 +129,7 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
 static void session_connected_main(const IHS_SessionInfo *info, void *context) {
     LV_UNUSED(info);
     session_fragment_t *fragment = (session_fragment_t *) context;
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+//    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     if (fragment->progress != NULL) {
         lv_msgbox_close(fragment->progress);
@@ -129,12 +137,12 @@ static void session_connected_main(const IHS_SessionInfo *info, void *context) {
     }
 }
 
-static void session_disconnected_main(const IHS_SessionInfo *info, void *context) {
+static void session_disconnected_main(const IHS_SessionInfo *info, bool requested, void *context) {
     LV_UNUSED(info);
     session_fragment_t *fragment = (session_fragment_t *) context;
-    SDL_SetRelativeMouseMode(SDL_FALSE);
-    SDL_SetCursor(SDL_GetDefaultCursor());
-    if (!fragment->requested_disconnect) {
+//    SDL_SetRelativeMouseMode(SDL_FALSE);
+//    SDL_SetCursor(SDL_GetDefaultCursor());
+    if (!requested) {
         static const char *btn_txts[] = {"OK", ""};
         lv_obj_t *mbox = lv_msgbox_create(NULL, NULL, "Disconnected.", btn_txts, false);
         lv_obj_add_event_cb(mbox, disconnected_dialog_cb, LV_EVENT_VALUE_CHANGED, NULL);
@@ -152,7 +160,7 @@ static void session_show_cursor(IHS_Session *session, float x, float y, void *co
         fragment->cursor_visible = true;
         const cursor_t *cursor = session_current_cursor(fragment);
         if (cursor != NULL) {
-            SDL_SetCursor(cursor->cursor);
+//            SDL_SetCursor(cursor->cursor);
         }
     }
 }
@@ -165,7 +173,7 @@ static bool session_set_cursor(IHS_Session *session, uint64_t cursorId, void *co
         return false;
     }
     if (fragment->cursor_visible) {
-        SDL_SetCursor(cursor->cursor);
+//        SDL_SetCursor(cursor->cursor);
     }
     return true;
 }
@@ -174,7 +182,7 @@ static void session_hide_cursor(IHS_Session *session, void *context) {
     session_fragment_t *fragment = context;
     if (fragment->cursor_visible) {
         fragment->cursor_visible = false;
-        SDL_SetCursor(fragment->blank_cursor);
+//        SDL_SetCursor(fragment->blank_cursor);
     }
 }
 
@@ -212,11 +220,20 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
     SDL_FreeSurface(surface);
 
     if (fragment->cursor_visible && fragment->cursor_id == cursor->id) {
-        SDL_SetCursor(cursor->cursor);
+//        SDL_SetCursor(cursor->cursor);
     }
 }
 
 static void disconnected_dialog_cb(lv_event_t *e) {
     lv_obj_t *msgbox = lv_event_get_current_target(e);
     lv_msgbox_close_async(msgbox);
+}
+
+static void screen_clicked_cb(lv_event_t *e) {
+    session_fragment_t *fragment = lv_event_get_user_data(e);
+    stream_manager_t *manager = fragment->app->stream_manager;
+    if (!stream_manager_is_overlay_opened(manager)) {
+        return;
+    }
+    stream_manager_set_overlay_opened(manager, false);
 }

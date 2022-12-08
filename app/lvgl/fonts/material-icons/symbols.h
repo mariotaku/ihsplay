@@ -10,6 +10,7 @@
 #define MAT_SYMBOL_LOCK "\xee\xa2\x97"
 #define MAT_SYMBOL_ONDEMAND_VIDEO "\xee\x98\xba"
 #define MAT_SYMBOL_PLAY_ARROW "\xee\x80\xb7"
+#define MAT_SYMBOL_POWER_SETTINGS_NEW "\xee\xa2\xac"
 #define MAT_SYMBOL_PUSH_PIN "\xef\x84\x8d"
 #define MAT_SYMBOL_SETTINGS "\xee\xa2\xb8"
 #define MAT_SYMBOL_SPORTS_ESPORTS "\xee\xa8\xa8"

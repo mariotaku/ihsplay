@@ -51,6 +51,25 @@ void stream_media_destroy(stream_media_session_t *media_session) {
     free(media_session);
 }
 
+void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool overlay) {
+    SS4S_VideoCapabilities cap = SS4S_GetVideoCapabilities();
+    if (cap & SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING) {
+        return;
+    }
+    if (overlay) {
+        int ui_width = 1920, ui_height = 1080, overlay_height = 200;
+        SS4S_VideoRect src = {
+                .x = 0, .y = 0,
+                .width = media_session->video_info.width,
+                .height = media_session->video_info.height * (ui_height - overlay_height) / ui_height
+        };
+        SS4S_VideoRect dest = {0, 0, ui_width, ui_height - overlay_height};
+        SS4S_PlayerVideoSetDisplayArea(media_session->player, &src, &dest);
+    } else {
+        SS4S_PlayerVideoSetDisplayArea(media_session->player, NULL, NULL);
+    }
+}
+
 const IHS_StreamAudioCallbacks *stream_media_audio_callbacks() {
     return &audio_callbacks;
 }

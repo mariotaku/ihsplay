@@ -17,7 +17,6 @@ typedef struct app_root_fragment {
     struct {
         lv_style_t root;
         lv_style_t action_btn;
-        lv_style_t action_btn_label;
     } styles;
     lv_obj_t *nav_content;
 } app_root_fragment;
@@ -68,17 +67,26 @@ static void constructor(lv_fragment_t *self, void *arg) {
     lv_style_set_pad_top(&fragment->styles.root, LV_DPX(40));
     lv_style_set_pad_bottom(&fragment->styles.root, LV_DPX(30));
     lv_style_set_bg_opa(&fragment->styles.root, LV_OPA_COVER);
-    lv_style_set_bg_color(&fragment->styles.root, lv_color_black());
+    const static lv_grad_dsc_t grad = {
+            .dir = LV_GRAD_DIR_VER,
+            .stops = {
+                    {.color = {.ch = {.red = 0x11, .green = 0x1d, .blue = 0x2e, .alpha = 255}}, .frac = 0},
+                    {.color = {.ch = {.red = 0x05, .green = 0x18, .blue = 0x39, .alpha = 255}}, .frac = 63},
+                    {.color = {.ch = {.red = 0x0a, .green = 0x1b, .blue = 0x48, .alpha = 255}}, .frac = 119},
+                    {.color = {.ch = {.red = 0x13, .green = 0x2e, .blue = 0x62, .alpha = 255}}, .frac = 172},
+                    {.color = {.ch = {.red = 0x14, .green = 0x4b, .blue = 0x7e, .alpha = 255}}, .frac = 216},
+                    {.color = {.ch = {.red = 0x13, .green = 0x64, .blue = 0x97, .alpha = 255}}, .frac = 255},
+            },
+            .stops_count = 6,
+    };
+    lv_style_set_bg_grad(&fragment->styles.root, &grad);
 
     lv_style_init(&fragment->styles.action_btn);
     lv_style_set_radius(&fragment->styles.action_btn, LV_RADIUS_CIRCLE);
-    lv_style_init(&fragment->styles.action_btn_label);
-    lv_style_set_text_font(&fragment->styles.action_btn_label, fargs->app->ui->iconfont.large);
 }
 
 static void destructor(lv_fragment_t *self) {
     app_root_fragment *fragment = (app_root_fragment *) self;
-    lv_style_reset(&fragment->styles.action_btn_label);
     lv_style_reset(&fragment->styles.action_btn);
     lv_style_reset(&fragment->styles.root);
 }
@@ -124,7 +132,7 @@ static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container
     lv_obj_t *btn = lv_btn_create(container);
     lv_obj_add_style(btn, &fragment->styles.action_btn, 0);
     lv_obj_t *label = lv_label_create(btn);
-    lv_obj_add_style(label, &fragment->styles.action_btn_label, 0);
+    lv_obj_add_style(label, &fragment->app->ui->styles.action_btn_label, 0);
     lv_label_set_text(label, txt);
     return btn;
 }

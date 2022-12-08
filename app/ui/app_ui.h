@@ -27,6 +27,9 @@ typedef struct app_ui_t {
         lv_indev_t *mouse;
         lv_indev_t *keypad;
     } indev;
+    struct {
+        lv_style_t action_btn_label;
+    } styles;
 } app_ui_t;
 
 typedef struct app_ui_fragment_args_t {

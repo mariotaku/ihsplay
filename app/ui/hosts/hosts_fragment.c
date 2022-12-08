@@ -4,7 +4,7 @@
 #include "backend/host_manager.h"
 #include "lvgl/lv_gridview.h"
 #include "ui/app_ui.h"
-#include "ui/session.h"
+#include "ui/session/session.h"
 #include "util/array_list.h"
 
 typedef struct hosts_fragment {

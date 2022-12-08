@@ -84,6 +84,9 @@ static void process_events() {
                 if (!session) {
                     break;
                 }
+                if (stream_manager_is_overlay_opened(app->stream_manager)) {
+                    break;
+                }
                 if (app->settings.relmouse) {
                     IHS_SessionSendMouseMovement(session, event.motion.xrel, event.motion.yrel);
                 } else {
@@ -98,6 +101,9 @@ static void process_events() {
             case SDL_MOUSEBUTTONUP: {
                 IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
+                    break;
+                }
+                if (stream_manager_is_overlay_opened(app->stream_manager)) {
                     break;
                 }
                 IHS_StreamInputMouseButton button = 0;
@@ -130,6 +136,9 @@ static void process_events() {
             case SDL_MOUSEWHEEL: {
                 IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
+                    break;
+                }
+                if (stream_manager_is_overlay_opened(app->stream_manager)) {
                     break;
                 }
                 Sint32 x = event.wheel.x, y = event.wheel.y;

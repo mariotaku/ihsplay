@@ -30,6 +30,9 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
                             ttf_material_icons_regular_size);
 
     lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
+
+    lv_style_init(&ui->styles.action_btn_label);
+    lv_style_set_text_font(&ui->styles.action_btn_label, ui->iconfont.large);
     return ui;
 }
 
@@ -38,14 +41,17 @@ void app_ui_created(app_ui_t *ui) {
 }
 
 void app_ui_destroy(app_ui_t *ui) {
-    app_indev_keypad_deinit(ui->indev.keypad);
-    app_lv_mouse_indev_deinit(ui->indev.mouse);
-
     lv_group_set_default(NULL);
     lv_group_del(ui->group);
 
+    lv_style_reset(&ui->styles.action_btn_label);
+
     app_ui_fontset_deinit(&ui->iconfont);
     lv_fragment_manager_del(ui->fm);
+
+    app_indev_keypad_deinit(ui->indev.keypad);
+    app_lv_mouse_indev_deinit(ui->indev.mouse);
+
     free(ui);
 }
 

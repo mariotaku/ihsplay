@@ -9,7 +9,7 @@ typedef struct registered_listener_t {
     refcounter_t refcounter;
 } registered_listener_t;
 
-array_list_t * listeners_list_create();
+array_list_t *listeners_list_create();
 
 void listeners_list_destroy(array_list_t *list);
 
@@ -31,4 +31,5 @@ void listeners_list_remove(array_list_t *list, const void *listener);
             array_list_remove(lst, i);                                              \
         }                                                                           \
     }                                                                               \
-}
+}                                                                                   \
+(void) lst

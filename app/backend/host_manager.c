@@ -105,7 +105,8 @@ static void client_streaming_success(IHS_Client *client, IHS_SocketAddress addre
 
 static void client_streaming_failed(IHS_Client *client, IHS_StreamingResult result, void *context) {
     (void) client;
-    fprintf(stderr, "[IHSClient] failed to start streaming: %u\n", result);
+    (void) context;
+    app_ihs_vlog(IHS_LogLevelError, "Client", "failed to start streaming: %u", result);
 }
 
 static void client_host_discovered_main(app_t *app, void *data) {

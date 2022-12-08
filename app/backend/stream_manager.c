@@ -28,6 +28,16 @@ static void session_disconnected_main(app_t *app, void *context);
 
 static void destroy_session_main(app_t *app, void *context);
 
+static void controller_back_pressed(stream_manager_t *manager);
+
+static void controller_back_released(stream_manager_t *manager);
+
+static Uint32 back_timer_callback(Uint32 duration, void *param);
+
+static bool should_intercept_event(Uint32 type);
+
+#define BACK_COUNTER_MAX 100
+
 typedef enum stream_manager_state_t {
     STREAM_MANAGER_STATE_IDLE,
     STREAM_MANAGER_STATE_REQUESTING,
@@ -51,6 +61,10 @@ struct stream_manager_t {
         struct {
             stream_manager_state_t code;
             IHS_Session *session;
+            SDL_TimerID back_timer;
+            int back_counter;
+            bool overlay_opened;
+            bool requested_disconnect;
         } streaming;
     } state;
 };
@@ -58,6 +72,7 @@ struct stream_manager_t {
 typedef struct event_context_t {
     stream_manager_t *manager;
     void *arg1;
+    uint32_t value1;
 } event_context_t;
 
 static const IHS_StreamSessionCallbacks session_callbacks = {
@@ -129,6 +144,7 @@ void stream_manager_stop_active(stream_manager_t *manager) {
     if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
         return;
     }
+    manager->state.streaming.requested_disconnect = true;
     IHS_SessionDisconnect(manager->state.streaming.session);
 }
 
@@ -136,7 +152,40 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
     if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
         return false;
     }
+    switch (event->type) {
+        case SDL_CONTROLLERBUTTONDOWN: {
+            if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
+                controller_back_pressed(manager);
+            }
+            break;
+        }
+        case SDL_CONTROLLERBUTTONUP: {
+            if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
+                controller_back_released(manager);
+            }
+            break;
+        }
+    }
+    if (manager->state.streaming.overlay_opened && should_intercept_event(event->type)) {
+        return true;
+    }
     return IHS_HIDHandleSDLEvent(manager->state.streaming.session, event);
+}
+
+bool stream_manager_is_overlay_opened(const stream_manager_t *manager) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
+        return false;
+    }
+    return manager->state.streaming.overlay_opened;
+}
+
+bool stream_manager_set_overlay_opened(stream_manager_t *manager, bool opened) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
+        return false;
+    }
+    manager->state.streaming.overlay_opened = opened;
+    stream_media_set_overlay_shown(manager->media, opened);
+    return true;
 }
 
 static void session_started(const IHS_SessionInfo *info, void *context) {
@@ -157,6 +206,8 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
     manager->state.code = STREAM_MANAGER_STATE_CONNECTING;
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
     manager->state.streaming.session = session;
+    manager->state.streaming.back_counter = 0;
+    manager->state.streaming.back_timer = 0;
 
     IHS_SessionConnect(session);
 }
@@ -202,11 +253,17 @@ static void session_disconnected(IHS_Session *session, void *context) {
     stream_manager_t *manager = (stream_manager_t *) context;
     assert(manager->state.code == STREAM_MANAGER_STATE_STREAMING);
     assert(manager->state.streaming.session == session);
+    if (manager->state.streaming.back_timer != 0) {
+        SDL_RemoveTimer(manager->state.streaming.back_timer);
+        manager->state.streaming.back_timer = 0;
+    }
+    bool requested = manager->state.streaming.requested_disconnect;
     manager->state.code = STREAM_MANAGER_STATE_DISCONNECTING;
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to DISCONNECTING");
     event_context_t ec = {
             .manager = manager,
             .arg1 = (void *) IHS_SessionGetInfo(session),
+            .value1 = requested
     };
     app_run_on_main_sync(manager->app, session_disconnected_main, &ec);
 }
@@ -223,7 +280,7 @@ static void session_disconnected_main(app_t *app, void *context) {
     event_context_t *ec = context;
     stream_manager_t *manager = ec->manager;
     listeners_list_notify(manager->listeners, stream_manager_listener_t, disconnected,
-                          (const IHS_SessionInfo *) ec->arg1);
+                          (const IHS_SessionInfo *) ec->arg1, ec->value1);
 }
 
 static void destroy_session_main(app_t *app, void *context) {
@@ -234,3 +291,49 @@ static void destroy_session_main(app_t *app, void *context) {
     stream_media_destroy(app->stream_manager->media);
     app->stream_manager->media = NULL;
 }
+
+static void controller_back_pressed(stream_manager_t *manager) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING || manager->state.streaming.back_timer != 0) {
+        return;
+    }
+    manager->state.streaming.back_counter = 0;
+    manager->state.streaming.back_timer = SDL_AddTimer(300, back_timer_callback, manager);
+}
+
+static void controller_back_released(stream_manager_t *manager) {
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING || manager->state.streaming.back_timer == 0) {
+        return;
+    }
+    SDL_RemoveTimer(manager->state.streaming.back_timer);
+    manager->state.streaming.back_timer = 0;
+}
+
+static bool should_intercept_event(Uint32 type) {
+    switch (type) {
+        case SDL_CONTROLLERDEVICEADDED:
+        case SDL_CONTROLLERDEVICEREMOVED:
+        case SDL_CONTROLLERDEVICEREMAPPED:
+            return false;
+        default:
+            return true;
+    }
+}
+
+static Uint32 back_timer_callback(Uint32 duration, void *param) {
+    (void) duration;
+    stream_manager_t *manager = (stream_manager_t *) param;
+    if (manager->state.code != STREAM_MANAGER_STATE_STREAMING) {
+        return 0;
+    }
+    manager->state.streaming.back_counter += 1;
+    if (manager->state.streaming.back_counter >= BACK_COUNTER_MAX) {
+        manager->state.streaming.back_timer = 0;
+        manager->state.streaming.back_counter = 0;
+        IHS_HIDResetSDLGameControllers(manager->state.streaming.session);
+        app_ihs_vlog(IHS_LogLevelInfo, "Streaming", "Requesting overlay");
+        stream_manager_set_overlay_opened(manager, true);
+        return 0;
+    }
+    return 16;
+}
+
