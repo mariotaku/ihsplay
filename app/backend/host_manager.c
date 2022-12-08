@@ -115,10 +115,14 @@ static void client_host_discovered_main(app_t *app, void *data) {
     IHS_HostInfo *info = NULL;
     array_list_t *hosts = manager->hosts;
     for (int i = 0, j = array_list_size(hosts); i < j; ++i) {
-        info = array_list_get(hosts, i);
-        if (info->clientId == host->clientId) break;
+        IHS_HostInfo *item = array_list_get(hosts, i);
+        if (item->clientId == host->clientId) {
+            info = item;
+            break;
+        }
     }
     if (info == NULL) {
+        app_ihs_vlog(IHS_LogLevelDebug, "Hosts", "New host discovered: %s", host->hostname);
         info = array_list_add(hosts, -1);
     }
     assert(info != NULL);
