@@ -20,6 +20,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Run apt-get update
+        shell: bash
+        run: sudo apt-get -y -qq update
+
       - name: Prepare Sysroot
         id: pi-sysroot
         uses: mariotaku/raspbian-sysroot-action@main
