@@ -43,4 +43,6 @@ void app_sdl_gamepad_event(app_t *app, const SDL_Event *event);
 
 void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
 
-void app_ihs_vlog(IHS_LogLevel level, const char *tag, const char *fmt,...);
+void app_ihs_vlog(IHS_LogLevel level, const char *tag, const char *fmt, ...);
+
+void app_lv_log(const char *msg);

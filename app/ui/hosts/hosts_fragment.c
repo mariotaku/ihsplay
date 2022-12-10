@@ -2,7 +2,7 @@
 
 #include "app.h"
 #include "backend/host_manager.h"
-#include "lvgl/lv_gridview.h"
+#include "lv_gridview.h"
 #include "ui/app_ui.h"
 #include "ui/session/session.h"
 #include "util/array_list.h"
@@ -115,7 +115,7 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
 static void hosts_reloaded(array_list_t *list, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
     lv_obj_t *grid = fragment->grid_view;
-    lv_gridview_set_data(grid, list);
+    lv_gridview_set_data(grid, list, NULL, -1);
 }
 
 static int host_item_count(lv_obj_t *grid, void *data) {
@@ -126,7 +126,9 @@ static int host_item_count(lv_obj_t *grid, void *data) {
 static int host_item_id(lv_obj_t *grid, void *data, int index) {
     LV_UNUSED(grid);
     IHS_HostInfo *item = array_list_get(data, index);
-    return (int) item->clientId;
+    int i = (int) (item->clientId & 0x7FFFFFFF);
+    app_ihs_vlog(IHS_LogLevelDebug, "Hosts", "Item id for #%d: %d", index, i);
+    return i;
 }
 
 static lv_obj_t *host_item_create(lv_obj_t *grid) {

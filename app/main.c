@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
     IHS_Init();
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
     SDL_RegisterEvents(APP_EVENT_SIZE);
+    lv_log_register_print_cb(app_lv_log);
     lv_init();
 
     int w = 1920, h = 1080;

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(ihsplay VERSION 0.0.1 LANGUAGES C)
 
+enable_testing()
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
 
 # Use `pkg-config` to link needed libraries.
@@ -51,7 +53,7 @@ add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
-target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
 target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
 
@@ -66,6 +68,7 @@ add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
 target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)
+target_link_libraries(ihsplay PRIVATE lv_gridview)
 target_compile_definitions(ihslib-hid-sdl PRIVATE IHS_SDL_TARGETVERSION=2000)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)

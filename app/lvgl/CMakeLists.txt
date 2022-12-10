@@ -3,4 +3,6 @@ target_sources(ihsplay PRIVATE
         mouse.c
         keypad.c
         theme.c
-        lv_gridview.c)
+        widgets/gridview/lv_gridview.c)
+
+add_subdirectory(widgets)

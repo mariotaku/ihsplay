@@ -43,6 +43,24 @@ typedef struct _lv_gridview_adapter_t {
     int (*item_id)(lv_obj_t *, void *data, int position);
 } lv_gridview_adapter_t;
 
+/**
+ * This data change struct holds information similar to the arguments of array.splice() in JavaScript.
+ */
+typedef struct _lv_gridview_data_change_t {
+    /**
+     * Zero-based index at which to start changing the data.
+     */
+    int start;
+    /**
+     * The number of items in the data to remove from start.
+     */
+    int remove_count;
+    /**
+     * The number of items to add to the data, beginning from start.
+     */
+    int add_count;
+} lv_gridview_data_change_t;
+
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
@@ -54,7 +72,14 @@ void lv_gridview_set_config(lv_obj_t *obj, int col_count, lv_coord_t row_height,
 
 void lv_gridview_set_adapter(lv_obj_t *obj, const lv_gridview_adapter_t *adapter);
 
-void lv_gridview_set_data(lv_obj_t *obj, void *data);
+/**
+ *
+ * @param obj
+ * @param data
+ * @param changes Can be NULL, which will invalidate the whole dataset.
+ * @param num_changes Number of changes, non-positive number will invalidate the whole dataset.
+ */
+void lv_gridview_set_data(lv_obj_t *obj, void *data, const lv_gridview_data_change_t changes[], int num_changes);
 
 void *lv_gridview_get_data(lv_obj_t *obj);
 
@@ -63,6 +88,8 @@ void lv_gridview_focus(lv_obj_t *obj, int position);
 int lv_gridview_get_focused_index(lv_obj_t *obj);
 
 void lv_gridview_rebind(lv_obj_t *obj);
+
+void lv_gridview_rebind_item(lv_obj_t *obj, int position);
 /**********************
  *      MACROS
  **********************/

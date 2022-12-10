@@ -95,6 +95,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     app_root_fragment *fragment = (app_root_fragment *) self;
     lv_obj_t *root = lv_obj_create(container);
     lv_obj_remove_style_all(root);
+    lv_obj_set_scroll_dir(root, LV_DIR_NONE);
     lv_obj_add_style(root, &fragment->styles.root, 0);
     lv_obj_set_layout(root, LV_LAYOUT_GRID);
     lv_obj_set_grid_dsc_array(root, fragment->col_dsc, fragment->row_dsc);
