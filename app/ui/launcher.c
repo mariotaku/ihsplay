@@ -9,6 +9,7 @@
 #include "lvgl/fonts/material-icons/symbols.h"
 #include "ui/settings/basic.h"
 #include "ui/common/group_utils.h"
+#include "backend/host_manager.h"
 
 typedef struct app_root_fragment {
     lv_fragment_t base;
@@ -37,6 +38,8 @@ static void launcher_hosts(lv_event_t *e);
 
 static void open_settings(lv_event_t *e);
 
+static void open_support(lv_event_t *e);
+
 static void launcher_quit(lv_event_t *e);
 
 const lv_fragment_class_t launcher_fragment_class = {
@@ -50,12 +53,12 @@ static void constructor(lv_fragment_t *self, void *arg) {
     app_ui_fragment_args_t *fargs = arg;
     app_root_fragment *fragment = (app_root_fragment *) self;
     fragment->app = fargs->app;
-    fragment->col_dsc[0] = LV_DPX(0);
+    fragment->col_dsc[0] = LV_DPX(20);
     fragment->col_dsc[1] = LV_GRID_FR(1);
     fragment->col_dsc[2] = LV_DPX(40);
     fragment->col_dsc[3] = LV_DPX(40);
     fragment->col_dsc[4] = LV_DPX(40);
-    fragment->col_dsc[5] = LV_DPX(0);
+    fragment->col_dsc[5] = LV_DPX(20);
     fragment->col_dsc[6] = LV_GRID_TEMPLATE_LAST;
     fragment->row_dsc[0] = LV_DPX(40);
     fragment->row_dsc[1] = LV_GRID_FR(1);
@@ -63,9 +66,9 @@ static void constructor(lv_fragment_t *self, void *arg) {
 
     lv_style_init(&fragment->styles.root);
     lv_style_set_pad_gap(&fragment->styles.root, LV_DPX(10));
-    lv_style_set_pad_hor(&fragment->styles.root, LV_DPX(20));
+    lv_style_set_pad_hor(&fragment->styles.root, 0);
     lv_style_set_pad_top(&fragment->styles.root, LV_DPX(40));
-    lv_style_set_pad_bottom(&fragment->styles.root, LV_DPX(30));
+    lv_style_set_pad_bottom(&fragment->styles.root, 0);
     lv_style_set_bg_opa(&fragment->styles.root, LV_OPA_COVER);
     const static lv_grad_dsc_t grad = {
             .dir = LV_GRAD_DIR_VER,
@@ -106,12 +109,13 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_size(title, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 1, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
 
-//    lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
-//    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
-//    lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
+    lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
+    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 
-//    lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
-//    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
+    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_add_event_cb(btn_support, open_support, LV_EVENT_CLICKED, fragment);
 
     lv_obj_t *btn_quit = nav_btn_create(fragment, root, MAT_SYMBOL_CLOSE);
     lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 4, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
@@ -135,6 +139,7 @@ static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container
     lv_obj_t *label = lv_label_create(btn);
     lv_obj_add_style(label, &fragment->app->ui->styles.action_btn_label, 0);
     lv_label_set_text(label, txt);
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
     return btn;
 }
 
@@ -168,6 +173,12 @@ static void open_settings(lv_event_t *e) {
     app_root_fragment *fragment = lv_event_get_user_data(e);
     app_t *app = fragment->app;
     app_ui_push_fragment(app->ui, &settings_basic_fragment_class, app);
+}
+
+static void open_support(lv_event_t *e) {
+    app_root_fragment *fragment = lv_event_get_user_data(e);
+    app_t *app = fragment->app;
+//    host_manager_add_fake(app->hosts_manager);
 }
 
 static void launcher_quit(lv_event_t *e) {

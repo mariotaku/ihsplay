@@ -10,7 +10,21 @@ void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message) {
     if (!log_header(level, tag)) {
         return;
     }
-    fprintf(stderr, "%s\x1b[0m\n", message);
+    const char *cur = message;
+    do {
+        const char *start = cur;
+        cur = strchr(cur, '\n');
+        if (cur != NULL) {
+            int line_len = cur - start;
+            if (line_len <= 0) {
+                break;
+            }
+            fprintf(stderr, "%.*s\x1b[0m\n", line_len, start);
+            cur = cur + 1;
+        } else if (start[0] != '\0') {
+            fprintf(stderr, "%s\x1b[0m\n", start);
+        }
+    } while (cur != NULL);
 }
 
 void app_ihs_vlog(IHS_LogLevel level, const char *tag, const char *fmt, ...) {

@@ -31,7 +31,7 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
 static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
-static void hosts_reloaded(array_list_t *list, void *context);
+static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context);
 
 static int host_item_count(lv_obj_t *grid, void *data);
 
@@ -82,7 +82,12 @@ static void destructor(lv_fragment_t *self) {
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     fragment->grid_view = lv_gridview_create(container);
-    lv_obj_set_style_pad_all(fragment->grid_view, LV_DPX(10), 0);
+    lv_obj_set_style_pad_top(fragment->grid_view, LV_DPX(10), 0);
+    lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), 0);
+    lv_obj_set_style_pad_hor(fragment->grid_view, LV_DPX(30), 0);
+    lv_obj_set_style_pad_top(fragment->grid_view, LV_DPX(10), LV_PART_SCROLLBAR);
+    lv_obj_set_style_pad_right(fragment->grid_view, LV_DPX(13), LV_PART_SCROLLBAR);
+    lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), LV_PART_SCROLLBAR);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
     lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
@@ -96,8 +101,10 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     host_manager_t *hosts_manager = fragment->app->hosts_manager;
     host_manager_register_listener(hosts_manager, &host_manager_listener, fragment);
-    host_manager_discovery_start(hosts_manager);
+    lv_gridview_set_data(fragment->grid_view, host_manager_get_hosts(hosts_manager), NULL, 0);
     lv_group_focus_obj(fragment->grid_view);
+
+    host_manager_discovery_start(hosts_manager);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
@@ -112,10 +119,25 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
     host_manager_unregister_listener(fragment->app->hosts_manager, &host_manager_listener);
 }
 
-static void hosts_reloaded(array_list_t *list, void *context) {
+static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
     lv_obj_t *grid = fragment->grid_view;
-    lv_gridview_set_data(grid, list, NULL, -1);
+    switch (change_type) {
+        case HOST_MANAGER_HOSTS_NEW: {
+            lv_gridview_data_change_t changes[] = {
+                    {.start = change_index, .remove_count = 0, .add_count = 1}
+            };
+            lv_gridview_set_data(grid, list, changes, 1);
+            break;
+        }
+        case HOST_MANAGER_HOSTS_UPDATE: {
+            lv_gridview_data_change_t changes[] = {
+                    {.start = change_index, .remove_count = 1, .add_count = 1}
+            };
+            lv_gridview_set_data(grid, list, changes, 1);
+            break;
+        }
+    }
 }
 
 static int host_item_count(lv_obj_t *grid, void *data) {

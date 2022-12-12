@@ -1,6 +1,7 @@
-#include <malloc.h>
-#include <memory.h>
 #include "array_list.h"
+
+#include <memory.h>
+#include <stdlib.h>
 
 struct array_list_t {
     void *data;
@@ -34,16 +35,16 @@ void *array_list_get(array_list_t *list, int index) {
     return item_at(list, index);
 }
 
-void *array_list_add(array_list_t *list, int index) {
-    if (index > list->size) return NULL;
+void *array_list_add(array_list_t *list, int insert_before) {
+    if (insert_before > list->size) return NULL;
     ensure_capacity(list, list->size + 1);
-    if (index < 0) {
+    if (insert_before < 0) {
         list->size += 1;
         return item_at(list, list->size - 1);
     } else {
-        memmove(item_at(list, index), item_at(list, index + 1), items_offset(list, list->size - index));
+        memmove(item_at(list, insert_before + 1), item_at(list, insert_before), items_offset(list, list->size - insert_before));
         list->size += 1;
-        return item_at(list, index);
+        return item_at(list, insert_before);
     }
 }
 
@@ -57,6 +58,18 @@ void array_list_remove(array_list_t *list, int index) {
 
 int array_list_size(const array_list_t *list) {
     return list->size;
+}
+
+void array_list_qsort(array_list_t *list, array_list_compare_fn compare) {
+    qsort(list->data, list->size, list->item_size, compare);
+}
+
+int array_list_bsearch(const array_list_t *list, const void *compare_value, array_list_compare_fn compare) {
+    void *found = bsearch(compare_value, list->data, list->size, list->item_size, compare);
+    if (found == NULL) {
+        return -1;
+    }
+    return (int) ((found - list->data) / list->item_size);
 }
 
 static void ensure_capacity(array_list_t *list, int new_size) {
