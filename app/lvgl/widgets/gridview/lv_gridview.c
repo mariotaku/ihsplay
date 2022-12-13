@@ -533,6 +533,9 @@ static void update_grid(lv_grid_t *grid) {
                     continue;
                 }
                 view_pool_ll_t *node = view_pool_node_by_position(grid->pool_inuse, old_pos);
+                if (node == NULL) {
+                    continue;
+                }
                 uint8_t row_idx = new_pos / grid->column_count, col_idx = new_pos % grid->column_count;
                 node->position = new_pos;
                 lv_obj_set_grid_cell(node->item, grid->column_align, col_idx, 1, grid->row_align, row_idx, 1);
