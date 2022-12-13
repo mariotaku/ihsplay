@@ -31,7 +31,7 @@ void input_manager_sdl_gamepad_added(input_manager_t *manager, int which) {
     SDL_Joystick *joystick = SDL_GameControllerGetJoystick(controller);
     SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
     insert_controller(manager, id, controller);
-    app_ihs_vlog(IHS_LogLevelInfo, "Input", "Gamepad #%d: %s added.", id, SDL_JoystickName(joystick));
+    app_ihs_logf(IHS_LogLevelInfo, "Input", "Gamepad #%d: %s added.", id, SDL_JoystickName(joystick));
 }
 
 void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID which) {
@@ -39,7 +39,7 @@ void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID 
     assert(index >= 0);
     SDL_GameControllerClose(manager->controllers[index].controller);
     remove_controller_at(manager, index);
-    app_ihs_vlog(IHS_LogLevelInfo, "Input", "Gamepad #%d removed.", which);
+    app_ihs_logf(IHS_LogLevelInfo, "Input", "Gamepad #%d removed.", which);
 }
 
 static void insert_controller(input_manager_t *manager, SDL_JoystickID id, SDL_GameController *controller) {

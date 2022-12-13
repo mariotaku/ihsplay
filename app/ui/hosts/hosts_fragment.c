@@ -47,6 +47,8 @@ static void grid_focused(lv_event_t *e);
 
 static void grid_unfocused(lv_event_t *e);
 
+static void grid_key_cb(lv_event_t *e);
+
 static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int position);
 
 const lv_fragment_class_t hosts_fragment_class = {
@@ -93,6 +95,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_focused, LV_EVENT_FOCUSED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_unfocused, LV_EVENT_DEFOCUSED, fragment);
+    lv_obj_add_event_cb(fragment->grid_view, grid_key_cb, LV_EVENT_KEY, fragment);
     return fragment->grid_view;
 }
 
@@ -149,7 +152,7 @@ static int host_item_id(lv_obj_t *grid, void *data, int index) {
     LV_UNUSED(grid);
     IHS_HostInfo *item = array_list_get(data, index);
     int i = (int) (item->clientId & 0x7FFFFFFF);
-    app_ihs_vlog(IHS_LogLevelDebug, "Hosts", "Item id for #%d: %d", index, i);
+    app_ihs_logf(IHS_LogLevelDebug, "Hosts", "Item id for #%d: %d", index, i);
     return i;
 }
 
@@ -203,4 +206,14 @@ static void grid_focused(lv_event_t *e) {
 static void grid_unfocused(lv_event_t *e) {
     if (e->target != e->current_target) return;
     lv_gridview_focus(e->target, -1);
+}
+
+static void grid_key_cb(lv_event_t *e) {
+    if (e->target != e->current_target || e->stop_processing) return;
+    switch (lv_event_get_key(e)) {
+        case LV_KEY_UP: {
+            lv_group_focus_prev(lv_group_get_default());
+            break;
+        }
+    }
 }

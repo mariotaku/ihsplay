@@ -14,7 +14,7 @@
 typedef struct app_root_fragment {
     lv_fragment_t base;
     app_t *app;
-    lv_coord_t col_dsc[7], row_dsc[3];
+    lv_coord_t col_dsc[5], row_dsc[3];
     struct {
         lv_style_t root;
         lv_style_t action_btn;
@@ -55,11 +55,9 @@ static void constructor(lv_fragment_t *self, void *arg) {
     fragment->app = fargs->app;
     fragment->col_dsc[0] = LV_DPX(20);
     fragment->col_dsc[1] = LV_GRID_FR(1);
-    fragment->col_dsc[2] = LV_DPX(40);
-    fragment->col_dsc[3] = LV_DPX(40);
-    fragment->col_dsc[4] = LV_DPX(40);
-    fragment->col_dsc[5] = LV_DPX(20);
-    fragment->col_dsc[6] = LV_GRID_TEMPLATE_LAST;
+    fragment->col_dsc[2] = LV_GRID_CONTENT;
+    fragment->col_dsc[3] = LV_DPX(20);
+    fragment->col_dsc[4] = LV_GRID_TEMPLATE_LAST;
     fragment->row_dsc[0] = LV_DPX(40);
     fragment->row_dsc[1] = LV_GRID_FR(1);
     fragment->row_dsc[2] = LV_GRID_TEMPLATE_LAST;
@@ -109,22 +107,33 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_size(title, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 1, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
 
-    lv_obj_t *btn_settings = nav_btn_create(fragment, root, MAT_SYMBOL_SETTINGS);
-    lv_obj_set_grid_cell(btn_settings, LV_GRID_ALIGN_STRETCH, 2, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_t *actions = lv_obj_create(root);
+    lv_obj_remove_style_all(actions);
+    lv_obj_set_scroll_dir(actions, LV_DIR_NONE);
+    lv_obj_set_layout(actions, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(actions, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(actions, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_gap(actions, LV_DPX(10), 0);
+    lv_obj_set_style_pad_ver(actions, LV_DPX(10), 0);
+    lv_obj_set_style_pad_left(actions, LV_DPX(10), 0);
+    lv_obj_set_style_pad_right(actions, LV_DPX(30), 0);
+    lv_obj_set_grid_cell(actions, LV_GRID_ALIGN_END, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_set_style_height(actions, LV_DPX(60), 0);
+    lv_obj_set_style_width(actions, LV_PCT(50), 0);
+    lv_obj_add_event_cb(actions, focus_content, LV_EVENT_KEY, fragment);
+
+    lv_obj_t *btn_settings = nav_btn_create(fragment, actions, MAT_SYMBOL_SETTINGS);
     lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *btn_support = nav_btn_create(fragment, root, MAT_SYMBOL_HELP);
-    lv_obj_set_grid_cell(btn_support, LV_GRID_ALIGN_STRETCH, 3, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_t *btn_support = nav_btn_create(fragment, actions, MAT_SYMBOL_HELP);
     lv_obj_add_event_cb(btn_support, open_support, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *btn_quit = nav_btn_create(fragment, root, MAT_SYMBOL_CLOSE);
-    lv_obj_set_grid_cell(btn_quit, LV_GRID_ALIGN_STRETCH, 4, 1, LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_t *btn_quit = nav_btn_create(fragment, actions, MAT_SYMBOL_CLOSE);
     lv_obj_add_event_cb(btn_quit, launcher_quit, LV_EVENT_CLICKED, fragment->app);
-    lv_obj_add_event_cb(btn_quit, focus_content, LV_EVENT_KEY, fragment);
 
     lv_obj_t *nav_content = lv_obj_create(root);
     lv_obj_remove_style_all(nav_content);
-    lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 0, 6, LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 0, 4, LV_GRID_ALIGN_STRETCH, 1, 1);
     fragment->nav_content = nav_content;
 
     lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
@@ -135,6 +144,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 
 static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt) {
     lv_obj_t *btn = lv_btn_create(container);
+    lv_obj_add_flag(btn, LV_OBJ_FLAG_EVENT_BUBBLE);
     lv_obj_add_style(btn, &fragment->styles.action_btn, 0);
     lv_obj_t *label = lv_label_create(btn);
     lv_obj_add_style(label, &fragment->app->ui->styles.action_btn_label, 0);
@@ -154,31 +164,56 @@ static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t
 }
 
 static void focus_content(lv_event_t *e) {
-    if (lv_event_get_key(e) != LV_KEY_DOWN) {
+    lv_obj_t *current_target = lv_event_get_current_target(e);
+    lv_obj_t *target = lv_event_get_target(e);
+    if (lv_obj_get_parent(target) != current_target) {
         return;
     }
-    lv_group_t *group = lv_group_get_default();
-    if (group == NULL) {
-        return;
+    switch (lv_event_get_key(e)) {
+        case LV_KEY_DOWN: {
+            lv_group_t *group = lv_group_get_default();
+            if (group == NULL) {
+                return;
+            }
+            app_root_fragment *fragment = lv_event_get_user_data(e);
+            lv_obj_t *to_focus = ui_group_first_in_parent(group, fragment->nav_content);
+            if (to_focus == NULL) {
+                return;
+            }
+            lv_group_focus_obj(to_focus);
+            break;
+        }
+        case LV_KEY_LEFT:
+        case LV_KEY_RIGHT: {
+            int focused_action = -1;
+            uint32_t action_count = lv_obj_get_child_cnt(current_target);
+            for (int i = 0, j = (int) action_count; i < j; i++) {
+                if (target == lv_obj_get_child(current_target, i)) {
+                    focused_action = i;
+                    break;
+                }
+            }
+            focused_action += lv_event_get_key(e) == LV_KEY_LEFT ? -1 : 1;
+            if (focused_action < 0) {
+                focused_action = (int) (action_count - 1);
+            } else if (focused_action >= action_count) {
+                focused_action = 0;
+            }
+            lv_group_focus_obj(lv_obj_get_child(current_target, focused_action));
+            break;
+        }
     }
-    app_root_fragment *fragment = lv_event_get_user_data(e);
-    lv_obj_t *to_focus = ui_group_first_in_parent(group, fragment->nav_content);
-    if (to_focus == NULL) {
-        return;
-    }
-    lv_group_focus_obj(to_focus);
 }
 
 static void open_settings(lv_event_t *e) {
     app_root_fragment *fragment = lv_event_get_user_data(e);
-    app_t *app = fragment->app;
-    app_ui_push_fragment(app->ui, &settings_basic_fragment_class, app);
+    launcher_open(fragment, &settings_basic_fragment_class);
 }
 
 static void open_support(lv_event_t *e) {
     app_root_fragment *fragment = lv_event_get_user_data(e);
-    app_t *app = fragment->app;
-//    host_manager_add_fake(app->hosts_manager);
+//    launcher_open(fragment, &settings_basic_fragment_class);
+    host_manager_add_fake(fragment->app->hosts_manager);
 }
 
 static void launcher_quit(lv_event_t *e) {

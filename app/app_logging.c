@@ -27,7 +27,7 @@ void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message) {
     } while (cur != NULL);
 }
 
-void app_ihs_vlog(IHS_LogLevel level, const char *tag, const char *fmt, ...) {
+void app_ihs_logf(IHS_LogLevel level, const char *tag, const char *fmt, ...) {
     if (!log_header(level, tag)) {
         return;
     }

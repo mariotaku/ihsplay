@@ -24,7 +24,11 @@ typedef struct app_t {
 typedef enum app_event_type_t {
     APP_EVENT_BEGIN = SDL_USEREVENT,
     APP_RUN_ON_MAIN,
-    APP_EVENT_SIZE = (APP_RUN_ON_MAIN - APP_EVENT_BEGIN) + 1
+    APP_UI_EVENT_BEGIN,
+    APP_UI_REQUEST_OVERLAY,
+    APP_UI_CLOSE_OVERLAY,
+    APP_UI_EVENT_LAST,
+    APP_EVENT_LAST,
 } app_event_type_t;
 
 typedef void(*app_run_action_fn)(app_t *, void *);
@@ -35,6 +39,8 @@ void app_destroy(app_t *app);
 
 void app_quit(app_t *app);
 
+void app_post_event(app_t *app, app_event_type_t type, void *data1, void *data2);
+
 void app_run_on_main(app_t *app, app_run_action_fn action, void *data);
 
 void app_run_on_main_sync(app_t *app, app_run_action_fn action, void *data);
@@ -43,6 +49,6 @@ void app_sdl_gamepad_event(app_t *app, const SDL_Event *event);
 
 void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
 
-void app_ihs_vlog(IHS_LogLevel level, const char *tag, const char *fmt, ...);
+void app_ihs_logf(IHS_LogLevel level, const char *tag, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 void app_lv_log(const char *msg);

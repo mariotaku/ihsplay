@@ -68,3 +68,7 @@ void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *ar
 void app_ui_pop_fragment(app_ui_t *ui) {
     lv_fragment_manager_pop(ui->fm);
 }
+
+void app_ui_send_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data) {
+    lv_fragment_manager_send_event(ui->fm, type, data);
+}

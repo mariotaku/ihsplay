@@ -185,6 +185,11 @@ bool stream_manager_set_overlay_opened(stream_manager_t *manager, bool opened) {
     }
     manager->state.streaming.overlay_opened = opened;
     stream_media_set_overlay_shown(manager->media, opened);
+    if (opened) {
+        app_post_event(manager->app, APP_UI_REQUEST_OVERLAY, NULL, NULL);
+    } else {
+        app_post_event(manager->app, APP_UI_CLOSE_OVERLAY, NULL, NULL);
+    }
     return true;
 }
 
@@ -330,7 +335,7 @@ static Uint32 back_timer_callback(Uint32 duration, void *param) {
         manager->state.streaming.back_timer = 0;
         manager->state.streaming.back_counter = 0;
         IHS_HIDResetSDLGameControllers(manager->state.streaming.session);
-        app_ihs_vlog(IHS_LogLevelInfo, "Streaming", "Requesting overlay");
+        app_ihs_logf(IHS_LogLevelInfo, "Streaming", "Requesting overlay");
         stream_manager_set_overlay_opened(manager, true);
         return 0;
     }

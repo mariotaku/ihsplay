@@ -123,7 +123,7 @@ static void client_streaming_success(IHS_Client *client, IHS_SocketAddress addre
 static void client_streaming_failed(IHS_Client *client, IHS_StreamingResult result, void *context) {
     (void) client;
     (void) context;
-    app_ihs_vlog(IHS_LogLevelError, "Client", "failed to start streaming: %u", result);
+    app_ihs_logf(IHS_LogLevelError, "Client", "failed to start streaming: %u", result);
 }
 
 static void client_host_discovered_main(app_t *app, void *data) {
@@ -148,7 +148,7 @@ static void client_host_discovered_main(app_t *app, void *data) {
     host_manager_hosts_change change_type;
     int change_index;
     if (info == NULL) {
-        app_ihs_vlog(IHS_LogLevelDebug, "Hosts", "New host discovered: %s", host->hostname);
+        app_ihs_logf(IHS_LogLevelDebug, "Hosts", "New host discovered: %s", host->hostname);
         info = array_list_add(hosts, insert_index);
         change_type = HOST_MANAGER_HOSTS_NEW;
         change_index = insert_index < 0 ? old_size : insert_index;

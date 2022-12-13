@@ -51,6 +51,7 @@ typedef struct lv_grid_t {
     int old_item_count;
     const lv_gridview_data_change_t *changes;
     int num_changes;
+    bool key_focus_clamp;
 
     view_pool_ll_t *pool_inuse, *pool_free;
     lv_style_t style_scrollbar, style_scrollbar_scrolled;
@@ -206,10 +207,11 @@ void *lv_gridview_get_data(lv_obj_t *obj) {
     return grid->data;
 }
 
-void lv_gridview_focus(lv_obj_t *obj, int position) {
+bool lv_gridview_focus(lv_obj_t *obj, int position) {
     lv_grid_t *grid = (lv_grid_t *) obj;
-    if (position < -1 || position >= grid->item_count) return;
-    if (grid->focused_index >= 0 && position != grid->focused_index) {
+    if (position < -1 || position >= grid->item_count) return false;
+    bool focus_changed = grid->focused_index >= 0 && position != grid->focused_index;
+    if (focus_changed) {
         view_pool_ll_t *node = view_pool_node_by_position(grid->pool_inuse, grid->focused_index);
         if (node) {
             lv_event_send(node->item, LV_EVENT_DEFOCUSED, lv_indev_get_act());
@@ -224,14 +226,20 @@ void lv_gridview_focus(lv_obj_t *obj, int position) {
         grid->adapter.bind_view(&grid->obj, item, grid->data, position);
         focused = item;
     }
-    if (!focused) return;
+    if (!focused) return false;
     lv_event_send(focused, LV_EVENT_FOCUSED, lv_indev_get_act());
     grid->focused_index = position;
+    return focus_changed;
 }
 
 int lv_gridview_get_focused_index(lv_obj_t *obj) {
     lv_grid_t *grid = (lv_grid_t *) obj;
     return grid->focused_index;
+}
+
+void lv_gridview_set_key_focus_clamp(lv_obj_t *obj, bool enable) {
+    lv_grid_t *grid = (lv_grid_t *) obj;
+    grid->key_focus_clamp = enable;
 }
 
 void lv_gridview_rebind(lv_obj_t *obj) {
@@ -404,7 +412,15 @@ static void key_cb(lv_grid_t *grid, lv_event_t *e) {
     } else {
         index += offset;
     }
-    lv_gridview_focus((lv_obj_t *) grid, LV_CLAMP(0, index, grid->item_count - 1));
+    int focus_position = index;
+    if (grid->key_focus_clamp) {
+        focus_position = LV_CLAMP(0, index, grid->item_count - 1);
+    } else if (index < 0 || index >= grid->item_count) {
+        return;
+    }
+    if (lv_gridview_focus((lv_obj_t *) grid, focus_position)) {
+        lv_event_stop_processing(e);
+    }
 }
 
 static void cancel_cb(lv_grid_t *grid, lv_event_t *e) {

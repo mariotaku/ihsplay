@@ -11,13 +11,18 @@ typedef struct bus_blocking_action_t {
 
 static void invoke_action_sync(app_t *app, void *data);
 
-void app_run_on_main(app_t *app, app_run_action_fn action, void *data) {
+void app_post_event(app_t *app, app_event_type_t type, void *data1, void *data2) {
     (void) app;
     SDL_Event event;
-    event.user.type = APP_RUN_ON_MAIN;
-    event.user.data1 = action;
-    event.user.data2 = data;
+    event.user.type = type;
+    event.user.data1 = data1;
+    event.user.data2 = data2;
     SDL_PushEvent(&event);
+}
+
+void app_run_on_main(app_t *app, app_run_action_fn action, void *data) {
+    (void) app;
+    app_post_event(app, APP_RUN_ON_MAIN, action, data);
 }
 
 void app_run_on_main_sync(app_t *app, app_run_action_fn action, void *data) {

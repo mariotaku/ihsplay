@@ -55,6 +55,7 @@ static lv_obj_t *create_obj_cb(lv_fragment_t *self, lv_obj_t *parent) {
     lv_obj_remove_style_all(content);
     lv_obj_add_style(content, &fragment->styles.overlay, 0);
     lv_obj_set_size(content, LV_PCT(100), LV_DPX(100));
+    lv_obj_set_style_pad_hor(content, LV_DPX(30), 0);
     lv_obj_align(content, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_add_flag(content, LV_OBJ_FLAG_CLICKABLE);
 

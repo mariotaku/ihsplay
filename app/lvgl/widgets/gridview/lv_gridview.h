@@ -83,9 +83,16 @@ void lv_gridview_set_data(lv_obj_t *obj, void *data, const lv_gridview_data_chan
 
 void *lv_gridview_get_data(lv_obj_t *obj);
 
-void lv_gridview_focus(lv_obj_t *obj, int position);
+bool lv_gridview_focus(lv_obj_t *obj, int position);
 
 int lv_gridview_get_focused_index(lv_obj_t *obj);
+
+/**
+ * When focusing first and last row, up/down key will make the grid view to focus on first/last item.
+ * @param obj
+ * @param enable
+ */
+void lv_gridview_set_key_focus_clamp(lv_obj_t *obj, bool enable);
 
 void lv_gridview_rebind(lv_obj_t *obj);
 

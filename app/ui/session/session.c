@@ -19,6 +19,8 @@ typedef struct session_fragment_t {
     SDL_Cursor *blank_cursor;
     uint64_t cursor_id;
     bool cursor_visible;
+
+    lv_fragment_t *overlay;
 } session_fragment_t;
 
 typedef struct cursor_t {
@@ -36,12 +38,15 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj);
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
+static bool event_cb(lv_fragment_t *self, int code, void *userdata);
+
 const lv_fragment_class_t session_fragment_class = {
         .constructor_cb = constructor,
         .destructor_cb = destructor,
         .create_obj_cb = create_obj,
         .obj_created_cb = obj_created,
         .obj_will_delete_cb = obj_will_delete,
+        .event_cb = event_cb,
         .instance_size = sizeof(session_fragment_t)
 };
 
@@ -67,6 +72,8 @@ static const cursor_t *session_current_cursor(session_fragment_t *fragment);
 static void disconnected_dialog_cb(lv_event_t *e);
 
 static void screen_clicked_cb(lv_event_t *e);
+
+static void set_overlay_visible(session_fragment_t *fragment, bool visible);
 
 static const IHS_StreamInputCallbacks input_callbacks = {
         .showCursor = session_show_cursor,
@@ -108,9 +115,6 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     stream_manager_register_listener(stream_manager, &stream_manager_listener, fragment);
     stream_manager_start(stream_manager, &fragment->host);
 
-    lv_fragment_t *overlay_fragment = lv_fragment_create(&streaming_overlay_class, fragment->app);
-    lv_fragment_manager_replace(self->child_manager, overlay_fragment, &self->obj);
-
     app_ui_set_ignore_keys(fragment->app->ui, true);
 }
 
@@ -124,6 +128,21 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
     }
 
     stream_manager_unregister_listener(fragment->app->stream_manager, &stream_manager_listener);
+}
+
+static bool event_cb(lv_fragment_t *self, int code, void *userdata) {
+    session_fragment_t *fragment = (session_fragment_t *) self;
+    switch (code) {
+        case APP_UI_REQUEST_OVERLAY: {
+            set_overlay_visible(fragment, true);
+            return true;
+        }
+        case APP_UI_CLOSE_OVERLAY: {
+            set_overlay_visible(fragment, false);
+            return true;
+        }
+    }
+    return false;
 }
 
 static void session_connected_main(const IHS_SessionInfo *info, void *context) {
@@ -236,4 +255,18 @@ static void screen_clicked_cb(lv_event_t *e) {
         return;
     }
     stream_manager_set_overlay_opened(manager, false);
+}
+
+static void set_overlay_visible(session_fragment_t *fragment, bool visible) {
+    if (visible == (fragment->overlay != NULL)) {
+        return;
+    }
+    if (visible) {
+        lv_fragment_t *overlay_fragment = lv_fragment_create(&streaming_overlay_class, fragment->app);
+        lv_fragment_manager_replace(fragment->base.child_manager, overlay_fragment, &fragment->base.obj);
+        fragment->overlay = overlay_fragment;
+    } else {
+        lv_fragment_manager_remove(fragment->base.child_manager, fragment->overlay);
+        fragment->overlay = NULL;
+    }
 }

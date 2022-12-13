@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     printf("Video sink: %s\n", SS4S_GetVideoModuleName());
     IHS_Init();
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
-    SDL_RegisterEvents(APP_EVENT_SIZE);
+    SDL_RegisterEvents((APP_EVENT_LAST - APP_EVENT_BEGIN) + 1);
     lv_log_register_print_cb(app_lv_log);
     lv_init();
 
@@ -174,8 +174,13 @@ static void process_events() {
                 action(app, data);
                 break;
             }
-            default:
+            default: {
+                if (event.type > APP_UI_EVENT_BEGIN && event.type < APP_UI_EVENT_LAST) {
+                    app_ui_event_data_t data = {.data1 = event.user.data1, .data2 = event.user.data2};
+                    app_ui_send_event(app->ui, event.type, &data);
+                }
                 break;
+            }
         }
     }
 }
