@@ -15,21 +15,49 @@ struct host_manager_t {
     array_list_t *listeners;
 };
 
-static void client_host_discovered(IHS_Client *client, IHS_HostInfo host, void *context);
+typedef struct host_manager_session_error_t {
+    IHS_HostInfo host;
+    uint32_t result;
+} host_manager_enum_error_t;
 
-static void client_streaming_success(IHS_Client *client, IHS_SocketAddress address, const uint8_t *sessionKey,
-                                     size_t sessionKeyLen, void *context);
+typedef struct host_manager_authorization_result_t {
+    IHS_HostInfo host;
+    uint64_t steam_id;
+} host_manager_authorization_result_t;
 
-static void client_streaming_failed(IHS_Client *client, IHS_StreamingResult result, void *context);
+static void client_host_discovered(IHS_Client *client, const IHS_HostInfo *host, void *context);
+
+static void client_authorization_success(IHS_Client *client, const IHS_HostInfo *host, uint64_t steamId,
+                                         void *context);
+
+static void client_authorization_failed(IHS_Client *client, const IHS_HostInfo *host,
+                                        IHS_AuthorizationResult result, void *context);
+
+static void client_streaming_success(IHS_Client *client, const IHS_HostInfo *host, const IHS_SocketAddress *address,
+                                     const uint8_t *sessionKey, size_t sessionKeyLen, void *context);
+
+static void client_streaming_failed(IHS_Client *client, const IHS_HostInfo *host, IHS_StreamingResult result,
+                                    void *context);
 
 static void client_host_discovered_main(app_t *app, void *data);
 
 static void client_streaming_success_main(app_t *app, void *data);
 
+static void client_streaming_failed_main(app_t *app, void *data);
+
+static void client_authorization_success_main(app_t *app, void *data);
+
+static void client_authorization_failed_main(app_t *app, void *data);
+
 static int compare_host_name(const void *a, const void *b);
 
 static const IHS_ClientDiscoveryCallbacks discovery_callbacks = {
-        .discovered = client_host_discovered
+        .discovered = client_host_discovered,
+};
+
+static const IHS_ClientAuthorizationCallbacks authorization_callbacks = {
+        .success = client_authorization_success,
+        .failed = client_authorization_failed,
 };
 
 static const IHS_ClientStreamingCallbacks streaming_callbacks = {
@@ -44,8 +72,9 @@ host_manager_t *host_manager_create(app_t *app) {
     manager->hosts = array_list_create(sizeof(IHS_HostInfo), 16);
     manager->listeners = listeners_list_create();
     IHS_ClientSetLogFunction(manager->client, app_ihs_log);
-    IHS_ClientSetStreamingCallbacks(manager->client, &streaming_callbacks, manager);
     IHS_ClientSetDiscoveryCallbacks(manager->client, &discovery_callbacks, manager);
+    IHS_ClientSetAuthorizationCallbacks(manager->client, &authorization_callbacks, manager);
+    IHS_ClientSetStreamingCallbacks(manager->client, &streaming_callbacks, manager);
     return manager;
 }
 
@@ -90,44 +119,64 @@ void host_manager_unregister_listener(host_manager_t *manager, const host_manage
     listeners_list_remove(manager->listeners, listener);
 }
 
-void host_manager_add_fake(host_manager_t *manager) {
-    IHS_HostInfo *host_copy = SDL_calloc(1, sizeof(IHS_HostInfo));
-    snprintf(host_copy->hostname, 64, "Fake #%04u", rand() % 10000);
-    host_copy->universe = IHS_SteamUniversePublic;
-    host_copy->clientId = random();
-    host_copy->instanceId = random();
-    IHS_IPAddressFromString(&host_copy->address.ip, "114.114.114.114");
-    host_copy->address.port = 23076;
-    app_run_on_main(manager->app, client_host_discovered_main, host_copy);
+void host_manager_authorization_request(host_manager_t *manager, const IHS_HostInfo *host, const char *pin) {
+    IHS_ClientAuthorizationRequest(manager->client, host, pin);
 }
 
-static void client_host_discovered(IHS_Client *client, IHS_HostInfo host, void *context) {
+static void client_host_discovered(IHS_Client *client, const IHS_HostInfo *host, void *context) {
     (void) client;
     host_manager_t *manager = context;
     IHS_HostInfo *host_copy = SDL_calloc(1, sizeof(IHS_HostInfo));
-    *host_copy = host;
+    *host_copy = *host;
     app_run_on_main(manager->app, client_host_discovered_main, host_copy);
 }
 
-static void client_streaming_success(IHS_Client *client, IHS_SocketAddress address, const uint8_t *sessionKey,
-                                     size_t sessionKeyLen, void *context) {
+static void client_authorization_success(IHS_Client *client, const IHS_HostInfo *host, uint64_t steamId,
+                                         void *context) {
     (void) client;
+    host_manager_t *manager = context;
+    host_manager_authorization_result_t *result = SDL_calloc(1, sizeof(host_manager_authorization_result_t));
+    result->host = *host;
+    result->steam_id = steamId;
+    app_run_on_main(manager->app, client_authorization_success_main, result);
+}
+
+static void client_authorization_failed(IHS_Client *client, const IHS_HostInfo *host, IHS_AuthorizationResult result,
+                                        void *context) {
+    (void) client;
+    host_manager_t *manager = context;
+    app_ihs_logf(IHS_LogLevelError, "Client", "Authorization failed: %u", result);
+    host_manager_enum_error_t *error = SDL_calloc(1, sizeof(host_manager_enum_error_t));
+    error->host = *host;
+    error->result = result;
+    app_run_on_main(manager->app, client_authorization_failed_main, error);
+}
+
+static void client_streaming_success(IHS_Client *client, const IHS_HostInfo *host, const IHS_SocketAddress *address,
+                                     const uint8_t *sessionKey, size_t sessionKeyLen, void *context) {
+    (void) client;
+    (void) host;
     host_manager_t *manager = context;
     IHS_SessionInfo *config = SDL_calloc(1, sizeof(IHS_SessionInfo));
-    config->address = address;
+    config->address = *address;
     SDL_memcpy(config->sessionKey, sessionKey, sessionKeyLen);
     config->sessionKeyLen = sessionKeyLen;
     app_run_on_main(manager->app, client_streaming_success_main, config);
 }
 
-static void client_streaming_failed(IHS_Client *client, IHS_StreamingResult result, void *context) {
+static void client_streaming_failed(IHS_Client *client, const IHS_HostInfo *host, IHS_StreamingResult result,
+                                    void *context) {
     (void) client;
-    (void) context;
-    app_ihs_logf(IHS_LogLevelError, "Client", "failed to start streaming: %u", result);
+    host_manager_t *manager = context;
+    app_ihs_logf(IHS_LogLevelError, "Client", "Failed to start streaming: %u", result);
+    host_manager_enum_error_t *error = SDL_calloc(1, sizeof(host_manager_enum_error_t));
+    error->host = *host;
+    error->result = result;
+    app_run_on_main(manager->app, client_streaming_failed_main, error);
 }
 
 static void client_host_discovered_main(app_t *app, void *data) {
-    host_manager_t *manager = app->hosts_manager;
+    host_manager_t *manager = app->host_manager;
     IHS_HostInfo *host = data;
     IHS_HostInfo *info = NULL;
     array_list_t *hosts = manager->hosts;
@@ -166,13 +215,39 @@ static void client_host_discovered_main(app_t *app, void *data) {
 }
 
 static void client_streaming_success_main(app_t *app, void *data) {
-    host_manager_t *manager = app->hosts_manager;
+    host_manager_t *manager = app->host_manager;
     IHS_SessionInfo *config = data;
 
     listeners_list_notify(manager->listeners, host_manager_listener_t, session_started, config);
     SDL_free(config);
 }
 
+static void client_streaming_failed_main(app_t *app, void *data) {
+    host_manager_t *manager = app->host_manager;
+    host_manager_enum_error_t *error = data;
+
+    listeners_list_notify(manager->listeners, host_manager_listener_t, session_start_failed, &error->host,
+                          error->result);
+    SDL_free(error);
+}
+
+static void client_authorization_success_main(app_t *app, void *data) {
+    host_manager_t *manager = app->host_manager;
+    host_manager_authorization_result_t *result = data;
+    listeners_list_notify(manager->listeners, host_manager_listener_t, authorized, &result->host,
+                          result->steam_id);
+    SDL_free(result);
+
+}
+
+static void client_authorization_failed_main(app_t *app, void *data) {
+    host_manager_t *manager = app->host_manager;
+    host_manager_enum_error_t *error = data;
+
+    listeners_list_notify(manager->listeners, host_manager_listener_t, authorization_failed, &error->host,
+                          error->result);
+    SDL_free(error);
+}
 
 static int compare_host_name(const void *a, const void *b) {
     const IHS_HostInfo *info1 = a;

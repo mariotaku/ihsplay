@@ -15,6 +15,12 @@ typedef struct host_manager_listener_t {
     void (*hosts_reloaded)(array_list_t *list, host_manager_hosts_change change, int index, void *context);
 
     void (*session_started)(const IHS_SessionInfo *config, void *context);
+
+    void (*session_start_failed)(const IHS_HostInfo *host, IHS_StreamingResult result, void *context);
+
+    void (*authorized)(const IHS_HostInfo *host, uint64_t steam_id, void *context);
+
+    void (*authorization_failed)(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context);
 } host_manager_listener_t;
 
 host_manager_t *host_manager_create(app_t *app);
@@ -33,4 +39,4 @@ void host_manager_register_listener(host_manager_t *manager, const host_manager_
 
 void host_manager_unregister_listener(host_manager_t *manager, const host_manager_listener_t *listener);
 
-void host_manager_add_fake(host_manager_t *manager);
+void host_manager_authorization_request(host_manager_t *manager, const IHS_HostInfo *host, const char *pin);

@@ -5,7 +5,7 @@
 
 #include "app_ui.h"
 #include "launcher.h"
-#include "lvgl/fonts/material-icons/regular.h"
+#include "lvgl/fonts/bootstrap-icons/regular.h"
 #include "lvgl/keypad.h"
 #include "lvgl/mouse.h"
 
@@ -26,8 +26,8 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->indev.keypad = app_indev_keypad_init();
 
     app_ui_fontset_set_default_size(ui, &ui->iconfont);
-    app_ui_fontset_init_mem(&ui->iconfont, "MaterialIcons-Regular", ttf_material_icons_regular_data,
-                            ttf_material_icons_regular_size);
+    app_ui_fontset_init_mem(&ui->iconfont, "bootstrap-icons", ttf_bootstrap_icons_data,
+                            ttf_bootstrap_icons_size);
 
     lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
 

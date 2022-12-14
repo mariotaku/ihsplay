@@ -6,7 +6,7 @@
 #include "hosts/hosts_fragment.h"
 #include "settings/settings.h"
 
-#include "lvgl/fonts/material-icons/symbols.h"
+#include "lvgl/fonts/bootstrap-icons/symbols.h"
 #include "ui/settings/basic.h"
 #include "ui/common/group_utils.h"
 #include "backend/host_manager.h"
@@ -122,13 +122,13 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_style_width(actions, LV_PCT(50), 0);
     lv_obj_add_event_cb(actions, focus_content, LV_EVENT_KEY, fragment);
 
-    lv_obj_t *btn_settings = nav_btn_create(fragment, actions, MAT_SYMBOL_SETTINGS);
+    lv_obj_t *btn_settings = nav_btn_create(fragment, actions, BS_SYMBOL_GEAR_FILL);
     lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *btn_support = nav_btn_create(fragment, actions, MAT_SYMBOL_HELP);
+    lv_obj_t *btn_support = nav_btn_create(fragment, actions, BS_SYMBOL_QUESTION_CIRCLE_FILL);
     lv_obj_add_event_cb(btn_support, open_support, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *btn_quit = nav_btn_create(fragment, actions, MAT_SYMBOL_CLOSE);
+    lv_obj_t *btn_quit = nav_btn_create(fragment, actions, BS_SYMBOL_X_LG);
     lv_obj_add_event_cb(btn_quit, launcher_quit, LV_EVENT_CLICKED, fragment->app);
 
     lv_obj_t *nav_content = lv_obj_create(root);
@@ -213,7 +213,6 @@ static void open_settings(lv_event_t *e) {
 static void open_support(lv_event_t *e) {
     app_root_fragment *fragment = lv_event_get_user_data(e);
 //    launcher_open(fragment, &settings_basic_fragment_class);
-    host_manager_add_fake(fragment->app->hosts_manager);
 }
 
 static void launcher_quit(lv_event_t *e) {

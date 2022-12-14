@@ -15,7 +15,7 @@ typedef struct stream_manager_callbacks_t {
     void (*disconnected)(const IHS_SessionInfo *info, bool requested, void *context);
 } stream_manager_listener_t;
 
-stream_manager_t *stream_manager_create(app_t *app, host_manager_t *host_manager);
+stream_manager_t *stream_manager_create(app_t *app);
 
 void stream_manager_destroy(stream_manager_t *manager);
 
@@ -24,7 +24,7 @@ void stream_manager_register_listener(stream_manager_t *manager, const stream_ma
 
 void stream_manager_unregister_listener(stream_manager_t *manager, const stream_manager_listener_t *listener);
 
-bool stream_manager_start(stream_manager_t *manager, const IHS_HostInfo *host);
+bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionInfo *info);
 
 IHS_Session *stream_manager_active_session(const stream_manager_t *manager);
 

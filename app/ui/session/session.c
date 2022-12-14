@@ -5,15 +5,15 @@
 #include "ui/common/progress_dialog.h"
 #include "util/array_list.h"
 #include "backend/stream_manager.h"
-#include "lvgl/fonts/material-icons/symbols.h"
 #include "streaming_overlay.h"
+#include "backend/host_manager.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;
     app_t *app;
-    IHS_HostInfo host;
+    IHS_SessionInfo info;
 
-    lv_obj_t *progress;
+    lv_obj_t *mbox;
 
     array_list_t *cursors;
     SDL_Cursor *blank_cursor;
@@ -59,6 +59,7 @@ const static stream_manager_listener_t stream_manager_listener = {
         .disconnected = session_disconnected_main,
 };
 
+
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context);
 
 static void session_hide_cursor(IHS_Session *session, void *context);
@@ -75,6 +76,8 @@ static void screen_clicked_cb(lv_event_t *e);
 
 static void set_overlay_visible(session_fragment_t *fragment, bool visible);
 
+static void close_msgbox(session_fragment_t *fragment);
+
 static const IHS_StreamInputCallbacks input_callbacks = {
         .showCursor = session_show_cursor,
         .hideCursor = session_hide_cursor,
@@ -86,7 +89,7 @@ static void constructor(lv_fragment_t *self, void *args) {
     session_fragment_t *fragment = (session_fragment_t *) self;
     const app_ui_fragment_args_t *fargs = args;
     fragment->app = fargs->app;
-    fragment->host = *(const IHS_HostInfo *) fargs->data;
+    fragment->info = *(const IHS_SessionInfo *) fargs->data;
     fragment->cursors = array_list_create(sizeof(cursor_t), 16);
     const static Uint8 blank_pixel[1] = {0};
     fragment->blank_cursor = SDL_CreateCursor(blank_pixel, blank_pixel, 1, 1, 0, 0);
@@ -108,29 +111,29 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 }
 
 static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
+    LV_UNUSED(obj);
     session_fragment_t *fragment = (session_fragment_t *) self;
 
-    fragment->progress = progress_dialog_create("Requesting stream");
+    fragment->mbox = progress_dialog_create("Requesting stream");
     stream_manager_t *stream_manager = fragment->app->stream_manager;
     stream_manager_register_listener(stream_manager, &stream_manager_listener, fragment);
-    stream_manager_start(stream_manager, &fragment->host);
+    stream_manager_start_session(stream_manager, &fragment->info);
 
     app_ui_set_ignore_keys(fragment->app->ui, true);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
+    LV_UNUSED(obj);
     session_fragment_t *fragment = (session_fragment_t *) self;
     app_ui_set_ignore_keys(fragment->app->ui, false);
 
-    if (fragment->progress != NULL) {
-        lv_msgbox_close(fragment->progress);
-        fragment->progress = NULL;
-    }
+    close_msgbox(fragment);
 
     stream_manager_unregister_listener(fragment->app->stream_manager, &stream_manager_listener);
 }
 
 static bool event_cb(lv_fragment_t *self, int code, void *userdata) {
+    LV_UNUSED(userdata);
     session_fragment_t *fragment = (session_fragment_t *) self;
     switch (code) {
         case APP_UI_REQUEST_OVERLAY: {
@@ -150,10 +153,7 @@ static void session_connected_main(const IHS_SessionInfo *info, void *context) {
     session_fragment_t *fragment = (session_fragment_t *) context;
 //    SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    if (fragment->progress != NULL) {
-        lv_msgbox_close(fragment->progress);
-        fragment->progress = NULL;
-    }
+    close_msgbox(fragment);
 }
 
 static void session_disconnected_main(const IHS_SessionInfo *info, bool requested, void *context) {
@@ -268,5 +268,12 @@ static void set_overlay_visible(session_fragment_t *fragment, bool visible) {
     } else {
         lv_fragment_manager_remove(fragment->base.child_manager, fragment->overlay);
         fragment->overlay = NULL;
+    }
+}
+
+static void close_msgbox(session_fragment_t *fragment) {
+    if (fragment->mbox != NULL) {
+        lv_msgbox_close(fragment->mbox);
+        fragment->mbox = NULL;
     }
 }

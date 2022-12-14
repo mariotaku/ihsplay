@@ -74,12 +74,6 @@ target_compile_definitions(ihslib-hid-sdl PRIVATE IHS_SDL_TARGETVERSION=2000)
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
 get_target_property(SS4S_MODULE_NAMES ss4s SS4S_MODULE_NAMES)
 
-if (SS4S_MODULE_NAMES)
-    foreach (SS4S_MODULE_NAME ${SS4S_MODULE_NAMES})
-        install(TARGETS ${SS4S_MODULE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    endforeach ()
-endif ()
-
 set_target_properties(ihsplay PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
         INSTALL_RPATH_USE_LINK_PATH TRUE
@@ -88,11 +82,21 @@ set_target_properties(ihsplay PROPERTIES
 target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
 target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${OPUS_LIBRARIES})
 
+
 if (TARGET_WEBOS)
     target_link_libraries(ihsplay PRIVATE rt)
     include(PackageWebOS)
+else ()
+    set(CMAKE_INSTALL_PREFIX /usr)
+    include(GNUInstallDirs)
 endif ()
 
+if (SS4S_MODULE_NAMES)
+    include(GenerateModulesIndex)
+    foreach (SS4S_MODULE_NAME ${SS4S_MODULE_NAMES})
+        install(TARGETS ${SS4S_MODULE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endforeach ()
+endif ()
 
 if (IHSPLAY_SANITIZE_ADDRESS)
     target_compile_options(ihsplay PRIVATE -fsanitize=address)

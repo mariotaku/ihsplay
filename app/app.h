@@ -13,10 +13,11 @@ typedef struct input_manager_t input_manager_t;
 
 typedef struct app_t {
     bool running;
+    SDL_threadID main_thread_id;
     app_ui_t *ui;
     app_settings_t settings;
     IHS_ClientConfig client_config;
-    host_manager_t *hosts_manager;
+    host_manager_t *host_manager;
     stream_manager_t *stream_manager;
     input_manager_t *input_manager;
 } app_t;
@@ -52,3 +53,5 @@ void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
 void app_ihs_logf(IHS_LogLevel level, const char *tag, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 void app_lv_log(const char *msg);
+
+void app_assert_main_thread(app_t *app);

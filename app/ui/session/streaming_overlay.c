@@ -1,5 +1,5 @@
 #include "streaming_overlay.h"
-#include "lvgl/fonts/material-icons/symbols.h"
+#include "lvgl/fonts/bootstrap-icons/symbols.h"
 
 #include "app.h"
 #include "ui/app_ui.h"
@@ -64,7 +64,7 @@ static lv_obj_t *create_obj_cb(lv_fragment_t *self, lv_obj_t *parent) {
     lv_obj_add_event_cb(quit, quit_clicked_cb, LV_EVENT_CLICKED, self);
     lv_obj_t *quit_label = lv_label_create(quit);
     lv_obj_add_style(quit_label, &fragment->app->ui->styles.action_btn_label, 0);
-    lv_label_set_text(quit_label, MAT_SYMBOL_POWER_SETTINGS_NEW);
+    lv_label_set_text(quit_label, BS_SYMBOL_POWER);
 
     lv_obj_align(quit, LV_ALIGN_LEFT_MID, 0, 0);
 
