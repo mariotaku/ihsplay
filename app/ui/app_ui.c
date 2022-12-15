@@ -9,6 +9,8 @@
 #include "lvgl/keypad.h"
 #include "lvgl/mouse.h"
 
+static void app_input_populate_group(app_ui_t *ui);
+
 app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     lv_draw_sdl_drv_param_t *param = disp->driver->user_data;
     app_ui_t *ui = calloc(1, sizeof(app_ui_t));
@@ -21,6 +23,7 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     lv_group_set_editing(group, 0);
     lv_group_set_default(group);
     ui->group = group;
+    _lv_ll_init(&ui->modal_groups, sizeof(lv_group_t *));
 
     ui->indev.mouse = app_lv_mouse_indev_init();
     ui->indev.keypad = app_indev_keypad_init();
@@ -43,6 +46,7 @@ void app_ui_created(app_ui_t *ui) {
 void app_ui_destroy(app_ui_t *ui) {
     lv_group_set_default(NULL);
     lv_group_del(ui->group);
+    _lv_ll_clear(&ui->modal_groups);
 
     lv_style_reset(&ui->styles.action_btn_label);
 
@@ -71,4 +75,39 @@ void app_ui_pop_fragment(app_ui_t *ui) {
 
 void app_ui_send_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data) {
     lv_fragment_manager_send_event(ui->fm, type, data);
+}
+
+void app_ui_push_modal_group(app_ui_t *ui, lv_group_t *group) {
+    LV_ASSERT_NULL(group);
+    lv_group_t **tail = _lv_ll_ins_tail(&ui->modal_groups);
+    *tail = group;
+    app_input_populate_group(ui);
+}
+
+void app_ui_remove_modal_group(app_ui_t *ui, lv_group_t *group) {
+    lv_group_t **node = NULL;
+    _LV_LL_READ_BACK(&ui->modal_groups, node) {
+        if (*node == group) break;
+    }
+    if (node) {
+        _lv_ll_remove(&ui->modal_groups, node);
+        lv_mem_free(node);
+    }
+    app_input_populate_group(ui);
+}
+
+static void app_input_populate_group(app_ui_t *ui) {
+    lv_group_t *group = NULL;
+    lv_group_t *const *tail = _lv_ll_get_tail(&ui->modal_groups);
+    if (tail) {
+        group = *tail;
+    }
+    if (!group) {
+        group = ui->group;
+    }
+    if (!group) {
+        group = lv_group_get_default();
+    }
+    lv_indev_set_group(ui->indev.keypad, group);
+    lv_indev_set_group(ui->indev.mouse, group);
 }

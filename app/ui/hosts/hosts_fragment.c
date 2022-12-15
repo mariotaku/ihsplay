@@ -46,8 +46,6 @@ static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResu
 
 static int host_item_count(lv_obj_t *grid, void *data);
 
-static int host_item_id(lv_obj_t *grid, void *data, int index);
-
 static lv_obj_t *host_item_create(lv_obj_t *grid);
 
 static void host_item_delete(lv_event_t *e);
@@ -67,6 +65,8 @@ static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *inf
 static lv_obj_t *open_msgbox(hosts_fragment *fragment, const char *title, const char *message, const char *btns[]);
 
 static void close_msgbox(hosts_fragment *fragment);
+
+static void msgbox_del_cb(lv_event_t *e);
 
 
 const lv_fragment_class_t hosts_fragment_class = {
@@ -88,7 +88,6 @@ static const host_manager_listener_t host_manager_listener = {
 
 static const lv_gridview_adapter_t hosts_adapter = {
         .item_count = host_item_count,
-        .item_id = host_item_id,
         .create_view = host_item_create,
         .bind_view = host_item_bind,
 };
@@ -173,44 +172,61 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
 
 static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
+    const char *message;
     switch (result) {
         case IHS_StreamingUnauthorized: {
-//            close_msgbox(fragment);
             open_authorization(fragment, host);
             return;
         }
-        case IHS_StreamingPINRequired:
+        case IHS_StreamingScreenLocked: {
+            message = "Screen is locked";
             break;
-        default:
+        }
+        case IHS_StreamingBusy: {
+            message = "Host is busy";
             break;
+        }
+        case IHS_StreamingPINRequired: {
+            message = "PIN is not supported";
+            break;
+        }
+        default: {
+            message = "Unknown error";
+            break;
+        }
     }
+    static const char *btns[] = {"OK", ""};
+    open_msgbox(fragment, "Failed to start streaming", message, btns);
 }
 
 static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
+    const char *message;
     switch (result) {
         case IHS_AuthorizationDenied:
-            open_msgbox(fragment, "Failed to pair device", "Host denied authorization", NULL);
+            message = "Host denied authorization";
             break;
         case IHS_AuthorizationNotLoggedIn:
-            open_msgbox(fragment, "Failed to pair device", "Not logged in", NULL);
+            message = "Not logged in";
             break;
         case IHS_AuthorizationOffline:
-            open_msgbox(fragment, "Failed to pair device", "Host is offline", NULL);
+            message = "Host is offline";
             break;
         case IHS_AuthorizationBusy:
-            open_msgbox(fragment, "Failed to pair device", "Host is busy", NULL);
+            message = "Host is busy";
             break;
         case IHS_AuthorizationTimedOut:
-            open_msgbox(fragment, "Failed to pair device", "Authorization timed out", NULL);
+            message = "Authorization timed out";
             break;
         case IHS_AuthorizationCanceled:
-            open_msgbox(fragment, "Failed to pair device", "Authorization cancelled", NULL);
+            message = "Authorization cancelled";
             break;
         default:
-            open_msgbox(fragment, "Failed to pair device", "Unknown error", NULL);
+            message = "Unknown error";
             break;
     }
+    static const char *btns[] = {"OK", ""};
+    open_msgbox(fragment, "Failed to pair device", message, btns);
 }
 
 static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *info) {
@@ -225,6 +241,7 @@ static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *inf
 static lv_obj_t *open_msgbox(hosts_fragment *fragment, const char *title, const char *message, const char *btns[]) {
     close_msgbox(fragment);
     lv_obj_t *mbox = lv_msgbox_create(NULL, title, message, btns, false);
+    lv_obj_add_event_cb(mbox, msgbox_del_cb, LV_EVENT_DELETE, fragment);
     lv_obj_center(mbox);
     return fragment->msgbox = mbox;
 }
@@ -237,23 +254,24 @@ static void close_msgbox(hosts_fragment *fragment) {
     fragment->msgbox = NULL;
 }
 
+static void msgbox_del_cb(lv_event_t *e) {
+    hosts_fragment *fragment = lv_event_get_user_data(e);
+    if (lv_event_get_current_target(e) != fragment->msgbox) {
+        return;
+    }
+    fragment->msgbox = NULL;
+}
+
 static int host_item_count(lv_obj_t *grid, void *data) {
     LV_UNUSED(grid);
     return array_list_size(data);
-}
-
-static int host_item_id(lv_obj_t *grid, void *data, int index) {
-    LV_UNUSED(grid);
-    IHS_HostInfo *item = array_list_get(data, index);
-    int i = (int) (item->clientId & 0x7FFFFFFF);
-    app_ihs_logf(IHS_LogLevelDebug, "Hosts", "Item id for #%d: %d", index, i);
-    return i;
 }
 
 static lv_obj_t *host_item_create(lv_obj_t *grid) {
     hosts_fragment *fragment = lv_obj_get_user_data(grid);
     lv_obj_t *item_view = lv_btn_create(grid);
     lv_group_remove_obj(item_view);
+    lv_obj_set_style_radius(item_view, 0, 0);
     lv_obj_set_layout(item_view, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(item_view, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(item_view, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -263,8 +281,11 @@ static lv_obj_t *host_item_create(lv_obj_t *grid) {
     holder->icon = lv_obj_create(item_view);
     lv_obj_remove_style_all(holder->icon);
     lv_obj_clear_flag(holder->icon, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_size(holder->icon, LV_DPX(120), LV_DPX(120));
+    lv_obj_set_size(holder->icon, LV_DPX(128), LV_DPX(128));
     lv_obj_set_style_text_font(holder->icon, fragment->app->ui->iconfont.huge, 0);
+    lv_obj_set_style_bg_color(holder->icon, lv_color_white(), 0);
+    lv_obj_set_style_bg_opa(holder->icon, LV_OPA_30, 0);
+    lv_obj_set_style_radius(holder->icon, LV_RADIUS_CIRCLE, 0);
     lv_obj_set_style_bg_img_src(holder->icon, BS_SYMBOL_DISPLAY, 0);
 
     holder->os_icon = lv_obj_create(holder->icon);
@@ -272,7 +293,7 @@ static lv_obj_t *host_item_create(lv_obj_t *grid) {
     lv_obj_clear_flag(holder->os_icon, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_size(holder->os_icon, LV_DPX(40), LV_DPX(40));
     lv_obj_set_style_text_font(holder->os_icon, fragment->app->ui->iconfont.xlarge, 0);
-    lv_obj_align(holder->os_icon, LV_ALIGN_CENTER, 0, -LV_DPX(5));
+    lv_obj_align(holder->os_icon, LV_ALIGN_CENTER, 0, -LV_DPX(4));
 
     holder->name = lv_label_create(item_view);
     lv_obj_add_event_cb(item_view, host_item_delete, LV_EVENT_DELETE, NULL);

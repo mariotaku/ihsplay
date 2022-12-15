@@ -1,11 +1,12 @@
 #include "app_ui.h"
+#include "app_ui_font.h"
 
 void app_ui_fontset_set_default_size(const app_ui_t *ui, app_ui_fontset_t *set) {
     set->size.small = LV_DPX(10);
     set->size.normal = LV_DPX(14);
     set->size.large = LV_DPX(20);
     set->size.xlarge = LV_DPX(32);
-    set->size.huge = LV_DPX(120);
+    set->size.huge = LV_DPX(96);
 }
 
 void app_ui_fontset_init_mem(app_ui_fontset_t *set, const char *name, const void *mem, size_t size) {

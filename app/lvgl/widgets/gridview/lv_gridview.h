@@ -39,8 +39,6 @@ typedef struct _lv_gridview_adapter_t {
     lv_obj_t *(*create_view)(lv_obj_t *);
 
     void (*bind_view)(lv_obj_t *, lv_obj_t *item_view, void *data, int position);
-
-    int (*item_id)(lv_obj_t *, void *data, int position);
 } lv_gridview_adapter_t;
 
 /**

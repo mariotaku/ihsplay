@@ -1,6 +1,8 @@
 
 #include "theme.h"
 
+#include "ext/msgbox_ext.h"
+
 static void apply_cb(lv_theme_t *theme, lv_obj_t *obj);
 
 static struct {
@@ -40,5 +42,7 @@ static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
     if (lv_obj_has_class(obj, &lv_btn_class)) {
         lv_obj_add_style(obj, &styles.btn, 0);
         lv_obj_add_style(obj, &styles.btn_pressed, LV_STATE_PRESSED);
+    } else if (lv_obj_check_type(obj, &lv_msgbox_class)) {
+        msgbox_inject_nav(theme->user_data, obj);
     }
 }

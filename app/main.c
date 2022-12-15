@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
     lv_disp_set_theme(disp, &theme);
 
     app = app_create(disp);
+    theme.user_data = app->ui;
 
     while (app->running) {
         process_events();
