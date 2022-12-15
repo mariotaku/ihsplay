@@ -18,6 +18,15 @@ void msgbox_inject_nav(app_ui_t *ui, lv_obj_t *obj) {
     lv_obj_add_event_cb(obj, msgbox_destroy, LV_EVENT_DELETE, group);
 }
 
+void msgbox_fix_sizes(lv_obj_t *obj, const char *btn_texts[]) {
+    lv_obj_t *btns = lv_msgbox_get_btns(obj);
+    if (btns != NULL) {
+        int i;
+        for (i = 0; btn_texts[i][0] != '\0'; i++);
+        lv_obj_set_width(btns, i * LV_DPX(70) + (i - 1) * LV_DPX(10));
+    }
+}
+
 static void msgbox_key(lv_event_t *event) {
     lv_obj_t *target = lv_event_get_target(event);
     lv_group_t *group = lv_obj_get_group(target);

@@ -8,11 +8,12 @@
 #include "util/array_list.h"
 #include "lvgl/fonts/bootstrap-icons/symbols.h"
 #include "util/random.h"
+#include "lvgl/ext/msgbox_ext.h"
+#include "ui/common/error_messages.h"
 
 typedef struct hosts_fragment {
     lv_fragment_t base;
     app_t *app;
-    lv_coord_t col_dsc[3], row_dsc[7];
     lv_obj_t *grid_view;
     lv_obj_t *msgbox;
 } hosts_fragment;
@@ -42,6 +43,8 @@ static void session_started(const IHS_SessionInfo *info, void *context);
 
 static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context);
 
+static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *context);
+
 static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context);
 
 static int host_item_count(lv_obj_t *grid, void *data);
@@ -66,8 +69,11 @@ static lv_obj_t *open_msgbox(hosts_fragment *fragment, const char *title, const 
 
 static void close_msgbox(hosts_fragment *fragment);
 
+static void msgbox_confirm_cb(lv_event_t *e);
+
 static void msgbox_del_cb(lv_event_t *e);
 
+static void authorization_cancel_cb(lv_event_t *e);
 
 const lv_fragment_class_t hosts_fragment_class = {
         .constructor_cb = constructor,
@@ -83,6 +89,7 @@ static const host_manager_listener_t host_manager_listener = {
         .hosts_reloaded = hosts_reloaded,
         .session_started = session_started,
         .session_start_failed = session_start_failed,
+        .authorized = authorized,
         .authorization_failed = authorization_failed,
 };
 
@@ -172,61 +179,27 @@ static void session_started(const IHS_SessionInfo *info, void *context) {
 
 static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
-    const char *message;
-    switch (result) {
-        case IHS_StreamingUnauthorized: {
-            open_authorization(fragment, host);
-            return;
-        }
-        case IHS_StreamingScreenLocked: {
-            message = "Screen is locked";
-            break;
-        }
-        case IHS_StreamingBusy: {
-            message = "Host is busy";
-            break;
-        }
-        case IHS_StreamingPINRequired: {
-            message = "PIN is not supported";
-            break;
-        }
-        default: {
-            message = "Unknown error";
-            break;
-        }
+    if (result == IHS_StreamingUnauthorized) {
+        open_authorization(fragment, host);
+    } else {
+        const char *message = streaming_result_str(result);
+        static const char *btns[] = {"OK", ""};
+        lv_obj_t *mbox = open_msgbox(fragment, "Failed to start streaming", message, btns);
+        lv_obj_add_event_cb(mbox, msgbox_confirm_cb, LV_EVENT_VALUE_CHANGED, fragment);
     }
-    static const char *btns[] = {"OK", ""};
-    open_msgbox(fragment, "Failed to start streaming", message, btns);
+}
+
+static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *context) {
+    hosts_fragment *fragment = (hosts_fragment *) context;
+    close_msgbox(fragment);
 }
 
 static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
-    const char *message;
-    switch (result) {
-        case IHS_AuthorizationDenied:
-            message = "Host denied authorization";
-            break;
-        case IHS_AuthorizationNotLoggedIn:
-            message = "Not logged in";
-            break;
-        case IHS_AuthorizationOffline:
-            message = "Host is offline";
-            break;
-        case IHS_AuthorizationBusy:
-            message = "Host is busy";
-            break;
-        case IHS_AuthorizationTimedOut:
-            message = "Authorization timed out";
-            break;
-        case IHS_AuthorizationCanceled:
-            message = "Authorization cancelled";
-            break;
-        default:
-            message = "Unknown error";
-            break;
-    }
+    const char *message = authorization_result_str(result);
     static const char *btns[] = {"OK", ""};
-    open_msgbox(fragment, "Failed to pair device", message, btns);
+    lv_obj_t *mbox = open_msgbox(fragment, "Failed to pair device", message, btns);
+    lv_obj_add_event_cb(mbox, msgbox_confirm_cb, LV_EVENT_VALUE_CHANGED, fragment);
 }
 
 static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *info) {
@@ -235,12 +208,15 @@ static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *inf
     host_manager_authorization_request(fragment->app->host_manager, info, pin);
     static char pairing_msg[1024];
     snprintf(pairing_msg, 1024, "Please type %s on your computer.", pin);
-    open_msgbox(fragment, "Pairing", pairing_msg, NULL);
+    static const char *btns[] = {"Cancel", ""};
+    lv_obj_t *mbox = open_msgbox(fragment, "Pairing", pairing_msg, btns);
+    lv_obj_add_event_cb(mbox, authorization_cancel_cb, LV_EVENT_VALUE_CHANGED, fragment);
 }
 
 static lv_obj_t *open_msgbox(hosts_fragment *fragment, const char *title, const char *message, const char *btns[]) {
     close_msgbox(fragment);
     lv_obj_t *mbox = lv_msgbox_create(NULL, title, message, btns, false);
+    msgbox_fix_sizes(mbox, btns);
     lv_obj_add_event_cb(mbox, msgbox_del_cb, LV_EVENT_DELETE, fragment);
     lv_obj_center(mbox);
     return fragment->msgbox = mbox;
@@ -254,12 +230,26 @@ static void close_msgbox(hosts_fragment *fragment) {
     fragment->msgbox = NULL;
 }
 
+static void msgbox_confirm_cb(lv_event_t *e) {
+    lv_obj_t *mbox = lv_event_get_current_target(e);
+    lv_event_stop_processing(e);
+    lv_msgbox_close(mbox);
+}
+
 static void msgbox_del_cb(lv_event_t *e) {
     hosts_fragment *fragment = lv_event_get_user_data(e);
     if (lv_event_get_current_target(e) != fragment->msgbox) {
         return;
     }
     fragment->msgbox = NULL;
+}
+
+static void authorization_cancel_cb(lv_event_t *e) {
+    hosts_fragment *fragment = lv_event_get_user_data(e);
+    lv_obj_t *mbox = lv_event_get_current_target(e);
+    lv_event_stop_processing(e);
+    lv_msgbox_close(mbox);
+    host_manager_authorization_cancel(fragment->app->host_manager);
 }
 
 static int host_item_count(lv_obj_t *grid, void *data) {

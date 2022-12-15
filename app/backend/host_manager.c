@@ -6,6 +6,7 @@
 #include "util/array_list.h"
 #include "util/refcounter.h"
 #include "util/listeners_list.h"
+#include "ui/common/error_messages.h"
 
 struct host_manager_t {
     app_t *app;
@@ -123,6 +124,10 @@ void host_manager_authorization_request(host_manager_t *manager, const IHS_HostI
     IHS_ClientAuthorizationRequest(manager->client, host, pin);
 }
 
+bool host_manager_authorization_cancel(host_manager_t *manager) {
+    return IHS_ClientAuthorizationCancel(manager->client);
+}
+
 static void client_host_discovered(IHS_Client *client, const IHS_HostInfo *host, void *context) {
     (void) client;
     host_manager_t *manager = context;
@@ -168,7 +173,7 @@ static void client_streaming_failed(IHS_Client *client, const IHS_HostInfo *host
                                     void *context) {
     (void) client;
     host_manager_t *manager = context;
-    app_ihs_logf(IHS_LogLevelError, "Client", "Failed to start streaming: %u", result);
+    app_ihs_logf(IHS_LogLevelError, "Client", "Failed to start streaming: %s", streaming_result_str(result));
     host_manager_enum_error_t *error = SDL_calloc(1, sizeof(host_manager_enum_error_t));
     error->host = *host;
     error->result = result;

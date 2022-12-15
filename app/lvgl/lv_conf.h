@@ -73,7 +73,11 @@
 
 #define LV_USE_FREETYPE 1
 
+#define LV_FONT_MONTSERRAT_28    1
+#define LV_FONT_MONTSERRAT_30    1
 #define LV_FONT_MONTSERRAT_32    1
+#define LV_FONT_MONTSERRAT_34    1
+#define LV_FONT_MONTSERRAT_42    1
 #define LV_FONT_MONTSERRAT_48    1
 
 #define LV_FONT_DEFAULT &lv_font_montserrat_32
@@ -89,7 +93,7 @@
 
 #define LV_USE_ARC          1
 
-#define LV_USE_ANIMIMG	    1
+#define LV_USE_ANIMIMG	    0
 
 #define LV_USE_BAR          1
 
@@ -97,7 +101,7 @@
 
 #define LV_USE_BTNMATRIX    1
 
-#define LV_USE_CANVAS       1
+#define LV_USE_CANVAS       0
 
 #define LV_USE_CHECKBOX     1
 
@@ -123,7 +127,7 @@
 
 #define LV_USE_SWITCH    0
 
-#define LV_USE_TEXTAREA   1     /*Requires: lv_label*/
+#define LV_USE_TEXTAREA   0     /*Requires: lv_label*/
 #if LV_USE_TEXTAREA != 0
 #  define LV_TEXTAREA_DEF_PWD_SHOW_TIME     1500    /*ms*/
 #endif
@@ -189,11 +193,11 @@
  * Themes
  *----------*/
  /*A simple, impressive and very complete theme*/
-#define LV_USE_THEME_DEFAULT    1
+#define LV_USE_THEME_DEFAULT    0
 #if LV_USE_THEME_DEFAULT
 
 /*0: Light mode; 1: Dark mode*/
-# define LV_THEME_DEFAULT_DARK     1
+# define LV_THEME_DEFAULT_DARK     0
 
 /*1: Enable grow on press*/
 # define LV_THEME_DEFAULT_GROW              0
@@ -203,7 +207,7 @@
 #endif /*LV_USE_THEME_DEFAULT*/
 
 /*An very simple them that is a good starting point for a custom theme*/
-#define LV_USE_THEME_BASIC    0
+#define LV_USE_THEME_BASIC    1
 
 /*A theme designed for monochrome displays*/
 #define LV_USE_THEME_MONO       0

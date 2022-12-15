@@ -54,11 +54,10 @@ int main(int argc, char *argv[]) {
     lv_memset_00(&theme, sizeof(lv_theme_t));
     lv_theme_set_parent(&theme, lv_disp_get_theme(disp));
     app_theme_init(&theme);
-    theme.font_large = &lv_font_montserrat_48;
     lv_disp_set_theme(disp, &theme);
 
     app = app_create(disp);
-    theme.user_data = app->ui;
+    app_theme_set_ui(&theme, app->ui);
 
     while (app->running) {
         process_events();
@@ -67,6 +66,8 @@ int main(int argc, char *argv[]) {
     }
 
     app_destroy(app);
+
+    app_theme_deinit(&theme);
 
     SDL_DestroyWindow(window);
     SDL_Quit();

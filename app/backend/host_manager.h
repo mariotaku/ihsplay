@@ -40,3 +40,5 @@ void host_manager_register_listener(host_manager_t *manager, const host_manager_
 void host_manager_unregister_listener(host_manager_t *manager, const host_manager_listener_t *listener);
 
 void host_manager_authorization_request(host_manager_t *manager, const IHS_HostInfo *host, const char *pin);
+
+bool host_manager_authorization_cancel(host_manager_t *manager);

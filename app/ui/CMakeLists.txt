@@ -5,8 +5,7 @@ target_sources(ihsplay PRIVATE
         hosts/hosts_fragment.c
         settings/settings.c
         settings/basic.c
-        settings/widgets.c
-        common/progress_dialog.c
-        common/group_utils.c)
+        settings/widgets.c)
 
+add_subdirectory(common)
 add_subdirectory(session)
