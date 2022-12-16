@@ -69,6 +69,8 @@ int main(int argc, char *argv[]) {
 
     app_theme_deinit(&theme);
 
+    app_lv_disp_deinit(disp);
+
     SDL_DestroyWindow(window);
     SDL_Quit();
     IHS_Quit();

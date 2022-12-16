@@ -30,6 +30,26 @@ lv_disp_t *app_lv_disp_init(SDL_Window *window) {
     return disp;
 }
 
+lv_disp_t *app_lv_disp_deinit(lv_disp_t *disp) {
+    lv_disp_drv_t *drv = disp->driver;
+
+    lv_draw_ctx_t *draw_ctx = drv->draw_ctx;
+    drv->draw_ctx_deinit(drv, draw_ctx);
+    free(draw_ctx);
+
+    lv_disp_draw_buf_t *draw_buf = drv->draw_buf;
+    SDL_DestroyTexture(draw_buf->buf1);
+    free(draw_buf);
+
+    lv_draw_sdl_drv_param_t *param = drv->user_data;
+    SDL_DestroyRenderer(param->renderer);
+    free(param);
+
+    lv_disp_remove(disp);
+
+    free(drv);
+}
+
 static void flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *src) {
     LV_UNUSED(src);
     if (area->x2 < 0 || area->y2 < 0 ||
