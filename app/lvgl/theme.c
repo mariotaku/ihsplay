@@ -17,6 +17,7 @@ typedef struct theme_context_t {
     lv_style_t scr;
     lv_style_t obj;
     lv_style_t btn;
+    lv_style_t btn_focused;
     lv_style_t btn_pressed;
 
     lv_style_t modal_bg;
@@ -58,9 +59,11 @@ void app_theme_init(lv_theme_t *theme) {
     lv_style_set_bg_color(&styles->btn, lv_color_white());
     lv_style_set_bg_opa(&styles->btn, LV_OPA_20);
 
+    lv_style_init(&styles->btn_focused);
+    lv_style_set_bg_color(&styles->btn_focused, lv_color_mix(primary_color, lv_color_white(), LV_OPA_10));
+
     lv_style_init(&styles->btn_pressed);
-    lv_style_set_bg_color(&styles->btn_pressed, lv_color_darken(lv_color_white(), LV_OPA_20));
-    lv_style_set_bg_opa(&styles->btn_pressed, LV_OPA_20);
+    lv_style_set_bg_color(&styles->btn_pressed, lv_color_mix(primary_color, lv_color_white(), LV_OPA_20));
 
     lv_style_init(&styles->modal_bg);
     lv_style_set_bg_color(&styles->modal_bg, lv_color_hex(0x25282e));
@@ -129,10 +132,13 @@ void app_theme_deinit(lv_theme_t *theme) {
     lv_style_reset(&styles->msgbox_backdrop);
     lv_style_reset(&styles->msgbox);
     lv_style_reset(&styles->modal_bg);
+    lv_style_reset(&styles->btn_focused);
     lv_style_reset(&styles->btn_pressed);
     lv_style_reset(&styles->btn);
     lv_style_reset(&styles->obj);
     lv_style_reset(&styles->scr);
+
+    free(styles);
 }
 
 static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
@@ -146,6 +152,8 @@ static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
     if (lv_obj_has_class(obj, &lv_btn_class)) {
         lv_obj_add_style(obj, &styles->btn, 0);
         lv_obj_add_style(obj, &styles->btn_pressed, LV_STATE_PRESSED);
+        lv_obj_add_style(obj, &styles->btn_focused, LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &styles->btn_focused, LV_STATE_FOCUS_KEY);
     } else if (lv_obj_has_class(obj, &lv_label_class)) {
         if (lv_obj_check_type(parent, &lv_msgbox_class)) {
             if (lv_msgbox_get_title(parent) == NULL && lv_msgbox_get_content(parent) == NULL) {

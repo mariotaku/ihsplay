@@ -27,7 +27,7 @@ void test_basic() {
     grid_data_t data = {.size = 10};
     lv_gridview_set_config(obj, 5, 64, LV_GRID_ALIGN_CENTER, LV_GRID_ALIGN_CENTER);
     lv_gridview_set_adapter(obj, &adapter);
-    lv_gridview_set_data(obj, &data, NULL, -1);
+    lv_gridview_set_data_advanced(obj, &data, NULL, -1);
     lv_task_handler();
     assert(lv_obj_get_child_cnt(obj) == data.size + 1);
 
@@ -36,7 +36,7 @@ void test_basic() {
                 {.start = data.size, .add_count = 1, .remove_count = 0}
         };
         data.size++;
-        lv_gridview_set_data(obj, &data, changes, 1);
+        lv_gridview_set_data_advanced(obj, &data, changes, 1);
         lv_task_handler();
 
         assert(lv_obj_get_child_cnt(obj) == data.size + 1);

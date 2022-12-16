@@ -174,7 +174,12 @@ void lv_gridview_set_adapter(lv_obj_t *obj, const lv_gridview_adapter_t *adapter
     lv_memcpy(&((lv_grid_t *) obj)->adapter, adapter, sizeof(lv_gridview_adapter_t));
 }
 
-void lv_gridview_set_data(lv_obj_t *obj, void *data, const lv_gridview_data_change_t changes[], int num_changes) {
+void lv_gridview_set_data(lv_obj_t *obj, void *data) {
+    lv_gridview_set_data_advanced(obj, data, NULL, 0);
+}
+
+void lv_gridview_set_data_advanced(lv_obj_t *obj, void *data, const lv_gridview_data_change_t changes[],
+                                   int num_changes) {
     lv_grid_t *grid = (lv_grid_t *) obj;
     lv_gridview_adapter_t adapter = grid->adapter;
 

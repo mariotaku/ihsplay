@@ -119,7 +119,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_style_pad_right(fragment->grid_view, LV_DPX(13), LV_PART_SCROLLBAR);
     lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), LV_PART_SCROLLBAR);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
-    lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_STRETCH, LV_GRID_ALIGN_STRETCH);
+    lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_SPACE_BETWEEN, LV_GRID_ALIGN_STRETCH);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_focused, LV_EVENT_FOCUSED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_unfocused, LV_EVENT_DEFOCUSED, fragment);
@@ -132,7 +132,7 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     host_manager_t *hosts_manager = fragment->app->host_manager;
     host_manager_register_listener(hosts_manager, &host_manager_listener, fragment);
-    lv_gridview_set_data(fragment->grid_view, host_manager_get_hosts(hosts_manager), NULL, 0);
+    lv_gridview_set_data(fragment->grid_view, host_manager_get_hosts(hosts_manager));
     lv_group_focus_obj(fragment->grid_view);
 
     host_manager_discovery_start(hosts_manager);
@@ -158,14 +158,14 @@ static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_
             lv_gridview_data_change_t changes[] = {
                     {.start = change_index, .remove_count = 0, .add_count = 1}
             };
-            lv_gridview_set_data(grid, list, changes, 1);
+            lv_gridview_set_data_advanced(grid, list, changes, 1);
             break;
         }
         case HOST_MANAGER_HOSTS_UPDATE: {
             lv_gridview_data_change_t changes[] = {
                     {.start = change_index, .remove_count = 1, .add_count = 1}
             };
-            lv_gridview_set_data(grid, list, changes, 1);
+            lv_gridview_set_data_advanced(grid, list, changes, 1);
             break;
         }
     }
