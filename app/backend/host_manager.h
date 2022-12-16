@@ -14,7 +14,7 @@ typedef enum host_manager_hosts_change {
 typedef struct host_manager_listener_t {
     void (*hosts_reloaded)(array_list_t *list, host_manager_hosts_change change, int index, void *context);
 
-    void (*session_started)(const IHS_SessionInfo *config, void *context);
+    void (*session_started)(const IHS_HostInfo *host, const IHS_SessionInfo *config, void *context);
 
     void (*session_start_failed)(const IHS_HostInfo *host, IHS_StreamingResult result, void *context);
 
@@ -33,7 +33,7 @@ void host_manager_discovery_stop(host_manager_t *manager);
 
 array_list_t *host_manager_get_hosts(host_manager_t *manager);
 
-void host_manager_request_session(host_manager_t *manager, const IHS_HostInfo *host);
+void host_manager_session_request(host_manager_t *manager, const IHS_HostInfo *host);
 
 void host_manager_register_listener(host_manager_t *manager, const host_manager_listener_t *listener, void *context);
 

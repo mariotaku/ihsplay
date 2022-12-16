@@ -4,12 +4,12 @@
 #include "app.h"
 #include "ui/app_ui.h"
 #include "backend/stream_manager.h"
+#include "session.h"
 
 typedef struct streaming_overlay_fragment_t {
     lv_fragment_t base;
     app_t *app;
     struct {
-        lv_style_t overlay;
     } styles;
 } streaming_overlay_fragment_t;
 
@@ -17,7 +17,7 @@ static void constructor_cb(lv_fragment_t *self, void *args);
 
 static void destructor_cb(lv_fragment_t *self);
 
-static lv_obj_t *create_obj_cb(lv_fragment_t *self, lv_obj_t *parent);
+static lv_obj_t *create_obj_cb(lv_fragment_t *self, lv_obj_t *container);
 
 static void obj_created_cb(lv_fragment_t *self, lv_obj_t *obj);
 
@@ -35,28 +35,18 @@ static void constructor_cb(lv_fragment_t *self, void *args) {
     streaming_overlay_fragment_t *fragment = (streaming_overlay_fragment_t *) self;
     fragment->app = args;
 
-    lv_style_init(&fragment->styles.overlay);
-    lv_style_set_border_side(&fragment->styles.overlay, LV_BORDER_SIDE_TOP);
-    lv_style_set_border_width(&fragment->styles.overlay, LV_DPX(2));
-    lv_style_set_border_color(&fragment->styles.overlay, lv_palette_main(LV_PALETTE_BLUE));
-    lv_style_set_bg_color(&fragment->styles.overlay, lv_palette_main(LV_PALETTE_BLUE_GREY));
-    lv_style_set_bg_opa(&fragment->styles.overlay, LV_OPA_60);
-    lv_style_set_pad_all(&fragment->styles.overlay, LV_DPX(5));
 }
 
 static void destructor_cb(lv_fragment_t *self) {
-    streaming_overlay_fragment_t *fragment = (streaming_overlay_fragment_t *) self;
-    lv_style_reset(&fragment->styles.overlay);
 }
 
-static lv_obj_t *create_obj_cb(lv_fragment_t *self, lv_obj_t *parent) {
+static lv_obj_t *create_obj_cb(lv_fragment_t *self, lv_obj_t *container) {
     streaming_overlay_fragment_t *fragment = (streaming_overlay_fragment_t *) self;
-    lv_obj_t *content = lv_obj_create(parent);
+    lv_fragment_t *session_fragment = lv_fragment_get_parent(self);
+    lv_obj_t *content = lv_obj_create(container);
     lv_obj_remove_style_all(content);
-    lv_obj_add_style(content, &fragment->styles.overlay, 0);
-    lv_obj_set_size(content, LV_PCT(100), LV_DPX(100));
+    lv_obj_add_style(content, session_fragment_get_overlay_style(session_fragment), 0);
     lv_obj_set_style_pad_hor(content, LV_DPX(30), 0);
-    lv_obj_align(content, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_add_flag(content, LV_OBJ_FLAG_CLICKABLE);
 
     lv_obj_t *quit = lv_btn_create(content);

@@ -41,10 +41,17 @@ int main(int argc, char *argv[]) {
 #ifdef TARGET_WEBOS
     fullscreen_flag = SDL_WINDOW_FULLSCREEN;
 #else
-    fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    bool windowed = SDL_getenv("IHSPLAY_WINDOWED") != NULL;
+    if (windowed) {
+        w = 1280;
+        h = 720;
+        fullscreen_flag = SDL_WINDOW_RESIZABLE;
+    } else {
+        fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    }
 #endif
     /* Caveat: Don't use SDL_WINDOW_FULLSCREEN_DESKTOP on webOS. On older platforms it's not supported. */
-    SDL_Window *window = SDL_CreateWindow("myapp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
+    SDL_Window *window = SDL_CreateWindow("IHSplay", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
                                           SDL_WINDOW_ALLOW_HIGHDPI | fullscreen_flag);
     SS4S_PostInit(argc, argv);
 

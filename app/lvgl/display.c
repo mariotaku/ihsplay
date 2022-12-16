@@ -45,6 +45,9 @@ lv_disp_t *app_lv_disp_deinit(lv_disp_t *disp) {
     SDL_DestroyRenderer(param->renderer);
     free(param);
 
+    // Set act_scr to NULL to suppress warning when we remove the display
+    disp->act_scr = NULL;
+
     lv_disp_remove(disp);
 
     free(drv);

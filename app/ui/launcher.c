@@ -96,6 +96,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     app_root_fragment *fragment = (app_root_fragment *) self;
     lv_obj_t *root = lv_obj_create(container);
     lv_obj_remove_style_all(root);
+    lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
     lv_obj_set_scroll_dir(root, LV_DIR_NONE);
     lv_obj_add_style(root, &fragment->styles.root, 0);
     lv_obj_set_layout(root, LV_LAYOUT_GRID);
@@ -134,9 +135,9 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_t *nav_content = lv_obj_create(root);
     lv_obj_remove_style_all(nav_content);
     lv_obj_set_grid_cell(nav_content, LV_GRID_ALIGN_STRETCH, 0, 4, LV_GRID_ALIGN_STRETCH, 1, 1);
-    fragment->nav_content = nav_content;
+    lv_obj_update_layout(root);
 
-    lv_obj_set_size(root, LV_PCT(100), LV_PCT(100));
+    fragment->nav_content = nav_content;
 
     launcher_open(fragment, &hosts_fragment_class);
     return root;

@@ -21,6 +21,7 @@ typedef struct theme_context_t {
     lv_style_t btn_pressed;
 
     lv_style_t modal_bg;
+
     lv_style_t msgbox;
     lv_style_t msgbox_backdrop;
     lv_style_t msgbox_title;
@@ -29,6 +30,10 @@ typedef struct theme_context_t {
     lv_style_t msgbox_btns_item;
     lv_style_t msgbox_btns_item_focused;
     lv_style_t msgbox_btns_item_pressed;
+
+    lv_style_t arc_indic;
+    lv_style_t arc_indic_primary;
+
 } theme_context_t;
 
 void app_theme_init(lv_theme_t *theme) {
@@ -45,6 +50,8 @@ void app_theme_init(lv_theme_t *theme) {
 
     lv_color_t primary_color = lv_color_hex(0x1387b8);
     lv_color_t accent_color = lv_color_lighten(primary_color, 1);
+
+    theme->color_primary = primary_color;
 
     lv_style_init(&styles->scr);
     lv_style_set_bg_color(&styles->scr, lv_color_black());
@@ -110,6 +117,16 @@ void app_theme_init(lv_theme_t *theme) {
     lv_style_init(&styles->msgbox_btns_item_pressed);
     lv_style_set_bg_color(&styles->msgbox_btns_item_pressed, primary_color);
     lv_style_set_bg_opa(&styles->msgbox_btns_item_pressed, LV_OPA_20);
+
+    lv_style_init(&styles->arc_indic);
+    lv_style_set_arc_color(&styles->arc_indic, lv_color_lighten(accent_color, LV_OPA_80));
+    lv_style_set_arc_opa(&styles->arc_indic, LV_OPA_20);
+    lv_style_set_arc_width(&styles->arc_indic, LV_DPX(15));
+    lv_style_set_arc_rounded(&styles->arc_indic, true);
+
+    lv_style_init(&styles->arc_indic_primary);
+    lv_style_set_arc_color(&styles->arc_indic_primary, accent_color);
+    lv_style_set_arc_opa(&styles->arc_indic_primary, LV_OPA_COVER);
 
     theme->user_data = styles;
 
@@ -178,5 +195,9 @@ static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
         msgbox_inject_nav(styles->ui, obj);
     } else if (lv_obj_check_type(obj, &lv_msgbox_backdrop_class)) {
         lv_obj_add_style(obj, &styles->msgbox_backdrop, 0);
+    } else if (lv_obj_check_type(obj, &lv_spinner_class)) {
+        lv_obj_add_style(obj, &styles->arc_indic, 0);
+        lv_obj_add_style(obj, &styles->arc_indic, LV_PART_INDICATOR);
+        lv_obj_add_style(obj, &styles->arc_indic_primary, LV_PART_INDICATOR);
     }
 }

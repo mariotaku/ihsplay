@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "session.h"
 #include "ihslib.h"
 #include "ui/app_ui.h"
@@ -7,13 +8,12 @@
 #include "backend/stream_manager.h"
 #include "streaming_overlay.h"
 #include "backend/host_manager.h"
+#include "connection_progress.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;
     app_t *app;
-    IHS_SessionInfo info;
-
-    lv_obj_t *mbox;
+    session_fragment_args_t args;
 
     array_list_t *cursors;
     SDL_Cursor *blank_cursor;
@@ -21,6 +21,10 @@ typedef struct session_fragment_t {
     bool cursor_visible;
 
     lv_fragment_t *overlay;
+
+    struct {
+        lv_style_t overlay;
+    } styles;
 } session_fragment_t;
 
 typedef struct cursor_t {
@@ -89,14 +93,28 @@ static void constructor(lv_fragment_t *self, void *args) {
     session_fragment_t *fragment = (session_fragment_t *) self;
     const app_ui_fragment_args_t *fargs = args;
     fragment->app = fargs->app;
-    fragment->info = *(const IHS_SessionInfo *) fargs->data;
+    assert (fargs->data != NULL);
+    fragment->args = *(session_fragment_args_t *) fargs->data;
     fragment->cursors = array_list_create(sizeof(cursor_t), 16);
     const static Uint8 blank_pixel[1] = {0};
     fragment->blank_cursor = SDL_CreateCursor(blank_pixel, blank_pixel, 1, 1, 0, 0);
+
+    lv_style_init(&fragment->styles.overlay);
+    lv_style_set_border_side(&fragment->styles.overlay, LV_BORDER_SIDE_TOP);
+    lv_style_set_border_width(&fragment->styles.overlay, LV_DPX(2));
+    lv_style_set_border_color(&fragment->styles.overlay, lv_palette_main(LV_PALETTE_BLUE));
+    lv_style_set_bg_color(&fragment->styles.overlay, lv_palette_main(LV_PALETTE_BLUE_GREY));
+    lv_style_set_bg_opa(&fragment->styles.overlay, LV_OPA_60);
+    lv_style_set_pad_ver(&fragment->styles.overlay, LV_DPX(5));
+    lv_style_set_pad_hor(&fragment->styles.overlay, LV_DPX(30));
+    lv_style_set_width(&fragment->styles.overlay, LV_PCT(100));
+    lv_style_set_height(&fragment->styles.overlay, LV_DPX(100));
+    lv_style_set_align(&fragment->styles.overlay, LV_ALIGN_BOTTOM_MID);
 }
 
 static void destructor(lv_fragment_t *self) {
     session_fragment_t *fragment = (session_fragment_t *) self;
+    lv_style_reset(&fragment->styles.overlay);
     array_list_destroy(fragment->cursors);
     SDL_FreeCursor(fragment->blank_cursor);
 }
@@ -114,10 +132,14 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     LV_UNUSED(obj);
     session_fragment_t *fragment = (session_fragment_t *) self;
 
-    fragment->mbox = progress_dialog_create("Requesting stream");
+    fragment->overlay = lv_fragment_create(&connection_progress_class, fragment->app);
+    lv_fragment_manager_replace(fragment->base.child_manager, fragment->overlay, &fragment->base.obj);
+
     stream_manager_t *stream_manager = fragment->app->stream_manager;
     stream_manager_register_listener(stream_manager, &stream_manager_listener, fragment);
-    stream_manager_start_session(stream_manager, &fragment->info);
+    if (fragment->args.session.sessionKeyLen > 0) {
+        stream_manager_start_session(stream_manager, &fragment->args.session);
+    }
 
     app_ui_set_ignore_keys(fragment->app->ui, true);
 }
@@ -126,8 +148,6 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
     LV_UNUSED(obj);
     session_fragment_t *fragment = (session_fragment_t *) self;
     app_ui_set_ignore_keys(fragment->app->ui, false);
-
-    close_msgbox(fragment);
 
     stream_manager_unregister_listener(fragment->app->stream_manager, &stream_manager_listener);
 }
@@ -144,6 +164,8 @@ static bool event_cb(lv_fragment_t *self, int code, void *userdata) {
             set_overlay_visible(fragment, false);
             return true;
         }
+        default:
+            break;
     }
     return false;
 }
@@ -153,7 +175,9 @@ static void session_connected_main(const IHS_SessionInfo *info, void *context) {
     session_fragment_t *fragment = (session_fragment_t *) context;
 //    SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    close_msgbox(fragment);
+    if (fragment->overlay != NULL) {
+        lv_fragment_manager_remove(fragment->base.child_manager, fragment->overlay);
+    }
 }
 
 static void session_disconnected_main(const IHS_SessionInfo *info, bool requested, void *context) {
@@ -258,7 +282,7 @@ static void screen_clicked_cb(lv_event_t *e) {
 }
 
 static void set_overlay_visible(session_fragment_t *fragment, bool visible) {
-    if (visible == (fragment->overlay != NULL)) {
+    if (visible == (fragment->overlay != NULL && fragment->overlay->cls == &streaming_overlay_class)) {
         return;
     }
     if (visible) {
@@ -271,9 +295,10 @@ static void set_overlay_visible(session_fragment_t *fragment, bool visible) {
     }
 }
 
-static void close_msgbox(session_fragment_t *fragment) {
-    if (fragment->mbox != NULL) {
-        lv_msgbox_close(fragment->mbox);
-        fragment->mbox = NULL;
-    }
+lv_style_t *session_fragment_get_overlay_style(lv_fragment_t *fragment) {
+    return &((session_fragment_t *) fragment)->styles.overlay;
+}
+
+const char *session_fragment_get_host_name(lv_fragment_t *fragment) {
+    return ((session_fragment_t *) fragment)->args.host.hostname;
 }

@@ -26,6 +26,11 @@ typedef struct host_manager_authorization_result_t {
     uint64_t steam_id;
 } host_manager_authorization_result_t;
 
+typedef struct host_manager_streaming_result_t {
+    IHS_HostInfo host;
+    IHS_SessionInfo session;
+} host_manager_streaming_result_t;
+
 static void client_host_discovered(IHS_Client *client, const IHS_HostInfo *host, void *context);
 
 static void client_authorization_success(IHS_Client *client, const IHS_HostInfo *host, uint64_t steamId,
@@ -100,7 +105,7 @@ array_list_t *host_manager_get_hosts(host_manager_t *manager) {
     return manager->hosts;
 }
 
-void host_manager_request_session(host_manager_t *manager, const IHS_HostInfo *host) {
+void host_manager_session_request(host_manager_t *manager, const IHS_HostInfo *host) {
     IHS_StreamingRequest request = {
             .audioChannelCount = 2,
             .streamingEnable.audio = true,
@@ -160,13 +165,13 @@ static void client_authorization_failed(IHS_Client *client, const IHS_HostInfo *
 static void client_streaming_success(IHS_Client *client, const IHS_HostInfo *host, const IHS_SocketAddress *address,
                                      const uint8_t *sessionKey, size_t sessionKeyLen, void *context) {
     (void) client;
-    (void) host;
     host_manager_t *manager = context;
-    IHS_SessionInfo *config = SDL_calloc(1, sizeof(IHS_SessionInfo));
-    config->address = *address;
-    SDL_memcpy(config->sessionKey, sessionKey, sessionKeyLen);
-    config->sessionKeyLen = sessionKeyLen;
-    app_run_on_main(manager->app, client_streaming_success_main, config);
+    host_manager_streaming_result_t *result = SDL_calloc(1, sizeof(host_manager_streaming_result_t));
+    result->host = *host;
+    result->session.address = *address;
+    SDL_memcpy(result->session.sessionKey, sessionKey, sessionKeyLen);
+    result->session.sessionKeyLen = sessionKeyLen;
+    app_run_on_main(manager->app, client_streaming_success_main, result);
 }
 
 static void client_streaming_failed(IHS_Client *client, const IHS_HostInfo *host, IHS_StreamingResult result,
@@ -221,10 +226,10 @@ static void client_host_discovered_main(app_t *app, void *data) {
 
 static void client_streaming_success_main(app_t *app, void *data) {
     host_manager_t *manager = app->host_manager;
-    IHS_SessionInfo *config = data;
+    host_manager_streaming_result_t *result = data;
 
-    listeners_list_notify(manager->listeners, host_manager_listener_t, session_started, config);
-    SDL_free(config);
+    listeners_list_notify(manager->listeners, host_manager_listener_t, session_started, &result->host, &result->session);
+    SDL_free(result);
 }
 
 static void client_streaming_failed_main(app_t *app, void *data) {

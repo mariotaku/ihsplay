@@ -39,7 +39,7 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
 static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context);
 
-static void session_started(const IHS_SessionInfo *info, void *context);
+static void session_started(const IHS_HostInfo *host, const IHS_SessionInfo *info, void *context);
 
 static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context);
 
@@ -55,6 +55,8 @@ static void host_item_delete(lv_event_t *e);
 
 static void host_item_clicked(lv_event_t *e);
 
+static void size_changed_cb(lv_event_t *e);
+
 static void grid_focused(lv_event_t *e);
 
 static void grid_unfocused(lv_event_t *e);
@@ -62,6 +64,8 @@ static void grid_unfocused(lv_event_t *e);
 static void grid_key_cb(lv_event_t *e);
 
 static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int position);
+
+static void grid_size_populate(hosts_fragment *fragment);
 
 static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *info);
 
@@ -111,15 +115,21 @@ static void destructor(lv_fragment_t *self) {
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     fragment->grid_view = lv_gridview_create(container);
+    lv_obj_set_size(fragment->grid_view, LV_PCT(100), LV_PCT(100));
+    lv_obj_update_layout(fragment->grid_view);
+
     lv_obj_set_user_data(fragment->grid_view, fragment);
     lv_obj_set_style_pad_top(fragment->grid_view, LV_DPX(10), 0);
     lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), 0);
     lv_obj_set_style_pad_hor(fragment->grid_view, LV_DPX(30), 0);
+    lv_obj_set_style_pad_gap(fragment->grid_view, LV_DPX(15), 0);
     lv_obj_set_style_pad_top(fragment->grid_view, LV_DPX(10), LV_PART_SCROLLBAR);
     lv_obj_set_style_pad_right(fragment->grid_view, LV_DPX(13), LV_PART_SCROLLBAR);
     lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), LV_PART_SCROLLBAR);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
-    lv_gridview_set_config(fragment->grid_view, 5, LV_DPX(200), LV_GRID_ALIGN_SPACE_BETWEEN, LV_GRID_ALIGN_STRETCH);
+
+    grid_size_populate(fragment);
+    lv_obj_add_event_cb(fragment->grid_view, size_changed_cb, LV_EVENT_SIZE_CHANGED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, host_item_clicked, LV_EVENT_CLICKED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_focused, LV_EVENT_FOCUSED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_unfocused, LV_EVENT_DEFOCUSED, fragment);
@@ -171,10 +181,14 @@ static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_
     }
 }
 
-static void session_started(const IHS_SessionInfo *info, void *context) {
+static void session_started(const IHS_HostInfo *host, const IHS_SessionInfo *info, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
     close_msgbox(fragment);
-    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, (void *) info);
+    session_fragment_args_t args = {
+            .host = *host,
+            .session = *info,
+    };
+    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, &args);
 }
 
 static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context) {
@@ -190,11 +204,13 @@ static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult r
 }
 
 static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *context) {
+    (void) host;
     hosts_fragment *fragment = (hosts_fragment *) context;
     close_msgbox(fragment);
 }
 
 static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context) {
+    (void) host;
     hosts_fragment *fragment = (hosts_fragment *) context;
     const char *message = authorization_result_str(result);
     static const char *btns[] = {"OK", ""};
@@ -311,6 +327,17 @@ static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int 
     }
 }
 
+static void grid_size_populate(hosts_fragment *fragment) {
+    lv_coord_t content_width = lv_obj_get_content_width(fragment->grid_view);
+    int col_count = 5;
+    if (content_width > 0) {
+        lv_coord_t pad_column = lv_obj_get_style_pad_column(fragment->grid_view, 0);
+        col_count = (content_width + pad_column) / (LV_DPX(150) + pad_column);
+    }
+    lv_gridview_set_config(fragment->grid_view, col_count, LV_DPX(200), LV_GRID_ALIGN_STRETCH,
+                           LV_GRID_ALIGN_STRETCH);
+}
+
 static void host_item_clicked(lv_event_t *e) {
     hosts_fragment *fragment = e->user_data;
     lv_obj_t *target = lv_event_get_target(e);
@@ -320,9 +347,13 @@ static void host_item_clicked(lv_event_t *e) {
     IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), holder->position);
 
     open_msgbox(fragment, NULL, "Requesting stream", NULL);
-    host_manager_request_session(fragment->app->host_manager, item);
+    host_manager_session_request(fragment->app->host_manager, item);
 }
 
+static void size_changed_cb(lv_event_t *e) {
+    hosts_fragment *fragment = e->user_data;
+    grid_size_populate(fragment);
+}
 
 static void grid_focused(lv_event_t *e) {
     if (e->target != e->current_target) return;
