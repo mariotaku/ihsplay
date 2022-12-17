@@ -42,6 +42,16 @@ void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID 
     app_ihs_logf(IHS_LogLevelInfo, "Input", "Gamepad #%d removed.", which);
 }
 
+void input_manager_ignore_next_mouse_movement(input_manager_t *manager) {
+    manager->ignore_next_mouse_movement = true;
+}
+
+bool input_manager_get_and_reset_mouse_movement(input_manager_t *manager) {
+    bool ignore = manager->ignore_next_mouse_movement;
+    manager->ignore_next_mouse_movement = false;
+    return ignore;
+}
+
 static void insert_controller(input_manager_t *manager, SDL_JoystickID id, SDL_GameController *controller) {
     if (manager->controllers_size + 1 > manager->controllers_cap) {
         manager->controllers_cap = manager->controllers_cap * 2;

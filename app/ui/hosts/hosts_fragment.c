@@ -198,7 +198,7 @@ static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult r
     } else {
         const char *message = streaming_result_str(result);
         static const char *btns[] = {"OK", ""};
-        lv_obj_t *mbox = open_msgbox(fragment, "Failed to start streaming", message, btns);
+        lv_obj_t *mbox = open_msgbox(fragment, "STREAMING FAILED", message, btns);
         lv_obj_add_event_cb(mbox, msgbox_confirm_cb, LV_EVENT_VALUE_CHANGED, fragment);
     }
 }
@@ -214,7 +214,7 @@ static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResu
     hosts_fragment *fragment = (hosts_fragment *) context;
     const char *message = authorization_result_str(result);
     static const char *btns[] = {"OK", ""};
-    lv_obj_t *mbox = open_msgbox(fragment, "Failed to pair device", message, btns);
+    lv_obj_t *mbox = open_msgbox(fragment, "AUTHORIZATION FAILED", message, btns);
     lv_obj_add_event_cb(mbox, msgbox_confirm_cb, LV_EVENT_VALUE_CHANGED, fragment);
 }
 
@@ -225,7 +225,7 @@ static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *inf
     static char pairing_msg[1024];
     snprintf(pairing_msg, 1024, "Please type %s on your computer.", pin);
     static const char *btns[] = {"Cancel", ""};
-    lv_obj_t *mbox = open_msgbox(fragment, "Pairing", pairing_msg, btns);
+    lv_obj_t *mbox = open_msgbox(fragment, "AUTHORIZE DEVICE", pairing_msg, btns);
     lv_obj_add_event_cb(mbox, authorization_cancel_cb, LV_EVENT_VALUE_CHANGED, fragment);
 }
 
@@ -298,7 +298,7 @@ static lv_obj_t *host_item_create(lv_obj_t *grid) {
     lv_obj_remove_style_all(holder->os_icon);
     lv_obj_clear_flag(holder->os_icon, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_size(holder->os_icon, LV_DPX(40), LV_DPX(40));
-    lv_obj_set_style_text_font(holder->os_icon, fragment->app->ui->iconfont.xlarge, 0);
+    lv_obj_set_style_text_font(holder->os_icon, fragment->app->ui->iconfont.heading2, 0);
     lv_obj_align(holder->os_icon, LV_ALIGN_CENTER, 0, -LV_DPX(4));
 
     holder->name = lv_label_create(item_view);

@@ -3,17 +3,24 @@
 
 #include "ss4s.h"
 #include "util/video/sps_parser.h"
+#include "stream_manager.h"
 
 #include <opus_multistream.h>
+#include <SDL2/SDL.h>
 
 struct stream_media_session_t {
+    stream_manager_t *manager;
+    SDL_mutex *lock;
     SS4S_Player *player;
-    SS4S_VideoInfo video_info;
 
+    SS4S_VideoInfo video_info;
     OpusMSDecoder *opus_decoder;
     size_t pcm_unit_size;
     int16_t *pcm_buffer;
+
     int pcm_buffer_size;
+    int viewport_width, viewport_height;
+    int overlay_height;
 };
 
 static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context);
@@ -28,6 +35,8 @@ static void video_stop(IHS_Session *session, void *context);
 
 static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoFrameFlag flags, void *context);
 
+static int video_set_capture_size(IHS_Session *session, int width, int height, void *context);
+
 static const IHS_StreamAudioCallbacks audio_callbacks = {
         .start = audio_start,
         .stop = audio_stop,
@@ -38,17 +47,34 @@ static const IHS_StreamVideoCallbacks video_callbacks = {
         .start = video_start,
         .stop = video_stop,
         .submit = video_submit,
+        .setCaptureSize = video_set_capture_size,
 };
 
-stream_media_session_t *stream_media_create() {
+stream_media_session_t *stream_media_create(stream_manager_t *manager) {
     stream_media_session_t *media_session = calloc(1, sizeof(stream_media_session_t));
+    media_session->manager = manager;
+    media_session->lock = SDL_CreateMutex();
     media_session->player = SS4S_PlayerOpen();
     return media_session;
 }
 
 void stream_media_destroy(stream_media_session_t *media_session) {
     SS4S_PlayerClose(media_session->player);
+    SDL_DestroyMutex(media_session->lock);
     free(media_session);
+}
+
+void stream_media_set_viewport_size(stream_media_session_t *media_session, int width, int height) {
+    SDL_LockMutex(media_session->lock);
+    media_session->viewport_width = width;
+    media_session->viewport_height = height;
+    SDL_UnlockMutex(media_session->lock);
+}
+
+void stream_media_set_overlay_height(stream_media_session_t *media_session, int height) {
+    SDL_LockMutex(media_session->lock);
+    media_session->overlay_height = height;
+    SDL_UnlockMutex(media_session->lock);
 }
 
 void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool overlay) {
@@ -57,12 +83,20 @@ void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool 
         return;
     }
     if (overlay) {
-        int ui_width = 1920, ui_height = 1080, overlay_height = 200;
+        SDL_LockMutex(media_session->lock);
+        int ui_width = media_session->viewport_width, ui_height = media_session->viewport_height,
+                overlay_height = media_session->overlay_height;
+        if (ui_width <= 0 || ui_height <= 0 || overlay_height <= 0) {
+            SDL_UnlockMutex(media_session->lock);
+            return;
+        }
         SS4S_VideoRect src = {
                 .x = 0, .y = 0,
                 .width = media_session->video_info.width,
                 .height = media_session->video_info.height * (ui_height - overlay_height) / ui_height
         };
+        SDL_UnlockMutex(media_session->lock);
+
         SS4S_VideoRect dest = {0, 0, ui_width, ui_height - overlay_height};
         SS4S_PlayerVideoSetDisplayArea(media_session->player, &src, &dest);
     } else {
@@ -171,4 +205,11 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
         }
     }
     return SS4S_PlayerVideoFeed(media_session->player, data->data + data->offset, data->size, sflgs);
+}
+
+static int video_set_capture_size(IHS_Session *session, int width, int height, void *context) {
+    (void) session;
+    stream_media_session_t *media_session = (stream_media_session_t *) context;
+    stream_manager_set_capture_size(media_session->manager, width, height);
+    return 0;
 }

@@ -32,6 +32,12 @@ void stream_manager_stop_active(stream_manager_t *manager);
 
 bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *event);
 
+void stream_manager_set_viewport_size(stream_manager_t *manager, int width, int height);
+
 bool stream_manager_is_overlay_opened(const stream_manager_t *manager);
 
+void stream_manager_set_overlay_height(stream_manager_t *manager, int height);
+
 bool stream_manager_set_overlay_opened(stream_manager_t *manager, bool opened);
+
+void stream_manager_set_capture_size(stream_manager_t *manager, int width, int height);

@@ -9,6 +9,7 @@
 #include "streaming_overlay.h"
 #include "backend/host_manager.h"
 #include "connection_progress.h"
+#include "backend/input_manager.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;
@@ -80,15 +81,6 @@ static void screen_clicked_cb(lv_event_t *e);
 
 static void set_overlay_visible(session_fragment_t *fragment, bool visible);
 
-static void close_msgbox(session_fragment_t *fragment);
-
-static const IHS_StreamInputCallbacks input_callbacks = {
-        .showCursor = session_show_cursor,
-        .hideCursor = session_hide_cursor,
-        .setCursor = session_set_cursor,
-        .cursorImage = session_cursor_image,
-};
-
 static void constructor(lv_fragment_t *self, void *args) {
     session_fragment_t *fragment = (session_fragment_t *) self;
     const app_ui_fragment_args_t *fargs = args;
@@ -99,6 +91,8 @@ static void constructor(lv_fragment_t *self, void *args) {
     const static Uint8 blank_pixel[1] = {0};
     fragment->blank_cursor = SDL_CreateCursor(blank_pixel, blank_pixel, 1, 1, 0, 0);
 
+    lv_coord_t overlay_height = LV_DPX(100);
+
     lv_style_init(&fragment->styles.overlay);
     lv_style_set_border_side(&fragment->styles.overlay, LV_BORDER_SIDE_TOP);
     lv_style_set_border_width(&fragment->styles.overlay, LV_DPX(2));
@@ -108,8 +102,10 @@ static void constructor(lv_fragment_t *self, void *args) {
     lv_style_set_pad_ver(&fragment->styles.overlay, LV_DPX(5));
     lv_style_set_pad_hor(&fragment->styles.overlay, LV_DPX(30));
     lv_style_set_width(&fragment->styles.overlay, LV_PCT(100));
-    lv_style_set_height(&fragment->styles.overlay, LV_DPX(100));
+    lv_style_set_height(&fragment->styles.overlay, overlay_height);
     lv_style_set_align(&fragment->styles.overlay, LV_ALIGN_BOTTOM_MID);
+
+    stream_manager_set_overlay_height(fragment->app->stream_manager, overlay_height);
 }
 
 static void destructor(lv_fragment_t *self) {
@@ -173,17 +169,16 @@ static bool event_cb(lv_fragment_t *self, int code, void *userdata) {
 static void session_connected_main(const IHS_SessionInfo *info, void *context) {
     LV_UNUSED(info);
     session_fragment_t *fragment = (session_fragment_t *) context;
-//    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     if (fragment->overlay != NULL) {
         lv_fragment_manager_remove(fragment->base.child_manager, fragment->overlay);
+        fragment->overlay = NULL;
     }
 }
 
 static void session_disconnected_main(const IHS_SessionInfo *info, bool requested, void *context) {
     LV_UNUSED(info);
     session_fragment_t *fragment = (session_fragment_t *) context;
-//    SDL_SetRelativeMouseMode(SDL_FALSE);
 //    SDL_SetCursor(SDL_GetDefaultCursor());
     if (!requested) {
         static const char *btn_txts[] = {"OK", ""};
@@ -196,9 +191,8 @@ static void session_disconnected_main(const IHS_SessionInfo *info, bool requeste
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {
     session_fragment_t *fragment = context;
-//    int w = 0, h = 0;
-//    SDL_GetWindowSize(fragment->app->ui->window, &w, &h);
-//    SDL_WarpMouseInWindow(fragment->app->ui->window, (int) (x * w), (int) (y * h));
+    app_ihs_logf(IHS_LogLevelInfo, "Session", "show_cursor: x=%f, y=%f", x, y);
+
     if (!fragment->cursor_visible) {
         fragment->cursor_visible = true;
         const cursor_t *cursor = session_current_cursor(fragment);

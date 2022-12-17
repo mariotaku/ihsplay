@@ -73,14 +73,9 @@
 
 #define LV_USE_FREETYPE 1
 
-#define LV_FONT_MONTSERRAT_28    1
-#define LV_FONT_MONTSERRAT_30    1
-#define LV_FONT_MONTSERRAT_32    1
-#define LV_FONT_MONTSERRAT_34    1
-#define LV_FONT_MONTSERRAT_42    1
-#define LV_FONT_MONTSERRAT_48    1
+#define LV_FONT_UNSCII_16    1
 
-#define LV_FONT_DEFAULT &lv_font_montserrat_32
+#define LV_FONT_DEFAULT &lv_font_unscii_16
 
 #define LV_TXT_ENC LV_TXT_ENC_UTF8
 
@@ -89,11 +84,11 @@
  *  WIDGET USAGE
  *================*/
 
- /*Documentation of the widgets: https://docs.lvgl.io/latest/en/html/widgets/index.html*/
+/*Documentation of the widgets: https://docs.lvgl.io/latest/en/html/widgets/index.html*/
 
 #define LV_USE_ARC          1
 
-#define LV_USE_ANIMIMG	    0
+#define LV_USE_ANIMIMG        0
 
 #define LV_USE_BAR          1
 
@@ -138,9 +133,9 @@
  * EXTRA COMPONENTS
  *==================*/
 
- /*-----------
-  * Widgets
-  *----------*/
+/*-----------
+ * Widgets
+ *----------*/
 #define LV_USE_CALENDAR     0
 #if LV_USE_CALENDAR
 # define LV_CALENDAR_WEEK_STARTS_MONDAY 0
@@ -185,14 +180,14 @@
 
 #define LV_USE_SPAN         1
 #if LV_USE_SPAN
-  /*A line text can contain maximum num of span descriptor */
+/*A line text can contain maximum num of span descriptor */
 #  define LV_SPAN_SNIPPET_STACK_SIZE   64
 #endif
 
 /*-----------
  * Themes
  *----------*/
- /*A simple, impressive and very complete theme*/
+/*A simple, impressive and very complete theme*/
 #define LV_USE_THEME_DEFAULT    0
 #if LV_USE_THEME_DEFAULT
 
@@ -216,7 +211,7 @@
  * Layouts
  *----------*/
 
- /*A layout similar to Flexbox in CSS.*/
+/*A layout similar to Flexbox in CSS.*/
 #define LV_USE_FLEX     1
 
 /*A layout similar to Grid in CSS.*/

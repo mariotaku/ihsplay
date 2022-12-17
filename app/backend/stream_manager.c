@@ -2,12 +2,14 @@
 #include "stream_manager.h"
 
 #include "app.h"
+#include "ui/app_ui.h"
 #include "util/listeners_list.h"
 
 #include "ihslib/hid/sdl.h"
 
 #include "ss4s.h"
 #include "stream_media.h"
+#include "input_manager.h"
 
 static void session_initialized(IHS_Session *session, void *context);
 
@@ -19,9 +21,15 @@ static void session_connected(IHS_Session *session, void *context);
 
 static void session_disconnected(IHS_Session *session, void *context);
 
+static void session_show_cursor(IHS_Session *session, float x, float y, void *context);
+
+// Main thread callbacks
+
 static void session_connected_main(app_t *app, void *context);
 
 static void session_disconnected_main(app_t *app, void *context);
+
+static void session_show_cursor_main(app_t *app, void *context);
 
 static void destroy_session_main(app_t *app, void *context);
 
@@ -32,6 +40,8 @@ static void controller_back_released(stream_manager_t *manager);
 static Uint32 back_timer_callback(Uint32 duration, void *param);
 
 static bool should_intercept_event(Uint32 type);
+
+static void grab_mouse(stream_manager_t *manager, bool grab);
 
 #define BACK_COUNTER_MAX 100
 
@@ -55,6 +65,10 @@ struct stream_manager_t {
     int back_counter;
     bool overlay_opened;
     bool requested_disconnect;
+
+    int viewport_width, viewport_height;
+    int capture_width, capture_height;
+    int overlay_height;
 };
 
 typedef struct event_context_t {
@@ -69,6 +83,13 @@ static const IHS_StreamSessionCallbacks session_callbacks = {
         .connected = session_connected,
         .disconnected = session_disconnected,
         .finalized = session_finalized,
+};
+
+static const IHS_StreamInputCallbacks input_callbacks = {
+        .showCursor = session_show_cursor,
+//        .hideCursor = session_hide_cursor,
+//        .setCursor = session_set_cursor,
+//        .cursorImage = session_cursor_image,
 };
 
 stream_manager_t *stream_manager_create(app_t *app) {
@@ -108,18 +129,23 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     if (manager->state != STREAM_MANAGER_STATE_IDLE) {
         return false;
     }
-    manager->media = stream_media_create();
+    stream_media_session_t *media = stream_media_create(manager);
+    manager->media = media;
     IHS_Session *session = IHS_SessionCreate(&manager->app->client_config, info);
     IHS_SessionSetLogFunction(session, app_ihs_log);
     IHS_SessionSetSessionCallbacks(session, &session_callbacks, manager);
-    IHS_SessionSetAudioCallbacks(session, stream_media_audio_callbacks(), manager->media);
-    IHS_SessionSetVideoCallbacks(session, stream_media_video_callbacks(), manager->media);
+    IHS_SessionSetInputCallbacks(session, &input_callbacks, manager);
+    IHS_SessionSetAudioCallbacks(session, stream_media_audio_callbacks(), media);
+    IHS_SessionSetVideoCallbacks(session, stream_media_video_callbacks(), media);
     IHS_SessionHIDAddProvider(session, manager->hid_provider);
     manager->state = STREAM_MANAGER_STATE_CONNECTING;
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
     manager->session = session;
     manager->back_counter = 0;
     manager->back_timer = 0;
+
+    stream_media_set_viewport_size(media, manager->viewport_width, manager->viewport_height);
+    stream_media_set_overlay_height(media, manager->overlay_height);
 
     IHS_SessionConnect(session);
     return true;
@@ -164,6 +190,14 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
     return IHS_HIDHandleSDLEvent(manager->session, event);
 }
 
+void stream_manager_set_viewport_size(stream_manager_t *manager, int width, int height) {
+    manager->viewport_width = width;
+    manager->viewport_height = height;
+    if (manager->media != NULL) {
+        stream_media_set_viewport_size(manager->media, width, height);
+    }
+}
+
 bool stream_manager_is_overlay_opened(const stream_manager_t *manager) {
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
         return false;
@@ -171,7 +205,15 @@ bool stream_manager_is_overlay_opened(const stream_manager_t *manager) {
     return manager->overlay_opened;
 }
 
+void stream_manager_set_overlay_height(stream_manager_t *manager, int height) {
+    manager->overlay_height = height;
+    if (manager->media != NULL) {
+        stream_media_set_overlay_height(manager->media, height);
+    }
+}
+
 bool stream_manager_set_overlay_opened(stream_manager_t *manager, bool opened) {
+    app_assert_main_thread(manager->app);
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
         return false;
     }
@@ -182,7 +224,13 @@ bool stream_manager_set_overlay_opened(stream_manager_t *manager, bool opened) {
     } else {
         app_post_event(manager->app, APP_UI_CLOSE_OVERLAY, NULL, NULL);
     }
+    grab_mouse(manager, !opened);
     return true;
+}
+
+void stream_manager_set_capture_size(stream_manager_t *manager, int width, int height) {
+    manager->capture_width = width;
+    manager->capture_height = height;
 }
 
 static void session_initialized(IHS_Session *session, void *context) {
@@ -239,19 +287,48 @@ static void session_disconnected(IHS_Session *session, void *context) {
     app_run_on_main_sync(manager->app, session_disconnected_main, &ec);
 }
 
+static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {
+    (void) session;
+    stream_manager_t *manager = (stream_manager_t *) context;
+    if (manager->capture_width <= 0 && manager->capture_height <= 0 || manager->viewport_width <= 0 ||
+        manager->viewport_height <= 0) {
+        return;
+    }
+    if (stream_manager_is_overlay_opened(manager)) {
+        return;
+    }
+    float scale = SDL_min((float) manager->viewport_width / manager->capture_width,
+                          (float) manager->viewport_height / manager->capture_height);
+    float dst_width = (float) manager->capture_width * scale, dst_height = (float) manager->capture_height * scale;
+    SDL_Point *point = calloc(1, sizeof(SDL_Point));
+    point->x = (int) (((float) manager->viewport_width - dst_width) / 2.0f + dst_width * x);
+    point->y = (int) (((float) manager->viewport_height - dst_height) / 2.0f + dst_height * y);
+    app_run_on_main(manager->app, session_show_cursor_main, point);
+}
+
 static void session_connected_main(app_t *app, void *context) {
     (void) app;
     event_context_t *ec = context;
     stream_manager_t *manager = ec->manager;
     listeners_list_notify(manager->listeners, stream_manager_listener_t, connected, (const IHS_SessionInfo *) ec->arg1);
+    grab_mouse(manager, true);
 }
 
 static void session_disconnected_main(app_t *app, void *context) {
     (void) app;
     event_context_t *ec = context;
     stream_manager_t *manager = ec->manager;
+    grab_mouse(manager, false);
     listeners_list_notify(manager->listeners, stream_manager_listener_t, disconnected,
                           (const IHS_SessionInfo *) ec->arg1, ec->value1);
+}
+
+static void session_show_cursor_main(app_t *app, void *context) {
+    stream_manager_t *manager = app->stream_manager;
+    SDL_Point *point = context;
+    input_manager_ignore_next_mouse_movement(manager->app->input_manager);
+    SDL_WarpMouseInWindow(app->ui->window, point->x, point->y);
+    free(context);
 }
 
 static void destroy_session_main(app_t *app, void *context) {
@@ -288,6 +365,10 @@ static bool should_intercept_event(Uint32 type) {
         default:
             return true;
     }
+}
+
+static void grab_mouse(stream_manager_t *manager, bool grab) {
+    SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
 }
 
 static Uint32 back_timer_callback(Uint32 duration, void *param) {

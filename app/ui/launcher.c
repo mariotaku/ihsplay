@@ -103,7 +103,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_grid_dsc_array(root, fragment->col_dsc, fragment->row_dsc);
 
     lv_obj_t *title = lv_label_create(root);
-    lv_obj_set_style_text_font(title, lv_theme_get_font_large(title), 0);
+    lv_obj_set_style_text_font(title, fragment->app->ui->font.heading2, 0);
     lv_label_set_text(title, "IHSplay");
     lv_obj_set_size(title, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_grid_cell(title, LV_GRID_ALIGN_START, 1, 2, LV_GRID_ALIGN_SPACE_AROUND, 0, 1);
@@ -111,6 +111,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_t *actions = lv_obj_create(root);
     lv_obj_remove_style_all(actions);
     lv_obj_set_scroll_dir(actions, LV_DIR_NONE);
+    lv_obj_clear_flag(actions, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_layout(actions, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(actions, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(actions, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);

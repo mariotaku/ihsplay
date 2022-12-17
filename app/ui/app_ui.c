@@ -8,6 +8,8 @@
 #include "lvgl/fonts/bootstrap-icons/regular.h"
 #include "lvgl/keypad.h"
 #include "lvgl/mouse.h"
+#include "lvgl/theme.h"
+#include "backend/stream_manager.h"
 
 static void app_input_populate_group(app_ui_t *ui);
 
@@ -28,19 +30,27 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->indev.mouse = app_lv_mouse_indev_init();
     ui->indev.keypad = app_indev_keypad_init();
 
+    app_ui_fontset_set_default_size(ui, &ui->font);
     app_ui_fontset_set_default_size(ui, &ui->iconfont);
+
+    app_ui_fontset_init_fc(&ui->font, "sans-serif");
     app_ui_fontset_init_mem(&ui->iconfont, "bootstrap-icons", ttf_bootstrap_icons_data,
                             ttf_bootstrap_icons_size);
 
     lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
 
     lv_style_init(&ui->styles.action_btn_label);
-    lv_style_set_text_font(&ui->styles.action_btn_label, ui->iconfont.large);
+    lv_style_set_text_font(&ui->styles.action_btn_label, ui->iconfont.heading2);
+
+    lv_theme_set_parent(&ui->theme, lv_disp_get_theme(disp));
+    app_theme_init(&ui->theme, ui);
+    lv_disp_set_theme(disp, &ui->theme);
     return ui;
 }
 
 void app_ui_created(app_ui_t *ui) {
     app_ui_push_fragment(ui, &launcher_fragment_class, NULL);
+    app_ui_resized(ui, lv_obj_get_width(ui->root), lv_obj_get_height(ui->root));
 }
 
 void app_ui_destroy(app_ui_t *ui) {
@@ -56,7 +66,13 @@ void app_ui_destroy(app_ui_t *ui) {
     app_indev_keypad_deinit(ui->indev.keypad);
     app_lv_mouse_indev_deinit(ui->indev.mouse);
 
+    app_theme_deinit(&ui->theme);
+
     free(ui);
+}
+
+void app_ui_resized(app_ui_t *ui, int width, int height) {
+    stream_manager_set_viewport_size(ui->app->stream_manager, width, height);
 }
 
 void app_ui_set_ignore_keys(app_ui_t *ui, bool ignore) {

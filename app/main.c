@@ -1,18 +1,17 @@
 #include <SDL.h>
 #include <lvgl.h>
-#include <assert.h>
 
 #include "app.h"
 
 #include "ui/app_ui.h"
 
 #include "lvgl/display.h"
-#include "lvgl/theme.h"
 
 #include "ss4s.h"
 
 #include "backend/host_manager.h"
 #include "backend/stream_manager.h"
+#include "backend/input_manager.h"
 
 static void process_events();
 
@@ -57,14 +56,8 @@ int main(int argc, char *argv[]) {
 
     lv_disp_t *disp = app_lv_disp_init(window);
     lv_disp_set_default(disp);
-    lv_theme_t theme;
-    lv_memset_00(&theme, sizeof(lv_theme_t));
-    lv_theme_set_parent(&theme, lv_disp_get_theme(disp));
-    app_theme_init(&theme);
-    lv_disp_set_theme(disp, &theme);
 
     app = app_create(disp);
-    app_theme_set_ui(&theme, app->ui);
 
     while (app->running) {
         process_events();
@@ -73,8 +66,6 @@ int main(int argc, char *argv[]) {
     }
 
     app_destroy(app);
-
-    app_theme_deinit(&theme);
 
     app_lv_disp_deinit(disp);
 
@@ -92,6 +83,9 @@ static void process_events() {
         stream_manager_handle_event(app->stream_manager, &event);
         switch (event.type) {
             case SDL_MOUSEMOTION: {
+                if (input_manager_get_and_reset_mouse_movement(app->input_manager)) {
+                    break;
+                }
                 IHS_Session *session = stream_manager_active_session(app->stream_manager);
                 if (!session) {
                     break;
