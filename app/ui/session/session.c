@@ -279,6 +279,7 @@ static void set_overlay_visible(session_fragment_t *fragment, bool visible) {
     if (visible == (fragment->overlay != NULL && fragment->overlay->cls == &streaming_overlay_class)) {
         return;
     }
+    app_ui_set_ignore_keys(fragment->app->ui, !visible);
     if (visible) {
         lv_fragment_t *overlay_fragment = lv_fragment_create(&streaming_overlay_class, fragment->app);
         lv_fragment_manager_replace(fragment->base.child_manager, overlay_fragment, &fragment->base.obj);

@@ -39,6 +39,8 @@ static void controller_back_released(stream_manager_t *manager);
 
 static Uint32 back_timer_callback(Uint32 duration, void *param);
 
+static void back_timer_finish_main(app_t *app, void *context);
+
 static bool should_intercept_event(Uint32 type);
 
 static void grab_mouse(stream_manager_t *manager, bool grab);
@@ -368,6 +370,10 @@ static bool should_intercept_event(Uint32 type) {
 }
 
 static void grab_mouse(stream_manager_t *manager, bool grab) {
+    if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+        return;
+    }
     SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
 }
 
@@ -383,9 +389,14 @@ static Uint32 back_timer_callback(Uint32 duration, void *param) {
         manager->back_counter = 0;
         IHS_HIDResetSDLGameControllers(manager->session);
         app_ihs_logf(IHS_LogLevelInfo, "Streaming", "Requesting overlay");
-        stream_manager_set_overlay_opened(manager, true);
+        app_run_on_main(manager->app, back_timer_finish_main, manager);
         return 0;
     }
     return 16;
 }
 
+static void back_timer_finish_main(app_t *app, void *context) {
+    (void) app;
+    stream_manager_t *manager = (stream_manager_t *) context;
+    stream_manager_set_overlay_opened(manager, true);
+}

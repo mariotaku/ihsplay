@@ -156,6 +156,15 @@ void lv_gridview_rebind(lv_obj_t *obj);
  * @param position
  */
 void lv_gridview_rebind_item(lv_obj_t *obj, int position);
+
+/**
+ * Get data set index of an item view
+ * @param grid
+ * @param item_view
+ * @return
+ */
+int lv_gridview_get_item_data_index(lv_obj_t *obj, lv_obj_t *item_view);
+
 /**********************
  *      MACROS
  **********************/

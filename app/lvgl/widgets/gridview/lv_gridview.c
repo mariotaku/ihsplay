@@ -267,6 +267,13 @@ void lv_gridview_rebind_item(lv_obj_t *obj, int position) {
     grid->adapter.bind_view(&grid->obj, node->item, grid->data, position);
 }
 
+int lv_gridview_get_item_data_index(lv_obj_t *obj, lv_obj_t *item_view) {
+    lv_grid_t *grid = (lv_grid_t *) obj;
+    view_pool_ll_t *node = view_pool_node_by_instance(grid->pool_inuse, item_view);
+    if (!node) return -1;
+    return node->position;
+}
+
 /**********************
  *   STATIC FUNCTIONS
  **********************/

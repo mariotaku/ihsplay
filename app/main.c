@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     printf("Audio sink: %s\n", SS4S_GetAudioModuleName());
     printf("Video sink: %s\n", SS4S_GetVideoModuleName());
     IHS_Init();
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
     SDL_RegisterEvents((APP_EVENT_LAST - APP_EVENT_BEGIN) + 1);
     lv_log_register_print_cb(app_lv_log);
     lv_init();

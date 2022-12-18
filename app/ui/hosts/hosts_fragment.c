@@ -22,7 +22,6 @@ typedef struct host_obj_holder {
     lv_obj_t *icon;
     lv_obj_t *os_icon;
     lv_obj_t *name;
-    int position;
 } host_obj_holder;
 
 static void constructor(lv_fragment_t *self, void *arg);
@@ -315,7 +314,6 @@ static void host_item_delete(lv_event_t *e) {
 static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int position) {
     LV_UNUSED(grid);
     host_obj_holder *holder = item_view->user_data;
-    holder->position = position;
     IHS_HostInfo *item = array_list_get(data, position);
     lv_label_set_text(holder->name, item->hostname);
     if (item->ostype >= IHS_SteamOSTypeWindows) {
@@ -343,8 +341,11 @@ static void host_item_clicked(lv_event_t *e) {
     lv_obj_t *target = lv_event_get_target(e);
     lv_obj_t *grid = fragment->grid_view;
     if (target->parent != grid) return;
-    host_obj_holder *holder = target->user_data;
-    IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), holder->position);
+    int index = lv_gridview_get_item_data_index(grid, target);
+    if (index < 0) return;
+    IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), index);
+
+    app_ihs_logf(IHS_LogLevelInfo, "Hosts", "Selected host #%d: %s", index, item->hostname);
 
     open_msgbox(fragment, NULL, "Requesting stream", NULL);
     host_manager_session_request(fragment->app->host_manager, item);
