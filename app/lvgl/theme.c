@@ -138,6 +138,8 @@ void app_theme_init(lv_theme_t *theme, app_ui_t *ui) {
 
 void app_theme_deinit(lv_theme_t *theme) {
     theme_context_t *styles = theme->user_data;
+    lv_style_reset(&styles->arc_indic_primary);
+    lv_style_reset(&styles->arc_indic);
     lv_style_reset(&styles->msgbox_btns_item_pressed);
     lv_style_reset(&styles->msgbox_btns_item_focused);
     lv_style_reset(&styles->msgbox_btns_item);

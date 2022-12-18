@@ -61,6 +61,7 @@ void app_ui_destroy(app_ui_t *ui) {
     lv_style_reset(&ui->styles.action_btn_label);
 
     app_ui_fontset_deinit(&ui->iconfont);
+    app_ui_fontset_deinit(&ui->font);
     lv_fragment_manager_del(ui->fm);
 
     app_indev_keypad_deinit(ui->indev.keypad);
