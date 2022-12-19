@@ -57,7 +57,6 @@ typedef enum stream_manager_state_t {
 struct stream_manager_t {
     app_t *app;
     array_list_t *listeners;
-    IHS_HIDProvider *hid_provider;
 
     stream_manager_state_t state;
 
@@ -95,10 +94,10 @@ static const IHS_StreamInputCallbacks input_callbacks = {
 };
 
 stream_manager_t *stream_manager_create(app_t *app) {
+    assert(app->input_manager != NULL);
     stream_manager_t *manager = calloc(1, sizeof(stream_manager_t));
     manager->app = app;
     manager->listeners = listeners_list_create();
-    manager->hid_provider = IHS_HIDProviderSDLCreate(false);
     return manager;
 }
 
@@ -113,7 +112,6 @@ void stream_manager_destroy(stream_manager_t *manager) {
         }
     }
     listeners_list_destroy(manager->listeners);
-    IHS_HIDProviderSDLDestroy(manager->hid_provider);
     free(manager);
 }
 
@@ -139,7 +137,7 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     IHS_SessionSetInputCallbacks(session, &input_callbacks, manager);
     IHS_SessionSetAudioCallbacks(session, stream_media_audio_callbacks(), media);
     IHS_SessionSetVideoCallbacks(session, stream_media_video_callbacks(), media);
-    IHS_SessionHIDAddProvider(session, manager->hid_provider);
+    IHS_SessionHIDAddProvider(session, input_manager_get_hid_provider(manager->app->input_manager));
     manager->state = STREAM_MANAGER_STATE_CONNECTING;
     app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
     manager->session = session;
@@ -172,6 +170,9 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
         return false;
     }
+    if (manager->overlay_opened && should_intercept_event(event->type)) {
+        return true;
+    }
     switch (event->type) {
         case SDL_CONTROLLERBUTTONDOWN: {
             if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
@@ -185,9 +186,63 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
             }
             break;
         }
-    }
-    if (manager->overlay_opened && should_intercept_event(event->type)) {
-        return true;
+        case SDL_MOUSEMOTION: {
+            if (input_manager_get_and_reset_mouse_movement(manager->app->input_manager)) {
+                break;
+            }
+            if (manager->app->settings.relmouse) {
+                IHS_SessionSendMouseMovement(manager->session, event->motion.xrel, event->motion.yrel);
+            } else {
+                int w, h;
+                SDL_GetWindowSize(manager->app->ui->window, &w, &h);
+                IHS_SessionSendMousePosition(manager->session, (float) event->motion.x / (float) w,
+                                             (float) event->motion.y / (float) h);
+            }
+            break;
+        }
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP: {
+            IHS_StreamInputMouseButton button = 0;
+            switch (event->button.button) {
+                case SDL_BUTTON_LEFT:
+                    button = IHS_MOUSE_BUTTON_LEFT;
+                    break;
+                case SDL_BUTTON_RIGHT:
+                    button = IHS_MOUSE_BUTTON_RIGHT;
+                    break;
+                case SDL_BUTTON_MIDDLE:
+                    button = IHS_MOUSE_BUTTON_MIDDLE;
+                    break;
+                case SDL_BUTTON_X1:
+                    button = IHS_MOUSE_BUTTON_X1;
+                    break;
+                case SDL_BUTTON_X2:
+                    button = IHS_MOUSE_BUTTON_X2;
+                    break;
+            }
+            if (button != 0) {
+                if (event->button.state == SDL_RELEASED) {
+                    IHS_SessionSendMouseUp(manager->session, button);
+                } else {
+                    IHS_SessionSendMouseDown(manager->session, button);
+                }
+            }
+            break;
+        }
+        case SDL_MOUSEWHEEL: {
+            Sint32 x = event->wheel.x, y = event->wheel.y;
+            if (event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
+                x *= -1;
+                y *= -1;
+            }
+            if (x != 0) {
+                IHS_SessionSendMouseWheel(manager->session, x < 0 ? IHS_MOUSE_WHEEL_LEFT : IHS_MOUSE_WHEEL_RIGHT);
+            }
+            if (y != 0) {
+                IHS_SessionSendMouseWheel(manager->session, y > 0 ? IHS_MOUSE_WHEEL_UP : IHS_MOUSE_WHEEL_DOWN);
+            }
+            break;
+        }
     }
     return IHS_HIDHandleSDLEvent(manager->session, event);
 }
