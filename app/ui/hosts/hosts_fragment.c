@@ -10,6 +10,7 @@
 #include "util/random.h"
 #include "lvgl/ext/msgbox_ext.h"
 #include "ui/common/error_messages.h"
+#include "logging/app_logging.h"
 
 typedef struct hosts_fragment {
     lv_fragment_t base;

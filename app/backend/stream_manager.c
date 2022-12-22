@@ -144,6 +144,7 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     manager->session = session;
     manager->back_counter = 0;
     manager->back_timer = 0;
+    manager->overlay_opened = false;
 
     stream_media_set_viewport_size(media, manager->viewport_width, manager->viewport_height);
     stream_media_set_overlay_height(media, manager->overlay_height);

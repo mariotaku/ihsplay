@@ -1,11 +1,15 @@
 #include <string.h>
-#include "app_settings.h"
-#include "modules.h"
-#include "util/array_list.h"
 
-void app_settings_init(app_settings_t *settings) {
+#include "app_settings.h"
+
+#include "modules.h"
+
+#include "util/array_list.h"
+#include "util/os_info.h"
+
+void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
     memset(settings, 0, sizeof(app_settings_t));
-    settings->modules = modules_load();
+    settings->modules = modules_load(os_info);
     settings->relmouse = true;
 
     // TODO: check if lib available, and handle conflicts

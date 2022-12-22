@@ -11,6 +11,7 @@
 
 typedef struct modules_parse_context {
     module_info_t current;
+    const os_info_t *os_info;
     array_list_t *modules;
 } modules_parse_context;
 
@@ -32,11 +33,11 @@ static int str_list_singleton(str_list_t *list, const char *value);
 
 static void str_list_clear(str_list_t *list);
 
-array_list_t *modules_load() {
+array_list_t *modules_load(const os_info_t *os_info) {
     array_list_t *list = array_list_create(sizeof(module_info_t), 16);
     FILE *f = fopen(SS4S_MODULES_INI_PATH, "r");
     if (f != NULL) {
-        modules_parse_context mpc = {.modules = list};
+        modules_parse_context mpc = {.modules = list, .os_info = os_info};
         ini_parse_file(f, modules_ini_handler, &mpc);
         section_changed(&mpc);
         modules_parse_context_destroy(&mpc);
@@ -87,18 +88,22 @@ static int modules_ini_handler(void *user, const char *section, const char *name
         mpc->current.has_audio = strcmp("true", value) == 0;
     } else if (strcmp("video", name) == 0) {
         mpc->current.has_video = strcmp("true", value) == 0;
+    } else if (strcmp("os_version", name) == 0) {
+        version_constraint_parse(&mpc->current.os_version, value);
     } else if (strcmp("modules", name) == 0) {
         str_list_parse(&mpc->current.modules, value, ";");
     } else if (strcmp("conflicts", name) == 0) {
         str_list_parse(&mpc->current.conflicts, value, ";");
-    } else if (strcmp("os_version", name) == 0) {
-
     }
     return 1;
 }
 
 static void section_changed(modules_parse_context *context) {
     if (context->current.section == NULL) {
+        return;
+    }
+    if (!version_constraint_check(&context->current.os_version, &context->os_info->version)) {
+        module_info_clear(&context->current);
         return;
     }
     if (context->current.modules.elements == NULL) {

@@ -14,15 +14,27 @@
 #include "backend/input_manager.h"
 
 #include "logging/app_logging.h"
+#include "util/os_info.h"
 
 static void process_events();
+
+static void logging_init();
 
 static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
-    app_logging_init();
+    logging_init();
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
+
+    os_info_t os_info;
+    os_info_get(&os_info);
+    if (version_info_valid(&os_info.version)) {
+        app_ihs_logf(IHS_LogLevelInfo, "APP", "System version: %d.%d.%d", os_info.version.major, os_info.version.minor,
+                     os_info.version.patch);
+    }
+
     app_settings_t settings;
-    app_settings_init(&settings);
+    app_settings_init(&settings, &os_info);
 
     SS4S_Config ss4s_config = {
             .audioDriver = settings.audio_driver,
@@ -31,9 +43,7 @@ int main(int argc, char *argv[]) {
     };
     SS4S_Init(argc, argv, &ss4s_config);
     IHS_Init();
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
     SDL_RegisterEvents((APP_EVENT_LAST - APP_EVENT_BEGIN) + 1);
-    lv_log_register_print_cb(app_lv_log);
     lv_init();
 
     int w = 1920, h = 1080;
@@ -123,3 +133,7 @@ static void process_events() {
     }
 }
 
+static void logging_init() {
+    app_logging_init();
+    lv_log_register_print_cb(app_lv_log);
+}

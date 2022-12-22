@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 typedef struct array_list_t array_list_t;
+typedef struct os_info_t os_info_t;
 
 typedef struct app_settings_t {
     bool relmouse;
@@ -11,6 +12,6 @@ typedef struct app_settings_t {
     array_list_t *modules;
 } app_settings_t;
 
-void app_settings_init(app_settings_t *settings);
+void app_settings_init(app_settings_t *settings, const os_info_t *os_info);
 
 void app_settings_deinit(app_settings_t *settings);

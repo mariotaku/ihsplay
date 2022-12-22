@@ -32,7 +32,8 @@ void app_ihs_logf(IHS_LogLevel level, const char *tag, const char *fmt, ...) {
     va_start(arg, fmt);
     log_snprintf(msg, 1024, fmt, arg);
     va_end(arg);
-    PmLogInfo(context, tag, 0, "[%.03f] %s", (SDL_GetTicks() / 1000.0f), msg);
+    PmLogInfo(context, tag, 0, "[%.03f] %s", ((float) SDL_GetTicks() / 1000.0f), msg);
+    fprintf(stderr, "[%.03f][%s] %s\n", ((float) SDL_GetTicks() / 1000.0f), tag, msg);
 }
 
 void app_ss4s_logf(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
@@ -41,9 +42,10 @@ void app_ss4s_logf(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
     va_start(arg, fmt);
     log_snprintf(msg, 1024, fmt, arg);
     va_end(arg);
-    PmLogInfo(context, tag, 0, "[%.03f] %s", (SDL_GetTicks() / 1000.0f), msg);
+    PmLogInfo(context, tag, 0, "[%.03f] %s", ((float) SDL_GetTicks() / 1000.0f), msg);
+    fprintf(stderr, "[%.03f][%s] %s\n", ((float) SDL_GetTicks() / 1000.0f), tag, msg);
 }
 
 void app_lv_log(const char *msg) {
-    PmLogInfo(context, "LVGL", 0, "[%.03f] %s", (SDL_GetTicks() / 1000.0f), msg);
+    app_ihs_log(IHS_LogLevelInfo, "LVGL", msg);
 }
