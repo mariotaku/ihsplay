@@ -7,6 +7,7 @@
 #include "util/refcounter.h"
 #include "util/listeners_list.h"
 #include "ui/common/error_messages.h"
+#include "logging/app_logging.h"
 
 struct host_manager_t {
     app_t *app;

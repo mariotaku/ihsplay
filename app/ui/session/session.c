@@ -10,6 +10,7 @@
 #include "backend/host_manager.h"
 #include "connection_progress.h"
 #include "backend/input_manager.h"
+#include "logging/app_logging.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;

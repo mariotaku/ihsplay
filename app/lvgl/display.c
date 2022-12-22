@@ -30,7 +30,7 @@ lv_disp_t *app_lv_disp_init(SDL_Window *window) {
     return disp;
 }
 
-lv_disp_t *app_lv_disp_deinit(lv_disp_t *disp) {
+void app_lv_disp_deinit(lv_disp_t *disp) {
     lv_disp_drv_t *drv = disp->driver;
 
     lv_draw_ctx_t *draw_ctx = drv->draw_ctx;

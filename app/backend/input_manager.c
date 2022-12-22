@@ -3,6 +3,7 @@
 #include "app.h"
 
 #include "ihslib/hid/sdl.h"
+#include "logging/app_logging.h"
 
 static void insert_controller(input_manager_t *manager, SDL_JoystickID id, SDL_GameController *controller);
 

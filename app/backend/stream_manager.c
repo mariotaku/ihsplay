@@ -10,6 +10,7 @@
 #include "ss4s.h"
 #include "stream_media.h"
 #include "input_manager.h"
+#include "logging/app_logging.h"
 
 static void session_initialized(IHS_Session *session, void *context);
 
@@ -139,7 +140,7 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     IHS_SessionSetVideoCallbacks(session, stream_media_video_callbacks(), media);
     IHS_SessionHIDAddProvider(session, input_manager_get_hid_provider(manager->app->input_manager));
     manager->state = STREAM_MANAGER_STATE_CONNECTING;
-    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
+    app_ihs_logf(IHS_LogLevelInfo, "StreamManager", "Change state to CONNECTING");
     manager->session = session;
     manager->back_counter = 0;
     manager->back_timer = 0;
@@ -301,7 +302,7 @@ static void session_finalized(IHS_Session *session, void *context) {
     assert(manager->state == STREAM_MANAGER_STATE_DISCONNECTING);
     assert(manager->session == session);
     manager->state = STREAM_MANAGER_STATE_IDLE;
-    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to IDLE");
+    app_ihs_logf(IHS_LogLevelInfo, "StreamManager", "Change state to IDLE");
     app_run_on_main(manager->app, destroy_session_main, session);
 }
 
@@ -316,7 +317,7 @@ static void session_connected(IHS_Session *session, void *context) {
     assert(manager->state == STREAM_MANAGER_STATE_CONNECTING);
     assert(manager->session == session);
     manager->state = STREAM_MANAGER_STATE_STREAMING;
-    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to STREAMING");
+    app_ihs_logf(IHS_LogLevelInfo, "StreamManager", "Change state to STREAMING");
     event_context_t ec = {
             .manager = manager,
             .arg1 = (void *) IHS_SessionGetInfo(session),
@@ -335,7 +336,7 @@ static void session_disconnected(IHS_Session *session, void *context) {
     }
     bool requested = manager->requested_disconnect;
     manager->state = STREAM_MANAGER_STATE_DISCONNECTING;
-    app_ihs_log(IHS_LogLevelInfo, "StreamManager", "Change state to DISCONNECTING");
+    app_ihs_logf(IHS_LogLevelInfo, "StreamManager", "Change state to DISCONNECTING");
     event_context_t ec = {
             .manager = manager,
             .arg1 = (void *) IHS_SessionGetInfo(session),

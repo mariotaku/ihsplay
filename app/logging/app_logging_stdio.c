@@ -2,33 +2,27 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "ihslib/common.h"
+#include "app_logging.h"
 
-static bool log_header(IHS_LogLevel level, const char *tag);
+static bool log_header(int level, const char *name, const char *tag);
 
-void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message) {
-    if (!log_header(level, tag)) {
-        return;
-    }
-    const char *cur = message;
-    do {
-        const char *start = cur;
-        cur = strchr(cur, '\n');
-        if (cur != NULL) {
-            int line_len = cur - start;
-            if (line_len <= 0) {
-                break;
-            }
-            fprintf(stderr, "%.*s\x1b[0m\n", line_len, start);
-            cur = cur + 1;
-        } else if (start[0] != '\0') {
-            fprintf(stderr, "%s\x1b[0m\n", start);
-        }
-    } while (cur != NULL);
+void app_logging_init() {
+    // No-op
 }
 
 void app_ihs_logf(IHS_LogLevel level, const char *tag, const char *fmt, ...) {
-    if (!log_header(level, tag)) {
+    if (!log_header(level, "IHS", tag)) {
+        return;
+    }
+    va_list arg;
+    va_start(arg, fmt);
+    vfprintf(stderr, fmt, arg);
+    va_end(arg);
+    fprintf(stderr, "\x1b[0m\n");
+}
+
+void app_ss4s_logf(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
+    if (!log_header(level, "SS4S", tag)) {
         return;
     }
     va_list arg;
@@ -49,28 +43,29 @@ void app_lv_log(const char *msg) {
     for (int i = 0; i < sizeof(level_value) / sizeof(IHS_LogLevel); i++) {
         if (strncmp(level_name[i], msg + 1, (start - msg - 3)) == 0) {
             app_ihs_log(level_value[i], "LVGL", start);
+            return;
         }
     }
 }
 
-static bool log_header(IHS_LogLevel level, const char *tag) {
+static bool log_header(int level, const char *name, const char *tag) {
     switch (level) {
         case IHS_LogLevelInfo:
-            fprintf(stderr, "[IHS.%s]\x1b[36m ", tag);
+            fprintf(stderr, "[%s.%s]\x1b[36m ", name, tag);
             break;
         case IHS_LogLevelWarn:
-            fprintf(stderr, "[IHS.%s]\x1b[33m ", tag);
+            fprintf(stderr, "[%s.%s]\x1b[33m ", name, tag);
             break;
         case IHS_LogLevelError:
-            fprintf(stderr, "[IHS.%s]\x1b[31m ", tag);
+            fprintf(stderr, "[%s.%s]\x1b[31m ", name, tag);
             break;
         case IHS_LogLevelFatal:
-            fprintf(stderr, "[IHS.%s]\x1b[41m ", tag);
+            fprintf(stderr, "[%s.%s]\x1b[41m ", name, tag);
             break;
         case IHS_LogLevelVerbose:
             return false;
         default:
-            fprintf(stderr, "[IHS.%s] ", tag);
+            fprintf(stderr, "[%s.%s] ", name, tag);
             break;
     }
     return true;

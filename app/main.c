@@ -13,18 +13,23 @@
 #include "backend/stream_manager.h"
 #include "backend/input_manager.h"
 
+#include "logging/app_logging.h"
+
 static void process_events();
 
 static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
+    app_logging_init();
     app_settings_t settings;
     app_settings_init(&settings);
 
-    SS4S_Config ss4s_config = {.audioDriver = settings.audio_driver, .videoDriver = settings.video_driver};
+    SS4S_Config ss4s_config = {
+            .audioDriver = settings.audio_driver,
+            .videoDriver = settings.video_driver,
+            .loggingFunction = app_ss4s_logf,
+    };
     SS4S_Init(argc, argv, &ss4s_config);
-    printf("Audio sink: %s\n", SS4S_GetAudioModuleName());
-    printf("Video sink: %s\n", SS4S_GetVideoModuleName());
     IHS_Init();
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
     SDL_RegisterEvents((APP_EVENT_LAST - APP_EVENT_BEGIN) + 1);

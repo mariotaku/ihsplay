@@ -5,6 +5,7 @@
 #include "util/video/sps_parser.h"
 #include "stream_manager.h"
 #include "app.h"
+#include "logging/app_logging.h"
 
 #include <opus_multistream.h>
 #include <SDL2/SDL.h>
