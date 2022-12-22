@@ -4,9 +4,9 @@ add_executable(ihsplay
         app_events.c
         app_gamepad.c
         app_logging.c
-        settings/settings.c
         )
 
+add_subdirectory(settings)
 add_subdirectory(backend)
 add_subdirectory(lvgl)
 add_subdirectory(ui)

@@ -15,7 +15,7 @@ typedef struct app_t {
     bool running;
     SDL_threadID main_thread_id;
     app_ui_t *ui;
-    app_settings_t settings;
+    app_settings_t *settings;
     IHS_ClientConfig client_config;
     host_manager_t *host_manager;
     stream_manager_t *stream_manager;
@@ -34,7 +34,7 @@ typedef enum app_event_type_t {
 
 typedef void(*app_run_action_fn)(app_t *, void *);
 
-app_t *app_create(void *disp);
+app_t *app_create(app_settings_t*settings, void *disp);
 
 void app_destroy(app_t *app);
 

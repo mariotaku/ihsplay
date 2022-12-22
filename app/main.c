@@ -18,8 +18,11 @@ static void process_events();
 static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
-    const static SS4S_Config config = {.audioDriver = "alsa", .videoDriver = "mmal"};
-    SS4S_Init(argc, argv, &config);
+    app_settings_t settings;
+    app_settings_init(&settings);
+
+    SS4S_Config ss4s_config = {.audioDriver = settings.audio_driver, .videoDriver = settings.video_driver};
+    SS4S_Init(argc, argv, &ss4s_config);
     printf("Audio sink: %s\n", SS4S_GetAudioModuleName());
     printf("Video sink: %s\n", SS4S_GetVideoModuleName());
     IHS_Init();
@@ -57,7 +60,7 @@ int main(int argc, char *argv[]) {
     lv_disp_t *disp = app_lv_disp_init(window);
     lv_disp_set_default(disp);
 
-    app = app_create(disp);
+    app = app_create(&settings, disp);
 
     while (app->running) {
         process_events();
@@ -68,6 +71,8 @@ int main(int argc, char *argv[]) {
     app_destroy(app);
 
     app_lv_disp_deinit(disp);
+
+    app_settings_deinit(&settings);
 
     SDL_DestroyWindow(window);
     SDL_Quit();

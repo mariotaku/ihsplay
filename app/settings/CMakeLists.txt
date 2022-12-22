@@ -1,0 +1,1 @@
+target_sources(ihsplay PRIVATE settings.c modules.c)

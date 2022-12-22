@@ -20,9 +20,11 @@ static const IHS_ClientConfig clientConfig = {
         .deviceName = "BABYLON STAGE34"
 };
 
-app_t *app_create(void *disp) {
+app_t *app_create(app_settings_t *settings, void *disp) {
+    assert(settings != NULL);
+    assert(disp != NULL);
     app_t *app = calloc(1, sizeof(app_t));
-    app_settings_initialize(&app->settings);
+    app->settings = settings;
     app->main_thread_id = SDL_ThreadID();
     app->running = true;
     app->client_config = clientConfig;

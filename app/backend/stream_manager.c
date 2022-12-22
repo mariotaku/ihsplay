@@ -190,7 +190,7 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
             if (input_manager_get_and_reset_mouse_movement(manager->app->input_manager)) {
                 break;
             }
-            if (manager->app->settings.relmouse) {
+            if (manager->app->settings->relmouse) {
                 IHS_SessionSendMouseMovement(manager->session, event->motion.xrel, event->motion.yrel);
             } else {
                 int w, h;
@@ -384,7 +384,7 @@ static void session_show_cursor_main(app_t *app, void *context) {
     stream_manager_t *manager = app->stream_manager;
     SDL_Point *point = context;
     input_manager_ignore_next_mouse_movement(manager->app->input_manager);
-    SDL_WarpMouseInWindow(app->ui->window, point->x, point->y);
+//    SDL_WarpMouseInWindow(app->ui->window, point->x, point->y);
     free(context);
 }
 
@@ -429,7 +429,7 @@ static void grab_mouse(stream_manager_t *manager, bool grab) {
         SDL_SetRelativeMouseMode(SDL_FALSE);
         return;
     }
-    SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
+//    SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
 }
 
 static Uint32 back_timer_callback(Uint32 duration, void *param) {

@@ -33,6 +33,16 @@
 #define LV_USE_GPU_SDL    1
 #define LV_GPU_SDL_INCLUDE_PATH <SDL.h>
 
+/*Change the built in (v)snprintf functions*/
+#define LV_SPRINTF_CUSTOM   1
+#if LV_SPRINTF_CUSTOM
+#  define LV_SPRINTF_INCLUDE <stdio.h>
+#  define lv_snprintf     snprintf
+#  define lv_vsnprintf    vsnprintf
+#else   /*LV_SPRINTF_CUSTOM*/
+#  define LV_SPRINTF_USE_FLOAT 0
+#endif  /*LV_SPRINTF_CUSTOM*/
+
 /*Enable the log module*/
 #define LV_USE_LOG      1
 #if LV_USE_LOG

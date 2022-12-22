@@ -1,5 +1,6 @@
 #include "app.h"
 #include "app_ui.h"
+#include "config.h"
 
 #include "launcher.h"
 
@@ -20,6 +21,9 @@ typedef struct app_root_fragment {
         lv_style_t action_btn;
     } styles;
     lv_obj_t *nav_content;
+#if IHSPLAY_IS_DEBUG
+    lv_obj_t *debug_info;
+#endif
 } app_root_fragment;
 
 static void constructor(lv_fragment_t *self, void *arg);
@@ -27,6 +31,8 @@ static void constructor(lv_fragment_t *self, void *arg);
 static void destructor(lv_fragment_t *self);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
+
+static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
 static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt);
 
@@ -46,6 +52,7 @@ const lv_fragment_class_t launcher_fragment_class = {
         .constructor_cb = constructor,
         .destructor_cb = destructor,
         .create_obj_cb = create_obj,
+        .obj_will_delete_cb = obj_will_delete,
         .instance_size = sizeof(app_root_fragment),
 };
 
@@ -140,8 +147,28 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 
     fragment->nav_content = nav_content;
 
+#if IHSPLAY_IS_DEBUG
+    lv_obj_t *debug_info = lv_label_create(container);
+    lv_obj_set_style_pad_all(debug_info, LV_DPX(10), 0);
+    lv_obj_set_style_bg_color(debug_info, lv_color_black(), 0);
+    lv_obj_set_style_bg_opa(debug_info, LV_OPA_30, 0);
+    lv_obj_set_style_text_opa(debug_info, LV_OPA_50, 0);
+    lv_label_set_text_fmt(debug_info, "audio_driver: %s\nvideo_driver: %s", fragment->app->settings->audio_driver,
+                          fragment->app->settings->video_driver);
+    lv_obj_align(debug_info, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+
+    fragment->debug_info = debug_info;
+#endif
+
     launcher_open(fragment, &hosts_fragment_class);
     return root;
+}
+
+static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
+#if IHSPLAY_IS_DEBUG
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    lv_obj_del(fragment->debug_info);
+#endif
 }
 
 static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt) {

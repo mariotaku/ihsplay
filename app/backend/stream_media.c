@@ -4,6 +4,7 @@
 #include "ss4s.h"
 #include "util/video/sps_parser.h"
 #include "stream_manager.h"
+#include "app.h"
 
 #include <opus_multistream.h>
 #include <SDL2/SDL.h>
@@ -114,6 +115,8 @@ const IHS_StreamVideoCallbacks *stream_media_video_callbacks() {
 
 static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
     (void) session;
+    app_ihs_logf(IHS_LogLevelInfo, "Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
+                 config->channels, config->frequency);
     if (config->codec != IHS_StreamAudioCodecOpus) {
         return -1;
     }
@@ -155,6 +158,8 @@ static int audio_submit(IHS_Session *session, IHS_Buffer *data, void *context) {
 
 static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config, void *context) {
     (void) session;
+    app_ihs_logf(IHS_LogLevelInfo, "Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width,
+                 config->height);
     stream_media_session_t *media_session = (stream_media_session_t *) context;
     SS4S_VideoCodec codec;
     switch (config->codec) {

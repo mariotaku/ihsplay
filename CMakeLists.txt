@@ -47,9 +47,15 @@ if (NOT MBEDCRYPTO_LIBRARY)
     set(MBEDCRYPTO_LIBRARY mbedcrypto)
 endif ()
 
+if (TARGET_WEBOS)
+    set(IHSLIB_SDL_TARGETVERSION "2.0.0")
+endif ()
+
 add_subdirectory(core)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
+
+include(BuildINIH)
 
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
@@ -68,11 +74,10 @@ set(CMAKE_C_STANDARD 11)
 add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s)
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s inih)
 target_link_libraries(ihsplay PRIVATE lv_gridview)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
-get_target_property(SS4S_MODULE_NAMES ss4s SS4S_MODULE_NAMES)
 
 set_target_properties(ihsplay PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
@@ -82,24 +87,15 @@ set_target_properties(ihsplay PROPERTIES
 target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
 target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontconfig::Fontconfig Freetype::Freetype)
 
-
 if (TARGET_WEBOS)
-    target_compile_definitions(ihslib-hid-sdl PRIVATE IHS_SDL_TARGETVERSION=2000)
-
+    set(SS4S_MODULES_INI_PATH_RUNTIME "${CMAKE_INSTALL_LIBDIR}/ss4s_modules.ini")
     target_link_libraries(ihsplay PRIVATE rt)
     include(PackageWebOS)
 else ()
-    target_compile_definitions(ihslib-hid-sdl PRIVATE IHS_SDL_TARGETVERSION=2014)
-
+    # TODO: remove for packaged builds
+    set(SS4S_MODULES_INI_PATH_RUNTIME ${SS4S_MODULES_INI_OUTPUT_FILE})
     set(CMAKE_INSTALL_PREFIX /usr)
     include(GNUInstallDirs)
-endif ()
-
-if (SS4S_MODULE_NAMES)
-    include(GenerateModulesIndex)
-    foreach (SS4S_MODULE_NAME ${SS4S_MODULE_NAMES})
-        install(TARGETS ${SS4S_MODULE_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    endforeach ()
 endif ()
 
 if (IHSPLAY_SANITIZE_ADDRESS)
@@ -107,3 +103,10 @@ if (IHSPLAY_SANITIZE_ADDRESS)
     target_link_options(ihsplay PRIVATE -fsanitize=address -static-libasan)
     target_link_libraries(ihsplay PRIVATE asan)
 endif ()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(IHSPLAY_IS_DEBUG ON)
+endif ()
+
+configure_file(app/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h @ONLY)
+target_include_directories(ihsplay PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
