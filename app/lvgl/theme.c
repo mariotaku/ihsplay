@@ -52,7 +52,7 @@ void app_theme_init(lv_theme_t *theme, app_ui_t *ui) {
 
     lv_style_init(&styles->scr);
     lv_style_set_bg_color(&styles->scr, lv_color_black());
-    lv_style_set_bg_opa(&styles->scr, LV_OPA_COVER);
+    lv_style_set_bg_opa(&styles->scr, LV_OPA_TRANSP);
 
     lv_style_init(&styles->obj);
     lv_style_set_text_color(&styles->obj, lv_color_white());
