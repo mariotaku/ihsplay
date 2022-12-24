@@ -4,8 +4,6 @@
 #include "ihslib/common.h"
 #include "ss4s/logging.h"
 
-#define app_log_va_args(...) , ##__VA_ARGS__
-
 typedef enum app_log_level {
     APP_LOG_LEVEL_FATAL,
     APP_LOG_LEVEL_ERROR,
@@ -21,17 +19,17 @@ void app_log_printf(app_log_level level, const char *tag, const char *fmt, ...) 
 
 void app_log_hexdump(app_log_level level, const char *tag, const uint8_t *data, size_t len);
 
-#define app_log_fatal(tag, fmt, ...) app_log_printf(APP_LOG_LEVEL_FATAL, (tag), (fmt) app_log_va_args(__VA_ARGS__))
+#define app_log_fatal(tag, ...) app_log_printf(APP_LOG_LEVEL_FATAL, (tag), __VA_ARGS__)
 
-#define app_log_error(tag, fmt, ...) app_log_printf(APP_LOG_LEVEL_ERROR, (tag), (fmt) app_log_va_args(__VA_ARGS__))
+#define app_log_error(tag, ...) app_log_printf(APP_LOG_LEVEL_ERROR, (tag), __VA_ARGS__)
 
-#define app_log_warn(tag, fmt, ...) app_log_printf(APP_LOG_LEVEL_WARN, (tag), (fmt) app_log_va_args(__VA_ARGS__))
+#define app_log_warn(tag, ...) app_log_printf(APP_LOG_LEVEL_WARN, (tag), __VA_ARGS__)
 
-#define app_log_info(tag, fmt, ...) app_log_printf(APP_LOG_LEVEL_INFO, (tag), (fmt) app_log_va_args(__VA_ARGS__))
+#define app_log_info(tag, ...) app_log_printf(APP_LOG_LEVEL_INFO, (tag), __VA_ARGS__)
 
-#define app_log_debug(tag, fmt, ...) app_log_printf(APP_LOG_LEVEL_DEBUG, (tag), (fmt) app_log_va_args(__VA_ARGS__))
+#define app_log_debug(tag, ...) app_log_printf(APP_LOG_LEVEL_DEBUG, (tag), __VA_ARGS__)
 
-#define app_log_verbose(tag, fmt, ...) app_log_printf(APP_LOG_LEVEL_VERBOSE, (tag), (fmt) app_log_va_args(__VA_ARGS__))
+#define app_log_verbose(tag, ...) app_log_printf(APP_LOG_LEVEL_VERBOSE, (tag), __VA_ARGS__)
 
 void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
 

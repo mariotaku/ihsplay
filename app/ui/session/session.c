@@ -211,7 +211,7 @@ static bool session_set_cursor(IHS_Session *session, uint64_t cursorId, void *co
         return false;
     }
     if (fragment->cursor_visible) {
-//        SDL_SetCursor(cursor->cursor);
+        SDL_SetCursor(cursor->cursor);
     }
     return true;
 }
@@ -220,7 +220,7 @@ static void session_hide_cursor(IHS_Session *session, void *context) {
     session_fragment_t *fragment = context;
     if (fragment->cursor_visible) {
         fragment->cursor_visible = false;
-//        SDL_SetCursor(fragment->blank_cursor);
+        SDL_SetCursor(fragment->blank_cursor);
     }
 }
 
@@ -258,7 +258,7 @@ static void session_cursor_image(IHS_Session *session, const IHS_StreamInputCurs
     SDL_FreeSurface(surface);
 
     if (fragment->cursor_visible && fragment->cursor_id == cursor->id) {
-//        SDL_SetCursor(cursor->cursor);
+        SDL_SetCursor(cursor->cursor);
     }
 }
 

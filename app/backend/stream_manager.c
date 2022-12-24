@@ -428,11 +428,13 @@ static bool should_intercept_event(Uint32 type) {
 }
 
 static void grab_mouse(stream_manager_t *manager, bool grab) {
+#if IHSPLAY_FEATURE_RELMOUSE
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
         SDL_SetRelativeMouseMode(SDL_FALSE);
         return;
     }
-//    SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
+    SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
+#endif
 }
 
 static Uint32 back_timer_callback(Uint32 duration, void *param) {

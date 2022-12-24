@@ -18,6 +18,8 @@ pkg_check_modules(OPUS opus)
 
 find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
+set(IHSPLAY_FEATURE_RELMOUSE ON)
+
 if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
 endif ()
@@ -71,6 +73,7 @@ target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 if (TARGET_WEBOS)
     add_subdirectory(system/webos/tv-native-apis)
 endif ()
+
 add_subdirectory(third_party/ss4s)
 
 set(CMAKE_C_STANDARD 11)
@@ -93,6 +96,7 @@ target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontco
 
 if (TARGET_WEBOS)
     set(SS4S_MODULES_INI_PATH_RUNTIME "${CMAKE_INSTALL_LIBDIR}/ss4s_modules.ini")
+    set(IHSPLAY_FEATURE_RELMOUSE OFF)
     target_link_libraries(ihsplay PRIVATE rt)
     include(PackageWebOS)
 else ()

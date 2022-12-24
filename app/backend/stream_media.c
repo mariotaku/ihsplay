@@ -216,7 +216,7 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
             }
         }
         if (!dimension_parsed) {
-            app_log_printf(APP_LOG_LEVEL_WARN, "Media", "Can't parse NAL Unit.");
+            app_log_warn("Media", "Can't parse NAL Unit.");
             app_log_hexdump(APP_LOG_LEVEL_DEBUG, "Media", IHS_BufferPointer(data), data->size);
         }
         if (dimension_parsed && (dimension.width != media_session->video_info.width ||
