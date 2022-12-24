@@ -12,7 +12,7 @@ int os_info_get(os_info_t *info) {
     const char *uri = "luna://com.webos.service.tv.systemproperty/getSystemInfo";
     if (!HLunaServiceCallSync(uri, "{\"keys\":[\"firmwareVersion\", \"sdkVersion\"]}", true, &payload) || !payload) {
         memset(&info->version, 0, sizeof(version_info_t));
-        app_ihs_logf(IHS_LogLevelWarn, "OSInfo", "Failed to call %s", uri);
+        app_log_warn("OSInfo", "Failed to call %s", uri);
         return -1;
     }
 

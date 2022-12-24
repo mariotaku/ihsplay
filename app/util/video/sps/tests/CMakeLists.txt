@@ -1,0 +1,9 @@
+add_executable(test_dimension_h265 test_dimension_h265.c)
+target_link_libraries(test_dimension_h265 sps_util)
+
+add_test(test_dimension_h265 test_dimension_h265)
+
+add_executable(test_sps_parsing sps_parser_tests.c)
+target_link_libraries(test_sps_parsing sps_util)
+
+add_test(test_sps_parsing test_sps_parsing)

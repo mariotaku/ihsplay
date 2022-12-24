@@ -14,6 +14,7 @@ void stream_media_set_viewport_size(stream_media_session_t *media_session, int w
 void stream_media_set_overlay_height(stream_media_session_t *media_session, int height);
 
 void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool overlay);
+bool stream_media_supports_hevc(stream_media_session_t *media_session);
 
 const IHS_StreamAudioCallbacks *stream_media_audio_callbacks();
 

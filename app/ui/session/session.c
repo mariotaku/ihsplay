@@ -192,7 +192,7 @@ static void session_disconnected_main(const IHS_SessionInfo *info, bool requeste
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {
     session_fragment_t *fragment = context;
-    app_ihs_logf(IHS_LogLevelInfo, "Session", "show_cursor: x=%f, y=%f", x, y);
+    app_log_info("Session", "show_cursor: x=%f, y=%f", x, y);
 
     if (!fragment->cursor_visible) {
         fragment->cursor_visible = true;

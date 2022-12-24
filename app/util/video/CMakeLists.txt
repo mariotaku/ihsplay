@@ -1,1 +1,2 @@
-target_sources(ihsplay PRIVATE sps_parser.c)
+add_subdirectory(sps)
+target_link_libraries(ihsplay PRIVATE sps_util)

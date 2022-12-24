@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     os_info_t os_info;
     os_info_get(&os_info);
     if (version_info_valid(&os_info.version)) {
-        app_ihs_logf(IHS_LogLevelInfo, "APP", "System version: %d.%d.%d", os_info.version.major, os_info.version.minor,
+        app_log_info("APP", "System version: %d.%d.%d", os_info.version.major, os_info.version.minor,
                      os_info.version.patch);
     }
 

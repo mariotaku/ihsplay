@@ -346,7 +346,7 @@ static void host_item_clicked(lv_event_t *e) {
     if (index < 0) return;
     IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), index);
 
-    app_ihs_logf(IHS_LogLevelInfo, "Hosts", "Selected host #%d: %s", index, item->hostname);
+    app_log_info("Hosts", "Selected host #%d: %s", index, item->hostname);
 
     open_msgbox(fragment, NULL, "Requesting stream", NULL);
     host_manager_session_request(fragment->app->host_manager, item);

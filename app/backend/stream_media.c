@@ -2,10 +2,10 @@
 #include "stream_media.h"
 
 #include "ss4s.h"
-#include "util/video/sps_parser.h"
 #include "stream_manager.h"
 #include "app.h"
 #include "logging/app_logging.h"
+#include "util/video/sps/include/sps_util.h"
 
 #include <opus_multistream.h>
 #include <SDL2/SDL.h>
@@ -106,6 +106,11 @@ void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool 
     }
 }
 
+bool stream_media_supports_hevc(stream_media_session_t *media_session) {
+    (void) media_session;
+    return SS4S_GetVideoCapabilities() & SS4S_VIDEO_CAP_CODEC_H265;
+}
+
 const IHS_StreamAudioCallbacks *stream_media_audio_callbacks() {
     return &audio_callbacks;
 }
@@ -116,8 +121,8 @@ const IHS_StreamVideoCallbacks *stream_media_video_callbacks() {
 
 static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
     (void) session;
-    app_ihs_logf(IHS_LogLevelInfo, "Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
-                 config->channels, config->frequency);
+    app_log_info("Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
+                   config->channels, config->frequency);
     if (config->codec != IHS_StreamAudioCodecOpus) {
         return -1;
     }
@@ -159,13 +164,17 @@ static int audio_submit(IHS_Session *session, IHS_Buffer *data, void *context) {
 
 static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config, void *context) {
     (void) session;
-    app_ihs_logf(IHS_LogLevelInfo, "Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width,
-                 config->height);
+    app_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec,
+                   config->width,
+                   config->height);
     stream_media_session_t *media_session = (stream_media_session_t *) context;
     SS4S_VideoCodec codec;
     switch (config->codec) {
         case IHS_StreamVideoCodecH264:
             codec = SS4S_VIDEO_H264;
+            break;
+        case IHS_StreamVideoCodecHEVC:
+            codec = SS4S_VIDEO_H265;
             break;
         default:
             return -1;
@@ -195,16 +204,26 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
         bool dimension_parsed = false;
         switch (media_session->video_info.codec) {
             case SS4S_VIDEO_H264: {
-                dimension_parsed = sps_parse_dimension_h264(IHS_BufferPointerAt(data, 4), &dimension);
+                dimension_parsed = sps_util_parse_dimension_h264(IHS_BufferPointer(data), data->size, &dimension);
                 break;
             }
             case SS4S_VIDEO_H265: {
-                dimension_parsed = sps_parse_dimension_hevc(IHS_BufferPointerAt(data, 4), &dimension);
+                dimension_parsed = sps_util_parse_dimension_hevc(IHS_BufferPointer(data), data->size, &dimension);
                 break;
             }
+            default: {
+                return -1;
+            }
         }
-        if (dimension_parsed && dimension.width != media_session->video_info.width ||
-            dimension.height != media_session->video_info.height) {
+        if (!dimension_parsed) {
+            app_log_printf(APP_LOG_LEVEL_WARN, "Media", "Can't parse NAL Unit.");
+            app_log_hexdump(APP_LOG_LEVEL_DEBUG, "Media", IHS_BufferPointer(data), data->size);
+        }
+        if (dimension_parsed && (dimension.width != media_session->video_info.width ||
+                                 dimension.height != media_session->video_info.height)) {
+            app_log_info("Media", "Size change detected by NAL header. (%d*%d)=>(%d*%d)",
+                           media_session->video_info.width, media_session->video_info.height, dimension.width,
+                           dimension.height);
             media_session->video_info.width = dimension.width;
             media_session->video_info.height = dimension.height;
             SS4S_PlayerVideoSizeChanged(media_session->player, dimension.width, dimension.height);
