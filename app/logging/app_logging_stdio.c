@@ -1,16 +1,29 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <SDL_mutex.h>
 
 #include "app_logging.h"
 
 static bool log_header(int level, const char *tag);
 
+static SDL_mutex *lock = NULL;
+
 void app_logging_init() {
-    // No-op
+    lock = SDL_CreateMutex();
+}
+
+void app_logging_deinit() {
+    SDL_DestroyMutex(lock);
+    lock = NULL;
 }
 
 void app_log_printf(app_log_level level, const char *tag, const char *fmt, ...) {
+    if (lock == NULL) {
+        return;
+    }
+    SDL_LockMutex(lock);
     if (!log_header(level, tag)) {
+        SDL_UnlockMutex(lock);
         return;
     }
     va_list arg;
@@ -18,6 +31,7 @@ void app_log_printf(app_log_level level, const char *tag, const char *fmt, ...) 
     vfprintf(stderr, fmt, arg);
     va_end(arg);
     fprintf(stderr, "\x1b[0m\n");
+    SDL_UnlockMutex(lock);
 }
 
 static bool log_header(int level, const char *tag) {

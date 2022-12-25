@@ -13,6 +13,10 @@ void app_logging_init() {
     PmLogGetContext("ihsplay", &context);
 }
 
+void app_logging_deinit() {
+    // No-op
+}
+
 void app_log_printf(app_log_level level, const char *tag, const char *fmt, ...) {
     char msg[1024];
     va_list arg;

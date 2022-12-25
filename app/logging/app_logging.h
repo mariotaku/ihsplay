@@ -15,6 +15,8 @@ typedef enum app_log_level {
 
 void app_logging_init();
 
+void app_logging_deinit();
+
 void app_log_printf(app_log_level level, const char *tag, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 void app_log_hexdump(app_log_level level, const char *tag, const uint8_t *data, size_t len);

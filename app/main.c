@@ -95,6 +95,8 @@ int main(int argc, char *argv[]) {
     IHS_Quit();
 
     SS4S_Quit();
+
+    app_logging_deinit();
     return 0;
 }
 

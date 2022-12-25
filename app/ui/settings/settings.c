@@ -19,6 +19,8 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
 static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
+static bool event_cb(lv_fragment_t *self, int code, void *data);
+
 const lv_fragment_class_t settings_fragment_class = {
         .constructor_cb = constructor,
         .destructor_cb = destructor,
@@ -26,6 +28,7 @@ const lv_fragment_class_t settings_fragment_class = {
         .obj_created_cb = obj_created,
         .obj_will_delete_cb = obj_will_delete,
         .obj_deleted_cb = obj_deleted,
+        .event_cb = event_cb,
         .instance_size = sizeof(settings_fragment),
 };
 
@@ -62,4 +65,13 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
 
 static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
     LV_UNUSED(obj);
+}
+
+static bool event_cb(lv_fragment_t *self, int code, void *data) {
+    (void) data;
+    if (code == APP_UI_NAV_BACK) {
+        // TODO: return to apps
+        return true;
+    }
+    return false;
 }
