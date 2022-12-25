@@ -40,6 +40,8 @@ static void controller_back_released(stream_manager_t *manager);
 
 static Uint32 back_timer_callback(Uint32 duration, void *param);
 
+static void back_timer_progress_main(app_t *app, void *context);
+
 static void back_timer_finish_main(app_t *app, void *context);
 
 static bool should_intercept_event(Uint32 type);
@@ -414,6 +416,10 @@ static void controller_back_released(stream_manager_t *manager) {
     }
     SDL_RemoveTimer(manager->back_timer);
     manager->back_timer = 0;
+    app_log_info("Streaming", "Overlay timer cancelled");
+    // This function is expected to be called in main thread.
+    app_assert_main_thread(manager->app);
+    listeners_list_notify(manager->listeners, stream_manager_listener_t, overlay_progress_finished, false);
 }
 
 static bool should_intercept_event(Uint32 type) {
@@ -451,12 +457,21 @@ static Uint32 back_timer_callback(Uint32 duration, void *param) {
         app_log_info("Streaming", "Requesting overlay");
         app_run_on_main(manager->app, back_timer_finish_main, manager);
         return 0;
+    } else {
+        app_run_on_main(manager->app, back_timer_progress_main, manager);
     }
     return 16;
+}
+
+static void back_timer_progress_main(app_t *app, void *context) {
+    (void) app;
+    stream_manager_t *manager = (stream_manager_t *) context;
+    listeners_list_notify(manager->listeners, stream_manager_listener_t, overlay_progress, manager->back_counter);
 }
 
 static void back_timer_finish_main(app_t *app, void *context) {
     (void) app;
     stream_manager_t *manager = (stream_manager_t *) context;
     stream_manager_set_overlay_opened(manager, true);
+    listeners_list_notify(manager->listeners, stream_manager_listener_t, overlay_progress_finished, true);
 }

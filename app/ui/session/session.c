@@ -11,6 +11,7 @@
 #include "connection_progress.h"
 #include "backend/input_manager.h"
 #include "logging/app_logging.h"
+#include "config.h"
 
 typedef struct session_fragment_t {
     lv_fragment_t base;
@@ -23,6 +24,9 @@ typedef struct session_fragment_t {
     bool cursor_visible;
 
     lv_fragment_t *overlay;
+
+    lv_obj_t *overlay_hint;
+    lv_obj_t *overlay_progress;
 
     struct {
         lv_style_t overlay;
@@ -60,9 +64,15 @@ static void session_connected_main(const IHS_SessionInfo *info, void *context);
 
 static void session_disconnected_main(const IHS_SessionInfo *info, bool requested, void *context);
 
+static void session_overlay_progress(int percentage, void *context);
+
+static void session_overlay_progress_finished(bool requested, void *context);
+
 const static stream_manager_listener_t stream_manager_listener = {
         .connected = session_connected_main,
         .disconnected = session_disconnected_main,
+        .overlay_progress = session_overlay_progress,
+        .overlay_progress_finished = session_overlay_progress_finished,
 };
 
 
@@ -86,8 +96,16 @@ static void constructor(lv_fragment_t *self, void *args) {
     session_fragment_t *fragment = (session_fragment_t *) self;
     const app_ui_fragment_args_t *fargs = args;
     fragment->app = fargs->app;
+#if IHSPLAY_IS_DEBUG
+    if (fargs->data == NULL) {
+        memset(&fragment->args, 0, sizeof(fragment->args));
+    } else {
+        fragment->args = *(session_fragment_args_t *) fargs->data;
+    }
+#else
     assert (fargs->data != NULL);
     fragment->args = *(session_fragment_args_t *) fargs->data;
+#endif
     fragment->cursors = array_list_create(sizeof(cursor_t), 16);
     const static Uint8 blank_pixel[1] = {0};
     fragment->blank_cursor = SDL_CreateCursor(blank_pixel, blank_pixel, 1, 1, 0, 0);
@@ -122,6 +140,37 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_remove_style_all(obj);
     lv_obj_set_size(obj, LV_PCT(100), LV_PCT(100));
     lv_obj_add_event_cb(obj, screen_clicked_cb, LV_EVENT_CLICKED, fragment);
+
+    lv_obj_t *overlay_hint = lv_obj_create(obj);
+    lv_obj_set_size(overlay_hint, LV_SIZE_CONTENT, LV_DPX(60));
+    lv_obj_set_style_bg_opa(overlay_hint, LV_OPA_60, 0);
+    lv_obj_set_style_bg_color(overlay_hint, lv_palette_main(LV_PALETTE_BLUE_GREY), 0);
+    lv_obj_set_layout(overlay_hint, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(overlay_hint, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(overlay_hint, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_style_pad_ver(overlay_hint, LV_DPX(15), 0);
+    lv_obj_set_style_pad_hor(overlay_hint, LV_DPX(20), 0);
+    lv_obj_set_style_pad_gap(overlay_hint, LV_DPX(15), 0);
+
+    lv_obj_t *overlay_label = lv_label_create(overlay_hint);
+    lv_label_set_text_static(overlay_label, "Long press to open the menu");
+
+    lv_obj_t *overlay_progress = lv_arc_create(overlay_hint);
+    lv_obj_set_size(overlay_progress, LV_DPX(30), LV_DPX(30));
+    lv_arc_set_bg_angles(overlay_progress, 0, 360);
+    lv_arc_set_angles(overlay_progress, 0, 360);
+    lv_arc_set_rotation(overlay_progress, 270);
+    lv_arc_set_range(overlay_progress, 0, 99);
+    lv_arc_set_value(overlay_progress, 30);
+    lv_obj_set_style_arc_width(overlay_progress, LV_DPX(5), 0);
+    lv_obj_set_style_arc_width(overlay_progress, LV_DPX(5), LV_PART_INDICATOR);
+
+    fragment->overlay_hint = overlay_hint;
+    fragment->overlay_progress = overlay_progress;
+
+    lv_obj_add_flag(overlay_hint, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_align(overlay_hint, LV_ALIGN_LEFT_MID, 0, LV_PCT(10));
+
     return obj;
 }
 
@@ -188,6 +237,19 @@ static void session_disconnected_main(const IHS_SessionInfo *info, bool requeste
         lv_obj_center(mbox);
     }
     lv_fragment_manager_pop(fragment->app->ui->fm);
+}
+
+static void session_overlay_progress(int percentage, void *context) {
+    session_fragment_t *fragment = (session_fragment_t *) context;
+    if (lv_obj_has_flag(fragment->overlay_hint, LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_clear_flag(fragment->overlay_hint, LV_OBJ_FLAG_HIDDEN);
+    }
+    lv_arc_set_value(fragment->overlay_progress, (int16_t) percentage);
+}
+
+static void session_overlay_progress_finished(bool requested, void *context) {
+    session_fragment_t *fragment = (session_fragment_t *) context;
+    lv_obj_add_flag(fragment->overlay_hint, LV_OBJ_FLAG_HIDDEN);
 }
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {

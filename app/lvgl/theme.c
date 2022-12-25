@@ -199,5 +199,9 @@ static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
         lv_obj_add_style(obj, &styles->arc_indic, 0);
         lv_obj_add_style(obj, &styles->arc_indic, LV_PART_INDICATOR);
         lv_obj_add_style(obj, &styles->arc_indic_primary, LV_PART_INDICATOR);
+    } else if (lv_obj_check_type(obj, &lv_arc_class)) {
+        lv_obj_add_style(obj, &styles->arc_indic, 0);
+        lv_obj_add_style(obj, &styles->arc_indic, LV_PART_INDICATOR);
+        lv_obj_add_style(obj, &styles->arc_indic_primary, LV_PART_INDICATOR);
     }
 }

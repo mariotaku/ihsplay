@@ -13,6 +13,10 @@ typedef struct stream_manager_callbacks_t {
     void (*connected)(const IHS_SessionInfo *info, void *context);
 
     void (*disconnected)(const IHS_SessionInfo *info, bool requested, void *context);
+
+    void (*overlay_progress)(int percentage, void *context);
+
+    void (*overlay_progress_finished)(bool requested, void *context);
 } stream_manager_listener_t;
 
 stream_manager_t *stream_manager_create(app_t *app);
