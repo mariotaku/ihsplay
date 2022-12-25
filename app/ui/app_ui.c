@@ -9,7 +9,7 @@
 #include "lvgl/keypad.h"
 #include "lvgl/mouse.h"
 #include "lvgl/theme.h"
-#include "backend/stream/stream_manager.h"
+#include "backend/stream_manager.h"
 
 static void app_input_populate_group(app_ui_t *ui);
 

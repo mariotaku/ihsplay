@@ -10,7 +10,7 @@
 #include "ss4s.h"
 
 #include "backend/host_manager.h"
-#include "backend/stream/stream_manager.h"
+#include "backend/stream_manager.h"
 #include "backend/input_manager.h"
 
 #include "logging/app_logging.h"
