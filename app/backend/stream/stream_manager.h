@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ihslib.h>
+#include "ihslib.h"
 
-#include <SDL_events.h>
+#include <SDL.h>
 
 typedef struct app_t app_t;
 typedef struct host_manager_t host_manager_t;
@@ -34,7 +34,13 @@ IHS_Session *stream_manager_active_session(const stream_manager_t *manager);
 
 void stream_manager_stop_active(stream_manager_t *manager);
 
-bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *event);
+/**
+ * Check if an event should only be dispatched to stream manager. This method call should not change any state
+ * @return true if the event should only be processed by this manager
+ */
+bool stream_manager_intercept_event(const stream_manager_t *manager, const SDL_Event *event);
+
+void stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *event);
 
 void stream_manager_set_viewport_size(stream_manager_t *manager, int width, int height);
 

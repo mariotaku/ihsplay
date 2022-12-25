@@ -4,7 +4,7 @@
 #include "app.h"
 #include "ui/app_ui.h"
 #include "backend/host_manager.h"
-#include "backend/stream_manager.h"
+#include "backend/stream/stream_manager.h"
 #include "backend/input_manager.h"
 
 static const uint8_t secretKey[32] = {

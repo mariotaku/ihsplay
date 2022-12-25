@@ -4,7 +4,7 @@
 #include "app.h"
 #include "backend/input_manager.h"
 
-void app_sdl_gamepad_event(app_t *app, const SDL_Event *event) {
+void app_sdl_input_event(app_t *app, const SDL_Event *event) {
     switch (event->type) {
         case SDL_CONTROLLERDEVICEADDED: {
             input_manager_sdl_gamepad_added(app->input_manager, event->cdevice.which);

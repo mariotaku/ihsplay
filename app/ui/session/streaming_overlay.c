@@ -3,7 +3,7 @@
 
 #include "app.h"
 #include "ui/app_ui.h"
-#include "backend/stream_manager.h"
+#include "backend/stream/stream_manager.h"
 #include "session.h"
 
 typedef struct streaming_overlay_fragment_t {

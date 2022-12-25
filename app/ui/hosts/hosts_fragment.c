@@ -350,6 +350,7 @@ static void host_item_clicked(lv_event_t *e) {
 
     open_msgbox(fragment, NULL, "Requesting stream", NULL);
     host_manager_session_request(fragment->app->host_manager, item);
+//    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, NULL);
 }
 
 static void size_changed_cb(lv_event_t *e) {

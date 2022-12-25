@@ -1,1 +1,1 @@
-target_sources(ihsplay PRIVATE lunasynccall.c)
+target_sources(ihsplay PRIVATE app_webos.c lunasynccall.c)

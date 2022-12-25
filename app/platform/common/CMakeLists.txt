@@ -1,0 +1,1 @@
+target_sources(ihsplay PRIVATE app_common.c)

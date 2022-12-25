@@ -8,8 +8,11 @@
 #include "ihslib/hid/sdl.h"
 
 #include "ss4s.h"
+
 #include "stream_media.h"
-#include "input_manager.h"
+#include "stream_input.h"
+
+#include "backend/input_manager.h"
 #include "logging/app_logging.h"
 
 static void session_initialized(IHS_Session *session, void *context);
@@ -43,8 +46,6 @@ static Uint32 back_timer_callback(Uint32 duration, void *param);
 static void back_timer_progress_main(app_t *app, void *context);
 
 static void back_timer_finish_main(app_t *app, void *context);
-
-static bool should_intercept_event(Uint32 type);
 
 static void grab_mouse(stream_manager_t *manager, bool grab);
 
@@ -170,24 +171,42 @@ void stream_manager_stop_active(stream_manager_t *manager) {
     IHS_SessionDisconnect(manager->session);
 }
 
-bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *event) {
+bool stream_manager_intercept_event(const stream_manager_t *manager, const SDL_Event *event) {
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
         return false;
     }
-    if (manager->overlay_opened && should_intercept_event(event->type)) {
-        return true;
+    if (manager->overlay_opened) {
+        return false;
     }
     switch (event->type) {
-        case SDL_CONTROLLERBUTTONDOWN: {
-            if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
-                controller_back_pressed(manager);
-            }
-            break;
+        // Following events MUST be handled by the app too
+        case SDL_CONTROLLERDEVICEADDED:
+        case SDL_CONTROLLERDEVICEREMOVED:
+        case SDL_CONTROLLERDEVICEREMAPPED:
+            return false;
+    }
+    return true;
+}
+
+void stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *event) {
+    if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
+        return;
+    }
+    if (manager->overlay_opened) {
+        switch (event->type) {
+            // Following events be always handled by IHS
+            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_CONTROLLERDEVICEREMOVED:
+            case SDL_CONTROLLERDEVICEREMAPPED:
+                break;
+            default:
+                return;
         }
-        case SDL_CONTROLLERBUTTONUP: {
-            if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
-                controller_back_released(manager);
-            }
+    }
+    switch (event->type) {
+        case SDL_KEYDOWN:
+        case SDL_KEYUP: {
+            stream_input_handle_key_event(manager, &event->key);
             break;
         }
         case SDL_MOUSEMOTION: {
@@ -247,8 +266,20 @@ bool stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
             }
             break;
         }
+        case SDL_CONTROLLERBUTTONDOWN: {
+            if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
+                controller_back_pressed(manager);
+            }
+            break;
+        }
+        case SDL_CONTROLLERBUTTONUP: {
+            if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
+                controller_back_released(manager);
+            }
+            break;
+        }
     }
-    return IHS_HIDHandleSDLEvent(manager->session, event);
+    IHS_HIDHandleSDLEvent(manager->session, event);
 }
 
 void stream_manager_set_viewport_size(stream_manager_t *manager, int width, int height) {
@@ -422,17 +453,6 @@ static void controller_back_released(stream_manager_t *manager) {
     listeners_list_notify(manager->listeners, stream_manager_listener_t, overlay_progress_finished, false);
 }
 
-static bool should_intercept_event(Uint32 type) {
-    switch (type) {
-        case SDL_CONTROLLERDEVICEADDED:
-        case SDL_CONTROLLERDEVICEREMOVED:
-        case SDL_CONTROLLERDEVICEREMAPPED:
-            return false;
-        default:
-            return true;
-    }
-}
-
 static void grab_mouse(stream_manager_t *manager, bool grab) {
 #if IHSPLAY_FEATURE_RELMOUSE
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
@@ -442,6 +462,7 @@ static void grab_mouse(stream_manager_t *manager, bool grab) {
     SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
 #endif
 }
+
 
 static Uint32 back_timer_callback(Uint32 duration, void *param) {
     (void) duration;

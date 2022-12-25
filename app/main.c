@@ -10,7 +10,7 @@
 #include "ss4s.h"
 
 #include "backend/host_manager.h"
-#include "backend/stream_manager.h"
+#include "backend/stream/stream_manager.h"
 #include "backend/input_manager.h"
 
 #include "logging/app_logging.h"
@@ -24,6 +24,7 @@ static app_t *app = NULL;
 
 int main(int argc, char *argv[]) {
     logging_init();
+    app_preinit(argc, argv);
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
 
     os_info_t os_info;
@@ -101,13 +102,21 @@ static void process_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-            case SDL_CONTROLLERDEVICEADDED:
-            case SDL_CONTROLLERDEVICEREMOVED:
-            case SDL_CONTROLLERBUTTONUP:
-            case SDL_CONTROLLERBUTTONDOWN:
             case SDL_KEYUP:
-            case SDL_KEYDOWN: {
-                app_sdl_gamepad_event(app, &event);
+            case SDL_KEYDOWN:
+            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP:
+            case SDL_CONTROLLERAXISMOTION:
+            case SDL_CONTROLLERBUTTONDOWN:
+            case SDL_CONTROLLERBUTTONUP:
+            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_CONTROLLERDEVICEREMOVED: {
+                bool intercept_by_stream = stream_manager_intercept_event(app->stream_manager, &event);
+                if (!intercept_by_stream) {
+                    app_sdl_input_event(app, &event);
+                }
+                stream_manager_handle_event(app->stream_manager, &event);
                 break;
             }
             case SDL_QUIT: {
@@ -128,8 +137,6 @@ static void process_events() {
                 break;
             }
         }
-
-        stream_manager_handle_event(app->stream_manager, &event);
     }
 }
 

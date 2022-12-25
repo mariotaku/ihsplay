@@ -106,6 +106,18 @@ static uint32_t key_from_keysym(const SDL_Keysym *keysym) {
         case SDLK_TAB:
             return keysym->mod & KMOD_SHIFT ? LV_KEY_PREV : LV_KEY_NEXT;
         default:
+#ifdef SDL_WEBOS_SCANCODE_BACK
+            switch ((int) keysym->scancode) {
+                case SDL_WEBOS_SCANCODE_BACK:
+                    return LV_KEY_ESC;
+                case SDL_WEBOS_SCANCODE_CH_UP:
+                    return LV_KEY_PREV;
+                case SDL_WEBOS_SCANCODE_CH_DOWN:
+                    return LV_KEY_NEXT;
+                default:
+                    break;
+            }
+#endif
             return 0;
     }
 }

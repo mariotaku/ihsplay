@@ -35,6 +35,8 @@ typedef enum app_event_type_t {
 
 typedef void(*app_run_action_fn)(app_t *, void *);
 
+void app_preinit(int argc, char *argv[]);
+
 app_t *app_create(app_settings_t *settings, void *disp);
 
 void app_destroy(app_t *app);
@@ -47,6 +49,6 @@ void app_run_on_main(app_t *app, app_run_action_fn action, void *data);
 
 void app_run_on_main_sync(app_t *app, app_run_action_fn action, void *data);
 
-void app_sdl_gamepad_event(app_t *app, const SDL_Event *event);
+void app_sdl_input_event(app_t *app, const SDL_Event *event);
 
 void app_assert_main_thread(app_t *app);

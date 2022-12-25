@@ -1,3 +1,5 @@
 if (TARGET_WEBOS)
     add_subdirectory(webos)
+else()
+    add_subdirectory(common)
 endif ()

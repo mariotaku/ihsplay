@@ -5,7 +5,7 @@
 #include "app.h"
 #include "ui/common/progress_dialog.h"
 #include "util/array_list.h"
-#include "backend/stream_manager.h"
+#include "backend/stream/stream_manager.h"
 #include "streaming_overlay.h"
 #include "backend/host_manager.h"
 #include "connection_progress.h"
@@ -117,7 +117,7 @@ static void constructor(lv_fragment_t *self, void *args) {
     lv_style_set_border_width(&fragment->styles.overlay, LV_DPX(2));
     lv_style_set_border_color(&fragment->styles.overlay, lv_palette_main(LV_PALETTE_BLUE));
     lv_style_set_bg_color(&fragment->styles.overlay, lv_palette_main(LV_PALETTE_BLUE_GREY));
-    lv_style_set_bg_opa(&fragment->styles.overlay, LV_OPA_60);
+    lv_style_set_bg_opa(&fragment->styles.overlay, LV_OPA_80);
     lv_style_set_pad_ver(&fragment->styles.overlay, LV_DPX(5));
     lv_style_set_pad_hor(&fragment->styles.overlay, LV_DPX(30));
     lv_style_set_width(&fragment->styles.overlay, LV_PCT(100));
@@ -143,7 +143,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 
     lv_obj_t *overlay_hint = lv_obj_create(obj);
     lv_obj_set_size(overlay_hint, LV_SIZE_CONTENT, LV_DPX(60));
-    lv_obj_set_style_bg_opa(overlay_hint, LV_OPA_60, 0);
+    lv_obj_set_style_bg_opa(overlay_hint, LV_OPA_80, 0);
     lv_obj_set_style_bg_color(overlay_hint, lv_palette_main(LV_PALETTE_BLUE_GREY), 0);
     lv_obj_set_layout(overlay_hint, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(overlay_hint, LV_FLEX_FLOW_ROW);

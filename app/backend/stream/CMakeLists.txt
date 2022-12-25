@@ -1,0 +1,1 @@
+target_sources(ihsplay PRIVATE stream_manager.c stream_media.c stream_input.c)
