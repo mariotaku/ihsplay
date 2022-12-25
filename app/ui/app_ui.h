@@ -51,8 +51,14 @@ void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *ar
 
 void app_ui_pop_fragment(app_ui_t *ui);
 
-void app_ui_send_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data);
+/**
+ * @warning DO NOT call this directly!
+ * @return true if this event has been handled by someone
+ */
+bool app_ui_dispatch_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data);
 
 void app_ui_push_modal_group(app_ui_t *ui, lv_group_t *group);
 
 void app_ui_remove_modal_group(app_ui_t *ui, lv_group_t *group);
+
+lv_group_t * app_ui_get_input_group(app_ui_t *ui);

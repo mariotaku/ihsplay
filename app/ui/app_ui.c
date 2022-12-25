@@ -28,7 +28,7 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     _lv_ll_init(&ui->modal_groups, sizeof(lv_group_t *));
 
     ui->indev.mouse = app_lv_mouse_indev_init();
-    ui->indev.keypad = app_indev_keypad_init();
+    ui->indev.keypad = app_indev_keypad_init(app);
 
     app_ui_fontset_set_default_size(ui, &ui->font);
     app_ui_fontset_set_default_size(ui, &ui->iconfont);
@@ -90,8 +90,8 @@ void app_ui_pop_fragment(app_ui_t *ui) {
     lv_fragment_manager_pop(ui->fm);
 }
 
-void app_ui_send_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data) {
-    lv_fragment_manager_send_event(ui->fm, type, data);
+bool app_ui_dispatch_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data) {
+    return lv_fragment_manager_send_event(ui->fm, type, data);
 }
 
 void app_ui_push_modal_group(app_ui_t *ui, lv_group_t *group) {
@@ -111,6 +111,10 @@ void app_ui_remove_modal_group(app_ui_t *ui, lv_group_t *group) {
         lv_mem_free(node);
     }
     app_input_populate_group(ui);
+}
+
+lv_group_t *app_ui_get_input_group(app_ui_t *ui) {
+    return ui->indev.keypad->group;
 }
 
 static void app_input_populate_group(app_ui_t *ui) {

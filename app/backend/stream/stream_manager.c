@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "stream_manager.h"
+#include "stream_manager_internal.h"
 
 #include "app.h"
 #include "ui/app_ui.h"
@@ -50,31 +51,6 @@ static void back_timer_finish_main(app_t *app, void *context);
 static void grab_mouse(stream_manager_t *manager, bool grab);
 
 #define BACK_COUNTER_MAX 100
-
-typedef enum stream_manager_state_t {
-    STREAM_MANAGER_STATE_IDLE,
-    STREAM_MANAGER_STATE_CONNECTING,
-    STREAM_MANAGER_STATE_STREAMING,
-    STREAM_MANAGER_STATE_DISCONNECTING,
-} stream_manager_state_t;
-
-struct stream_manager_t {
-    app_t *app;
-    array_list_t *listeners;
-
-    stream_manager_state_t state;
-
-    stream_media_session_t *media;
-    IHS_Session *session;
-    SDL_TimerID back_timer;
-    int back_counter;
-    bool overlay_opened;
-    bool requested_disconnect;
-
-    int viewport_width, viewport_height;
-    int capture_width, capture_height;
-    int overlay_height;
-};
 
 typedef struct event_context_t {
     stream_manager_t *manager;
@@ -133,6 +109,12 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     if (manager->state != STREAM_MANAGER_STATE_IDLE) {
         return false;
     }
+    // Reset all states for last session
+    manager->back_counter = 0;
+    manager->back_timer = 0;
+    manager->overlay_opened = false;
+    manager->requested_disconnect = false;
+
     stream_media_session_t *media = stream_media_create(manager);
     manager->media = media;
     IHS_Session *session = IHS_SessionCreate(&manager->app->client_config, info);
@@ -145,9 +127,6 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     manager->state = STREAM_MANAGER_STATE_CONNECTING;
     app_log_info("StreamManager", "Change state to CONNECTING");
     manager->session = session;
-    manager->back_counter = 0;
-    manager->back_timer = 0;
-    manager->overlay_opened = false;
 
     stream_media_set_viewport_size(media, manager->viewport_width, manager->viewport_height);
     stream_media_set_overlay_height(media, manager->overlay_height);
@@ -173,9 +152,11 @@ void stream_manager_stop_active(stream_manager_t *manager) {
 
 bool stream_manager_intercept_event(const stream_manager_t *manager, const SDL_Event *event) {
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
+        // Ignore events when idle
         return false;
     }
     if (manager->overlay_opened) {
+        // No input event should be handled when overlay opened
         return false;
     }
     switch (event->type) {
@@ -194,7 +175,7 @@ void stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
     }
     if (manager->overlay_opened) {
         switch (event->type) {
-            // Following events be always handled by IHS
+            // Following events be always handled by IHS, even with overlay opened
             case SDL_CONTROLLERDEVICEADDED:
             case SDL_CONTROLLERDEVICEREMOVED:
             case SDL_CONTROLLERDEVICEREMAPPED:
@@ -206,64 +187,15 @@ void stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
     switch (event->type) {
         case SDL_KEYDOWN:
         case SDL_KEYUP: {
+            // Keyboard events
             stream_input_handle_key_event(manager, &event->key);
             break;
         }
-        case SDL_MOUSEMOTION: {
-            if (input_manager_get_and_reset_mouse_movement(manager->app->input_manager)) {
-                break;
-            }
-            if (manager->app->settings->relmouse) {
-                IHS_SessionSendMouseMovement(manager->session, event->motion.xrel, event->motion.yrel);
-            } else {
-                int w, h;
-                SDL_GetWindowSize(manager->app->ui->window, &w, &h);
-                IHS_SessionSendMousePosition(manager->session, (float) event->motion.x / (float) w,
-                                             (float) event->motion.y / (float) h);
-            }
-            break;
-        }
+        case SDL_MOUSEMOTION:
         case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP: {
-            IHS_StreamInputMouseButton button = 0;
-            switch (event->button.button) {
-                case SDL_BUTTON_LEFT:
-                    button = IHS_MOUSE_BUTTON_LEFT;
-                    break;
-                case SDL_BUTTON_RIGHT:
-                    button = IHS_MOUSE_BUTTON_RIGHT;
-                    break;
-                case SDL_BUTTON_MIDDLE:
-                    button = IHS_MOUSE_BUTTON_MIDDLE;
-                    break;
-                case SDL_BUTTON_X1:
-                    button = IHS_MOUSE_BUTTON_X1;
-                    break;
-                case SDL_BUTTON_X2:
-                    button = IHS_MOUSE_BUTTON_X2;
-                    break;
-            }
-            if (button != 0) {
-                if (event->button.state == SDL_RELEASED) {
-                    IHS_SessionSendMouseUp(manager->session, button);
-                } else {
-                    IHS_SessionSendMouseDown(manager->session, button);
-                }
-            }
-            break;
-        }
+        case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEWHEEL: {
-            Sint32 x = event->wheel.x, y = event->wheel.y;
-            if (event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
-                x *= -1;
-                y *= -1;
-            }
-            if (x != 0) {
-                IHS_SessionSendMouseWheel(manager->session, x < 0 ? IHS_MOUSE_WHEEL_LEFT : IHS_MOUSE_WHEEL_RIGHT);
-            }
-            if (y != 0) {
-                IHS_SessionSendMouseWheel(manager->session, y > 0 ? IHS_MOUSE_WHEEL_UP : IHS_MOUSE_WHEEL_DOWN);
-            }
+            stream_input_handle_mouse_event(manager, event);
             break;
         }
         case SDL_CONTROLLERBUTTONDOWN: {

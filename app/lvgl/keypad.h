@@ -3,7 +3,9 @@
 #include <lvgl.h>
 #include <SDL2/SDL.h>
 
-lv_indev_t *app_indev_keypad_init();
+typedef struct app_t app_t;
+
+lv_indev_t *app_indev_keypad_init(app_t *app);
 
 void app_indev_keypad_deinit(lv_indev_t *indev);
 

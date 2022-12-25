@@ -132,7 +132,9 @@ static void process_events() {
             default: {
                 if (event.type > APP_UI_EVENT_BEGIN && event.type < APP_UI_EVENT_LAST) {
                     app_ui_event_data_t data = {.data1 = event.user.data1, .data2 = event.user.data2};
-                    app_ui_send_event(app->ui, event.type, &data);
+                    if (!app_ui_dispatch_event(app->ui, event.type, &data)) {
+                        app_log_debug("UI", "Unhandled UI event 0x%x", event.type);
+                    }
                 }
                 break;
             }
