@@ -32,6 +32,7 @@
 /* Use SDL draw backend */
 #define LV_USE_GPU_SDL    1
 #define LV_GPU_SDL_INCLUDE_PATH <SDL.h>
+#define LV_GPU_SDL_CUSTOM_BLEND_MODE 0
 
 /*Change the built in (v)snprintf functions*/
 #define LV_SPRINTF_CUSTOM   1

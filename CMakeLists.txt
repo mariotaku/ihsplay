@@ -18,6 +18,7 @@ pkg_check_modules(OPUS opus)
 
 find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
+option(IHSPLAY_WIP_FEATURES "Enable Work-in-Progress Features" OFF)
 set(IHSPLAY_FEATURE_RELMOUSE ON)
 
 if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
@@ -25,11 +26,10 @@ if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
 endif ()
 
 if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
-    option(BUILD_PROTOC "Disable protoc-c" OFF)
     message("Using protobuf-c submodule")
-    set(BUILD_TESTS OFF)
+    option(BUILD_PROTOC "Disable protoc-c" OFF)
+    option(BUILD_TESTS "Disable protoc-c tests" OFF)
     add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
-    unset(BUILD_TESTS)
     set(PROTOBUF_C_FOUND 1)
     set(PROTOBUF_C_LIBRARIES protobuf-c)
     set(PROTOBUF_C_INCLUDEDIR ${CMAKE_SOURCE_DIR}/third_party/protobuf-c)

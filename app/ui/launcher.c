@@ -134,7 +134,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_style_width(actions, LV_PCT(50), 0);
     lv_obj_add_event_cb(actions, focus_content, LV_EVENT_KEY, fragment);
 
-#if IHSPLAY_IS_DEBUG
+#if IHSPLAY_WIP_FEATURES
     lv_obj_t *btn_settings = nav_btn_create(fragment, actions, BS_SYMBOL_GEAR_FILL);
     lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
 #endif

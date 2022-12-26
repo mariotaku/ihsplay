@@ -12,6 +12,47 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  build-webos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      - name: Install webOS CLI
+        run: sudo npm install -g @webosose/ares-cli
+
+      - name: Install Compatibility checker
+        run: sudo npm install -g @webosbrew/compat-checker
+
+      - name: Install webOS NDK
+        id: webos-ndk
+        uses: webosbrew/setup-webos-ndk-action@main
+
+      - name: Build
+        env:
+          TOOLCHAIN_FILE: ${{steps.webos-ndk.outputs.cmake-toolchain}}
+        run: ./tools/webos/easy_build.sh -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Compatibility Check
+        run: webosbrew-ipk-compat-checker --markdown --github-emoji --quiet dist/*.ipk >> $GITHUB_STEP_SUMMARY
+
+      - name: Add Commit Hash Suffix
+        shell: bash
+        working-directory: dist
+        run: for file in *.ipk ; do mv $file ${file//_arm/-${GITHUB_SHA:0:8}_arm} ; done
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: webos-snapshot
+          path: dist/*.ipk
+
   build-raspi:
     runs-on: ubuntu-20.04
 
@@ -26,7 +67,7 @@ jobs:
 
       - name: Prepare Sysroot
         id: pi-sysroot
-        uses: mariotaku/raspbian-sysroot-action@main
+        uses: mariotaku/raspbian-sysroot-action@v1.1
         with:
           packages: ${{github.workspace}}/deploy/raspbian/sysroot-packages.list
 
