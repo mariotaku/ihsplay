@@ -23,7 +23,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'npm'
 
       - name: Install webOS CLI
         run: sudo npm install -g @webosose/ares-cli
