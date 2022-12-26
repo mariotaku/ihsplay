@@ -23,6 +23,7 @@ set(IHSPLAY_FEATURE_RELMOUSE ON)
 
 if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
+    set(ENV{ARCH} "arm")
 endif ()
 
 if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
