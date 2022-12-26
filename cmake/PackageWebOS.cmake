@@ -1,10 +1,17 @@
+get_filename_component(CMAKE_C_COMPILER_NAME "${CMAKE_C_COMPILER}" NAME)
+if (CMAKE_C_COMPILER_NAME MATCHES "^arm-webos-linux-gnueabi-")
+    set(CPACK_PACKAGE_ARCHITECTURE "arm")
+else()
+    message(FATAL_ERROR "Unknown build architecture inferred from C compiler ${CMAKE_C_COMPILER_NAME}")
+endif ()
+
 set(CPACK_PACKAGE_NAME "org.mariotaku.ihsplay")
 set(CPACK_GENERATOR "External")
 set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/AresPackage.cmake")
 set(CPACK_EXTERNAL_ENABLE_STAGING TRUE)
 set(CPACK_MONOLITHIC_INSTALL TRUE)
 set(CPACK_PACKAGE_DIRECTORY ${CMAKE_SOURCE_DIR}/dist)
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${PROJECT_VERSION}_$ENV{ARCH}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${PROJECT_VERSION}_${CPACK_PACKAGE_ARCHITECTURE}")
 
 # Copy manifest
 configure_file(deploy/webos/appinfo.json.in ./appinfo.json @ONLY)

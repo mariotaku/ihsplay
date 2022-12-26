@@ -21,10 +21,10 @@ find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 option(IHSPLAY_WIP_FEATURES "Enable Work-in-Progress Features" OFF)
 set(IHSPLAY_FEATURE_RELMOUSE ON)
 
-if ("$ENV{CROSS_COMPILE}" STREQUAL "arm-webos-linux-gnueabi-")
+get_filename_component(CMAKE_C_COMPILER_NAME "${CMAKE_C_COMPILER}" NAME)
+
+if (CMAKE_C_COMPILER_NAME MATCHES "^arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
-    # TODO: Remove usage of ENV{ARCH}
-    set(ENV{ARCH} "arm")
 endif ()
 
 if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
