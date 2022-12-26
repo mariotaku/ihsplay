@@ -24,15 +24,15 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install webOS CLI
-        run: sudo npm install -g @webosose/ares-cli
-
-      - name: Install Compatibility checker
-        run: sudo npm install -g @webosbrew/compat-checker
-
       - name: Install webOS NDK
         id: webos-ndk
         uses: webosbrew/setup-webos-ndk-action@main
+
+      - name: Install Binutils (for @webosbrew/compat-checker)
+        run: sudo apt-get -y -qq install binutils
+
+      - name: Install webOS CLI & Compatibility checker
+        run: sudo npm install -g @webosose/ares-cli @webosbrew/compat-checker
 
       - name: Build
         env:
