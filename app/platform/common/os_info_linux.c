@@ -1,5 +1,5 @@
 #include <string.h>
-#include "os_info.h"
+#include "util/os_info.h"
 
 int os_info_get(os_info_t *info) {
     memset(info, 0, sizeof(*info));

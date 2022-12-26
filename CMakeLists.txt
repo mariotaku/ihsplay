@@ -92,8 +92,9 @@ set_target_properties(ihsplay PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
         INSTALL_RPATH "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
 
-target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
-target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontconfig::Fontconfig Freetype::Freetype)
+target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS} ${MBEDCRYPTO_INCLUDE_DIRS})
+target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontconfig::Fontconfig Freetype::Freetype
+        ${MBEDCRYPTO_LIBRARY})
 
 if (TARGET_WEBOS)
     set(SS4S_MODULES_INI_PATH_RUNTIME "${CMAKE_INSTALL_LIBDIR}/ss4s_modules.ini")

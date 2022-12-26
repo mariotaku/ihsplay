@@ -75,7 +75,7 @@ static const IHS_ClientStreamingCallbacks streaming_callbacks = {
 host_manager_t *host_manager_create(app_t *app) {
     host_manager_t *manager = SDL_calloc(1, sizeof(host_manager_t));
     manager->app = app;
-    manager->client = IHS_ClientCreate(&app->client_config);
+    manager->client = IHS_ClientCreate(&app->client_info.config);
     manager->hosts = array_list_create(sizeof(IHS_HostInfo), 16);
     manager->listeners = listeners_list_create();
     IHS_ClientSetLogFunction(manager->client, app_ihs_log);

@@ -117,7 +117,7 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
 
     stream_media_session_t *media = stream_media_create(manager);
     manager->media = media;
-    IHS_Session *session = IHS_SessionCreate(&manager->app->client_config, info);
+    IHS_Session *session = IHS_SessionCreate(&manager->app->client_info.config, info);
     IHS_SessionSetLogFunction(session, app_ihs_log);
     IHS_SessionSetSessionCallbacks(session, &session_callbacks, manager);
     IHS_SessionSetInputCallbacks(session, &input_callbacks, manager);

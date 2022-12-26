@@ -1,1 +1,1 @@
-target_sources(ihsplay PRIVATE app_common.c)
+target_sources(ihsplay PRIVATE app_common.c os_info_linux.c client_info_common.c)

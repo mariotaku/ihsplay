@@ -6,6 +6,7 @@
 #include "ihslib.h"
 #include "ss4s.h"
 #include "settings/app_settings.h"
+#include "util/client_info.h"
 
 typedef struct app_ui_t app_ui_t;
 typedef struct stream_manager_t stream_manager_t;
@@ -17,7 +18,7 @@ typedef struct app_t {
     SDL_threadID main_thread_id;
     app_ui_t *ui;
     app_settings_t *settings;
-    IHS_ClientConfig client_config;
+    client_info_t client_info;
     host_manager_t *host_manager;
     stream_manager_t *stream_manager;
     input_manager_t *input_manager;

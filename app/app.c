@@ -6,19 +6,7 @@
 #include "backend/host_manager.h"
 #include "backend/stream_manager.h"
 #include "backend/input_manager.h"
-
-static const uint8_t secretKey[32] = {
-        11, 45, 14, 19, 19, 8, 1, 0,
-        11, 45, 14, 19, 19, 8, 1, 0,
-        11, 45, 14, 19, 19, 8, 1, 0,
-        11, 45, 14, 19, 19, 8, 1, 0,
-};
-
-static const IHS_ClientConfig clientConfig = {
-        .deviceId = 11451419190810,
-        .secretKey = secretKey,
-        .deviceName = "BABYLON STAGE34"
-};
+#include "util/client_info.h"
 
 app_t *app_create(app_settings_t *settings, void *disp) {
     assert(settings != NULL);
@@ -27,7 +15,8 @@ app_t *app_create(app_settings_t *settings, void *disp) {
     app->settings = settings;
     app->main_thread_id = SDL_ThreadID();
     app->running = true;
-    app->client_config = clientConfig;
+    bool client_info_loaded = client_info_load(&app->client_info);
+    assert(client_info_loaded);
     app->input_manager = input_manager_create();
     app->host_manager = host_manager_create(app);
     app->stream_manager = stream_manager_create(app);
@@ -41,6 +30,7 @@ void app_destroy(app_t *app) {
     stream_manager_destroy(app->stream_manager);
     host_manager_destroy(app->host_manager);
     input_manager_destroy(app->input_manager);
+    client_info_clear(&app->client_info);
     free(app);
 }
 
