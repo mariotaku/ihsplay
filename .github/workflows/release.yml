@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  release:
+    types: [ created ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+
+jobs:
+  build-webos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install webOS NDK
+        id: webos-ndk
+        uses: webosbrew/setup-webos-ndk-action@main
+
+      - name: Install webOS CLI & Compatibility checker
+        run: sudo npm install -g @webosose/ares-cli @webosbrew/pub-utils
+
+      - name: Build
+        env:
+          TOOLCHAIN_FILE: ${{steps.webos-ndk.outputs.cmake-toolchain}}
+        run: ./tools/webos/easy_build.sh -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Create Release (webOS)
+        id: create_release_webos
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Release ${{ steps.tagName.outputs.tag }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: dist/*.ipk,dist/*.manifest.json
