@@ -55,6 +55,7 @@ endif ()
 
 if (TARGET_WEBOS)
     set(IHSLIB_SDL_TARGETVERSION "2.0.0")
+    set(SS4S_MODULE_DISABLE_MMAL ON)
 endif ()
 
 add_subdirectory(core)
