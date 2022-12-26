@@ -25,7 +25,7 @@ jobs:
         id: webos-ndk
         uses: webosbrew/setup-webos-ndk-action@main
 
-      - name: Install webOS CLI & Compatibility checker
+      - name: Install webOS CLI & Homebrew Publish Tools
         run: sudo npm install -g @webosose/ares-cli @webosbrew/pub-utils
 
       - name: Build
