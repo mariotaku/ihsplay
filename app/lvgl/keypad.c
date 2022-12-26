@@ -47,11 +47,16 @@ void app_indev_set_ignore_input(lv_indev_t *indev, bool ignore) {
 }
 
 void app_indev_sdl_key_event(lv_indev_t *indev, const SDL_KeyboardEvent *event) {
+    keyboard_state_t *state = indev->driver->user_data;
     uint32_t key = key_from_keysym(&event->keysym);
     if (key == 0) {
+#ifdef SDL_WEBOS_SCANCODE_EXIT
+        if (event->state == SDL_RELEASED && event->keysym.scancode == SDL_WEBOS_SCANCODE_EXIT) {
+            app_post_event(state->app, APP_UI_NAV_QUIT, NULL, NULL);
+        }
+#endif
         return;
     }
-    keyboard_state_t *state = indev->driver->user_data;
     if (event->state == SDL_PRESSED) {
         if (state->key == 0) {
             state->key = state->ev_key = key;

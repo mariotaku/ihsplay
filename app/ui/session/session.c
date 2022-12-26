@@ -244,7 +244,7 @@ static void session_disconnected_main(const IHS_SessionInfo *info, bool requeste
         lv_obj_add_event_cb(mbox, disconnected_dialog_cb, LV_EVENT_VALUE_CHANGED, NULL);
         lv_obj_center(mbox);
     }
-    lv_fragment_manager_pop(fragment->app->ui->fm);
+    app_ui_pop_fragment(fragment->app->ui);
 }
 
 static void session_overlay_progress(int percentage, void *context) {

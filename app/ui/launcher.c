@@ -34,6 +34,8 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
+static bool event_cb(lv_fragment_t *self, int type, void *data);
+
 static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt);
 
 static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t *cls);
@@ -53,6 +55,7 @@ const lv_fragment_class_t launcher_fragment_class = {
         .destructor_cb = destructor,
         .create_obj_cb = create_obj,
         .obj_will_delete_cb = obj_will_delete,
+        .event_cb = event_cb,
         .instance_size = sizeof(app_root_fragment),
 };
 
@@ -171,6 +174,20 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
     app_root_fragment *fragment = (app_root_fragment *) self;
     lv_obj_del(fragment->debug_info);
 #endif
+}
+
+static bool event_cb(lv_fragment_t *self, int type, void *data) {
+    (void) data;
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    switch (type) {
+        case APP_UI_NAV_QUIT:
+            app_quit(fragment->app);
+            return true;
+        case APP_UI_NAV_BACK:
+            return true;
+        default:
+            return false;
+    }
 }
 
 static lv_obj_t *nav_btn_create(app_root_fragment *fragment, lv_obj_t *container, const char *txt) {
