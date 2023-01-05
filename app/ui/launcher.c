@@ -11,6 +11,7 @@
 #include "ui/settings/basic.h"
 #include "ui/common/group_utils.h"
 #include "backend/host_manager.h"
+#include "ui/support/support.h"
 
 typedef struct app_root_fragment {
     lv_fragment_t base;
@@ -260,7 +261,7 @@ static void open_settings(lv_event_t *e) {
 
 static void open_support(lv_event_t *e) {
     app_root_fragment *fragment = lv_event_get_user_data(e);
-//    launcher_open(fragment, &settings_basic_fragment_class);
+    launcher_open(fragment, &support_fragment_class);
 }
 
 static void launcher_quit(lv_event_t *e) {

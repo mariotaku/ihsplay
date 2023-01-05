@@ -1,0 +1,1 @@
+target_sources(ihsplay PRIVATE support.c wiki.c feedback.c)

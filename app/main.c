@@ -61,8 +61,8 @@ int main(int argc, char *argv[]) {
 #else
     bool windowed = SDL_getenv("IHSPLAY_WINDOWED") != NULL;
     if (windowed) {
-        w = 1280;
-        h = 720;
+        w = 1920;
+        h = 1080;
         fullscreen_flag = SDL_WINDOW_RESIZABLE;
     } else {
         fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;

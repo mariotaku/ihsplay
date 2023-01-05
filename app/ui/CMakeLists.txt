@@ -9,3 +9,4 @@ target_sources(ihsplay PRIVATE
 
 add_subdirectory(common)
 add_subdirectory(session)
+add_subdirectory(support)
