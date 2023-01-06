@@ -111,6 +111,8 @@ int version_constraint_parse(version_constraint_t *constraint, const char *value
 
 bool version_constraint_check(const version_constraint_t *constraint, const version_info_t *version) {
     switch (constraint->operand) {
+        case VERSION_IGNORE:
+            return true;
         case VERSION_EQUALS:
             return version_info_compare(version, &constraint->version) == 0;
         case VERSION_NOT_EQUALS:

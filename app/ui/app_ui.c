@@ -84,14 +84,12 @@ void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *ar
     app_ui_fragment_args_t fargs = {ui->app, args};
     lv_fragment_t *f = lv_fragment_create(cls, &fargs);
     lv_fragment_manager_push(ui->fm, f, &ui->root);
-    size_t stack_size = lv_fragment_manager_get_stack_size(ui->fm);
-    app_ui_set_handle_nav_back(ui, stack_size > 1);
+    app_ui_update_nav_back(ui);
 }
 
 void app_ui_pop_fragment(app_ui_t *ui) {
     lv_fragment_manager_pop(ui->fm);
-    size_t stack_size = lv_fragment_manager_get_stack_size(ui->fm);
-    app_ui_set_handle_nav_back(ui, stack_size > 1);
+    app_ui_update_nav_back(ui);
 }
 
 bool app_ui_dispatch_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data) {
@@ -119,6 +117,13 @@ void app_ui_remove_modal_group(app_ui_t *ui, lv_group_t *group) {
 
 lv_group_t *app_ui_get_input_group(app_ui_t *ui) {
     return ui->indev.keypad->group;
+}
+
+void app_ui_update_nav_back(app_ui_t *ui) {
+    size_t stack_size = lv_fragment_manager_get_stack_size(ui->fm);
+    LV_ASSERT(stack_size > 0);
+    lv_fragment_t *top = lv_fragment_manager_get_top(ui->fm);
+    app_ui_set_handle_nav_back(ui, stack_size > 1 || !launcher_fragment_is_home(top));
 }
 
 static void app_input_populate_group(app_ui_t *ui) {

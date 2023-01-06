@@ -22,6 +22,8 @@ static void logging_init();
 
 static app_t *app = NULL;
 
+static bool use_windowed();
+
 int main(int argc, char *argv[]) {
     logging_init();
     app_preinit(argc, argv);
@@ -59,7 +61,7 @@ int main(int argc, char *argv[]) {
 #ifdef TARGET_WEBOS
     fullscreen_flag = SDL_WINDOW_FULLSCREEN;
 #else
-    bool windowed = SDL_getenv("IHSPLAY_WINDOWED") != NULL;
+    bool windowed = use_windowed();
     if (windowed) {
         w = 1920;
         h = 1080;
@@ -147,4 +149,12 @@ static void process_events() {
 static void logging_init() {
     app_logging_init();
     lv_log_register_print_cb(app_lv_log);
+}
+
+static bool use_windowed() {
+    const char *v = SDL_getenv("IHSPLAY_WINDOWED");
+    if (v == NULL) {
+        return false;
+    }
+    return strcmp(v, "1") == 0 || strcmp(v, "true") == 0;
 }

@@ -78,7 +78,7 @@ bool sps_util_parse_dimension_hevc(const unsigned char *data, size_t size, sps_d
         height -= (conf_win_top_offset + conf_win_bottom_offset) * crop_unit_y;
     }
 
-    if ((int) width <= 0 || (int) height <= 0) {
+    if ((int) width <= 0 || (int) height <= 0 || width % 2 != 0 || height % 2 != 0) {
         return false;
     }
 

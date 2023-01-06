@@ -38,6 +38,7 @@ array_list_t *modules_load(const os_info_t *os_info) {
     FILE *f = fopen(SS4S_MODULES_INI_PATH, "r");
     if (f != NULL) {
         modules_parse_context mpc = {.modules = list, .os_info = os_info};
+        module_info_clear(&mpc.current);
         ini_parse_file(f, modules_ini_handler, &mpc);
         section_changed(&mpc);
         modules_parse_context_destroy(&mpc);
@@ -89,7 +90,9 @@ static int modules_ini_handler(void *user, const char *section, const char *name
     } else if (strcmp("video", name) == 0) {
         mpc->current.has_video = strcmp("true", value) == 0;
     } else if (strcmp("os_version", name) == 0) {
-        version_constraint_parse(&mpc->current.os_version, value);
+        if (version_constraint_parse(&mpc->current.os_version, value) != 0) {
+            mpc->current.os_version.operand = VERSION_IGNORE;
+        }
     } else if (strcmp("modules", name) == 0) {
         str_list_parse(&mpc->current.modules, value, ";");
     } else if (strcmp("conflicts", name) == 0) {
@@ -121,6 +124,7 @@ static void module_info_clear(module_info_t *info) {
     if (info->section == NULL) {
         return;
     }
+    info->os_version.operand = VERSION_IGNORE;
     free(info->section);
     if (info->name != NULL) {
         free(info->name);

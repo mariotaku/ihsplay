@@ -40,7 +40,7 @@ typedef struct lv_grid_t {
     /*States*/
     int item_count, row_count;
     int row_start, row_end;
-    int focused_index;
+    int focused_index, focus_when_available;
     /*Tmp data*/
     lv_coord_t *col_dsc, *row_dsc;
     lv_obj_t *placeholder;
@@ -214,27 +214,34 @@ void *lv_gridview_get_data(lv_obj_t *obj) {
 
 bool lv_gridview_focus(lv_obj_t *obj, int position) {
     lv_grid_t *grid = (lv_grid_t *) obj;
-    if (position < -1 || position >= grid->item_count) return false;
-    bool focus_changed = grid->focused_index >= 0 && position != grid->focused_index;
-    if (focus_changed) {
+    bool has_focused = grid->focused_index >= 0 && position != grid->focused_index;
+    if (has_focused) {
         view_pool_ll_t *node = view_pool_node_by_position(grid->pool_inuse, grid->focused_index);
         if (node) {
             lv_event_send(node->item, LV_EVENT_DEFOCUSED, lv_indev_get_act());
         }
+        grid->focused_index = -1;
     }
+    if (position < 0 || position >= grid->item_count) return false;
     view_pool_ll_t *node = view_pool_node_by_position(grid->pool_inuse, position);
-    lv_obj_t *focused = node ? node->item : NULL;
-    if (!focused && position >= 0) {
+    lv_obj_t *will_focus = node ? node->item : NULL;
+    if (will_focus == NULL) {
         lv_obj_t *item = grid_obtain_item(grid, position, NULL);
         int row_idx = position / grid->column_count, col_idx = position % grid->column_count;
         lv_obj_set_grid_cell(item, grid->column_align, col_idx, 1, grid->row_align, row_idx, 1);
         grid->adapter.bind_view(&grid->obj, item, grid->data, position);
-        focused = item;
+        will_focus = item;
     }
-    if (!focused) return false;
-    lv_event_send(focused, LV_EVENT_FOCUSED, lv_indev_get_act());
+    if (!will_focus) return false;
     grid->focused_index = position;
-    return focus_changed;
+    lv_event_send(will_focus, LV_EVENT_FOCUSED, lv_indev_get_act());
+    return true;
+}
+
+bool lv_gridview_focus_when_available(lv_obj_t *obj, int position) {
+    lv_grid_t *grid = (lv_grid_t *) obj;
+    grid->focus_when_available = position;
+    return true;
 }
 
 int lv_gridview_get_focused_index(lv_obj_t *obj) {
@@ -274,6 +281,13 @@ int lv_gridview_get_item_data_index(lv_obj_t *obj, lv_obj_t *item_view) {
     return node->position;
 }
 
+lv_obj_t *lv_gridview_get_item_view(lv_obj_t *obj, int position) {
+    lv_grid_t *grid = (lv_grid_t *) obj;
+    view_pool_ll_t *node = view_pool_node_by_position(grid->pool_inuse, position);
+    if (!node) return NULL;
+    return node->item;
+}
+
 /**********************
  *   STATIC FUNCTIONS
  **********************/
@@ -309,6 +323,7 @@ static void lv_gridview_constructor(const lv_obj_class_t *class_p, lv_obj_t *obj
     grid->row_start = -1;
     grid->row_end = -1;
     grid->focused_index = -1;
+    grid->focus_when_available = -1;
 }
 
 static void lv_gridview_destructor(const lv_obj_class_t *class_p, lv_obj_t *obj) {
@@ -596,6 +611,10 @@ static void fill_rows(lv_grid_t *grid, int row_start, int row_end) {
     }
     grid->row_start = row_start;
     grid->row_end = row_end;
+    if (grid->focus_when_available >= 0 && grid->focus_when_available < grid->item_count) {
+        lv_gridview_focus((lv_obj_t *) grid, grid->focus_when_available);
+        grid->focus_when_available = -1;
+    }
 }
 
 static bool grid_recycle_item(lv_grid_t *grid, int position, bool optional) {

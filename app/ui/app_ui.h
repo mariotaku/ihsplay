@@ -63,4 +63,6 @@ void app_ui_remove_modal_group(app_ui_t *ui, lv_group_t *group);
 
 lv_group_t *app_ui_get_input_group(app_ui_t *ui);
 
+void app_ui_update_nav_back(app_ui_t *ui);
+
 void app_ui_set_handle_nav_back(app_ui_t *ui, bool handle);

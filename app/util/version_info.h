@@ -12,6 +12,7 @@ typedef struct version_info_t {
 typedef struct version_constraint_t {
     version_info_t version;
     enum {
+        VERSION_IGNORE,
         VERSION_EQUALS,
         VERSION_NOT_EQUALS,
         VERSION_GREATER_THAN,

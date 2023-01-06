@@ -1,6 +1,7 @@
 #include "settings.h"
 
 #include "app.h"
+#include "ui/launcher.h"
 
 typedef struct settings_fragment {
     lv_fragment_t base;
@@ -70,7 +71,7 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
 static bool event_cb(lv_fragment_t *self, int code, void *data) {
     (void) data;
     if (code == APP_UI_NAV_BACK) {
-        // TODO: return to apps
+        launcher_fragment_open_home(lv_fragment_get_parent(self));
         return true;
     }
     return false;

@@ -103,6 +103,15 @@ static const lv_gridview_adapter_t hosts_adapter = {
         .bind_view = host_item_bind,
 };
 
+void hosts_fragment_focus_hosts(lv_fragment_t *self) {
+    if (self->cls != &hosts_fragment_class) {
+        return;
+    }
+    hosts_fragment *fragment = (hosts_fragment *) self;
+    lv_group_focus_obj(fragment->grid_view);
+    lv_gridview_focus_when_available(fragment->grid_view, 0);
+}
+
 static void constructor(lv_fragment_t *self, void *arg) {
     hosts_fragment *fragment = (hosts_fragment *) self;
     fragment->app = arg;
@@ -143,7 +152,10 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     host_manager_t *hosts_manager = fragment->app->host_manager;
     host_manager_register_listener(hosts_manager, &host_manager_listener, fragment);
     lv_gridview_set_data(fragment->grid_view, host_manager_get_hosts(hosts_manager));
-    lv_group_focus_obj(fragment->grid_view);
+    lv_group_t *group = app_ui_get_input_group(fragment->app->ui);
+    if (group != NULL && lv_group_get_focused(group) == NULL) {
+        hosts_fragment_focus_hosts(self);
+    }
 
     host_manager_discovery_start(hosts_manager);
 }
@@ -205,6 +217,7 @@ static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult r
 
 static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *context) {
     (void) host;
+    (void) steam_id;
     hosts_fragment *fragment = (hosts_fragment *) context;
     close_msgbox(fragment);
 }
@@ -350,7 +363,6 @@ static void host_item_clicked(lv_event_t *e) {
 
     open_msgbox(fragment, NULL, "Requesting stream", NULL);
     host_manager_session_request(fragment->app->host_manager, item);
-//    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, NULL);
 }
 
 static void size_changed_cb(lv_event_t *e) {
@@ -359,12 +371,21 @@ static void size_changed_cb(lv_event_t *e) {
 }
 
 static void grid_focused(lv_event_t *e) {
-    if (e->target != e->current_target) return;
-    array_list_t *data = lv_gridview_get_data(e->target);
-    if (data == NULL || array_list_size(data) == 0) {
-        return;
+    if (e->target == e->current_target) {
+        array_list_t *data = lv_gridview_get_data(e->target);
+        if (data == NULL || array_list_size(data) == 0) {
+            return;
+        }
+        lv_gridview_focus(e->target, 0);
+    } else {
+        int index = lv_gridview_get_focused_index(e->current_target);
+        if (index >= 0) {
+            lv_obj_t *item_view = lv_gridview_get_item_view(e->current_target, index);
+            if (item_view != NULL && lv_obj_has_state(item_view, LV_STATE_FOCUSED)) {
+                lv_obj_add_state(item_view, LV_STATE_FOCUS_KEY);
+            }
+        }
     }
-    lv_gridview_focus(e->target, 0);
 }
 
 static void grid_unfocused(lv_event_t *e) {

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "app.h"
 #include "app_ui.h"
 #include "config.h"
@@ -21,6 +22,7 @@ typedef struct app_root_fragment {
         lv_style_t root;
         lv_style_t action_btn;
     } styles;
+    lv_obj_t *actions;
     lv_obj_t *nav_content;
 #if IHSPLAY_IS_DEBUG
     lv_obj_t *debug_info;
@@ -32,6 +34,8 @@ static void constructor(lv_fragment_t *self, void *arg);
 static void destructor(lv_fragment_t *self);
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container);
+
+static void obj_created(lv_fragment_t *self, lv_obj_t *obj);
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
@@ -51,14 +55,53 @@ static void open_support(lv_event_t *e);
 
 static void launcher_quit(lv_event_t *e);
 
+static void focus_first_in_parent(app_root_fragment *fragment, lv_obj_t *parent);
+
 const lv_fragment_class_t launcher_fragment_class = {
         .constructor_cb = constructor,
         .destructor_cb = destructor,
         .create_obj_cb = create_obj,
+        .obj_created_cb = obj_created,
         .obj_will_delete_cb = obj_will_delete,
         .event_cb = event_cb,
         .instance_size = sizeof(app_root_fragment),
 };
+
+void launcher_fragment_focus_actions(lv_fragment_t *self) {
+    if (self->cls != &launcher_fragment_class) {
+        return;
+    }
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    focus_first_in_parent(fragment, fragment->actions);
+}
+
+void launcher_fragment_focus_content(lv_fragment_t *self) {
+    if (self->cls != &launcher_fragment_class) {
+        return;
+    }
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    focus_first_in_parent(fragment, fragment->nav_content);
+}
+
+void launcher_fragment_open_home(lv_fragment_t *self) {
+    if (self->cls != &launcher_fragment_class) {
+        return;
+    }
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    launcher_open(fragment, &hosts_fragment_class);
+}
+
+bool launcher_fragment_is_home(lv_fragment_t *self) {
+    if (self->cls != &launcher_fragment_class) {
+        return false;
+    }
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    lv_fragment_t *opened = lv_fragment_manager_find_by_container(self->child_manager, fragment->nav_content);
+    if (opened == NULL) {
+        return false;
+    }
+    return opened->cls == &hosts_fragment_class;
+}
 
 static void constructor(lv_fragment_t *self, void *arg) {
     app_ui_fragment_args_t *fargs = arg;
@@ -152,6 +195,7 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_update_layout(root);
 
     fragment->nav_content = nav_content;
+    fragment->actions = actions;
 
 #if IHSPLAY_IS_DEBUG
     lv_obj_t *debug_info = lv_label_create(container);
@@ -166,8 +210,16 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     fragment->debug_info = debug_info;
 #endif
 
-    launcher_open(fragment, &hosts_fragment_class);
     return root;
+}
+
+static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
+    launcher_fragment_open_home(self);
+
+    app_root_fragment *fragment = (app_root_fragment *) self;
+    lv_fragment_t *f = lv_fragment_manager_find_by_container(self->child_manager, fragment->nav_content);
+    assert(f != NULL);
+    hosts_fragment_focus_hosts(f);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
@@ -210,6 +262,7 @@ static void launcher_open(app_root_fragment *fragment, const lv_fragment_class_t
     }
     lv_fragment_t *f = lv_fragment_create(cls, fragment->app);
     lv_fragment_manager_replace(manager, f, &fragment->nav_content);
+    app_ui_update_nav_back(fragment->app->ui);
 }
 
 static void focus_content(lv_event_t *e) {
@@ -220,16 +273,8 @@ static void focus_content(lv_event_t *e) {
     }
     switch (lv_event_get_key(e)) {
         case LV_KEY_DOWN: {
-            lv_group_t *group = lv_group_get_default();
-            if (group == NULL) {
-                return;
-            }
-            app_root_fragment *fragment = lv_event_get_user_data(e);
-            lv_obj_t *to_focus = ui_group_first_in_parent(group, fragment->nav_content);
-            if (to_focus == NULL) {
-                return;
-            }
-            lv_group_focus_obj(to_focus);
+            lv_fragment_t *fragment = lv_event_get_user_data(e);
+            launcher_fragment_focus_content(fragment);
             break;
         }
         case LV_KEY_LEFT:
@@ -266,4 +311,16 @@ static void open_support(lv_event_t *e) {
 
 static void launcher_quit(lv_event_t *e) {
     app_quit(lv_event_get_user_data(e));
+}
+
+static void focus_first_in_parent(app_root_fragment *fragment, lv_obj_t *parent) {
+    lv_group_t *group = app_ui_get_input_group(fragment->app->ui);
+    if (group == NULL) {
+        return;
+    }
+    lv_obj_t *to_focus = ui_group_first_in_parent(group, parent);
+    if (to_focus == NULL) {
+        return;
+    }
+    lv_group_focus_obj(to_focus);
 }

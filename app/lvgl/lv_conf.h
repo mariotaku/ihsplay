@@ -18,6 +18,9 @@
 /* Use the standard `memcpy` and `memset` instead of LVGL's own functions. */
 #define LV_MEMCPY_MEMSET_STD    1
 
+#define LV_DISP_DEF_REFR_PERIOD 17
+#define LV_INDEV_DEF_READ_PERIOD 5
+
 /* Let LVGL call SDL_GetTicks automatically so we can skip creating a separate timer thread. */
 #define LV_TICK_CUSTOM     1
 #define LV_TICK_CUSTOM_INCLUDE  <SDL.h>
