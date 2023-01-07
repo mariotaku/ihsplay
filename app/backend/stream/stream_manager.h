@@ -51,3 +51,5 @@ void stream_manager_set_overlay_height(stream_manager_t *manager, int height);
 bool stream_manager_set_overlay_opened(stream_manager_t *manager, bool opened);
 
 void stream_manager_set_capture_size(stream_manager_t *manager, int width, int height);
+
+bool stream_manager_is_active(const stream_manager_t *manager);

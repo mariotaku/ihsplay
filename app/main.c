@@ -95,8 +95,8 @@ int main(int argc, char *argv[]) {
 
     while (app->running) {
         process_events();
-        lv_task_handler();
-        SDL_Delay(1);
+        uint32_t next_delay = lv_task_handler();
+        SDL_Delay(stream_manager_is_active(app->stream_manager) ? 1 : next_delay);
     }
 
 #if IHSPLAY_FEATURE_LIBCEC

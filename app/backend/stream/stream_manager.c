@@ -257,6 +257,10 @@ void stream_manager_set_capture_size(stream_manager_t *manager, int width, int h
     manager->capture_height = height;
 }
 
+bool stream_manager_is_active(const stream_manager_t *manager) {
+    return manager->state == STREAM_MANAGER_STATE_STREAMING;
+}
+
 static void session_initialized(IHS_Session *session, void *context) {
     stream_manager_t *manager = (stream_manager_t *) context;
     assert (manager->state == STREAM_MANAGER_STATE_CONNECTING);
