@@ -2,6 +2,7 @@
 #include <lvgl.h>
 
 #include "app.h"
+#include "config.h"
 
 #include "ui/app_ui.h"
 
@@ -15,6 +16,12 @@
 
 #include "logging/app_logging.h"
 #include "util/os_info.h"
+
+#if IHSPLAY_FEATURE_LIBCEC
+
+#include "cec/cec_support.h"
+
+#endif
 
 static void process_events();
 
@@ -60,6 +67,8 @@ int main(int argc, char *argv[]) {
     Uint32 fullscreen_flag;
 #ifdef TARGET_WEBOS
     fullscreen_flag = SDL_WINDOW_FULLSCREEN;
+#elif IHSPLAY_FEATURE_FORCE_FULLSCREEN
+    fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
 #else
     bool windowed = use_windowed();
     if (windowed) {
@@ -80,11 +89,19 @@ int main(int argc, char *argv[]) {
 
     app = app_create(&settings, disp);
 
+#if IHSPLAY_FEATURE_LIBCEC
+    cec_support_ctx_t *cec = cec_support_create(app);
+#endif
+
     while (app->running) {
         process_events();
         lv_task_handler();
         SDL_Delay(1);
     }
+
+#if IHSPLAY_FEATURE_LIBCEC
+    cec_support_destroy(cec);
+#endif
 
     app_destroy(app);
 
@@ -93,11 +110,11 @@ int main(int argc, char *argv[]) {
     app_settings_deinit(&settings);
 
     SDL_DestroyWindow(window);
-    SDL_Quit();
     IHS_Quit();
 
     SS4S_Quit();
 
+    SDL_Quit();
     app_logging_deinit();
     return 0;
 }

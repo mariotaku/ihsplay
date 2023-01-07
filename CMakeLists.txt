@@ -19,8 +19,10 @@ pkg_check_modules(OPUS opus)
 find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
 option(IHSPLAY_WIP_FEATURES "Enable Work-in-Progress Features" OFF)
-set(IHSPLAY_FEATURE_FORCE_FULLSCREEN OFF)
+option(IHSPLAY_FEATURE_FORCE_FULLSCREEN "Force full screen mode" OFF)
+
 set(IHSPLAY_FEATURE_RELMOUSE ON)
+set(IHSPLAY_FEATURE_LIBCEC ON)
 
 get_filename_component(CMAKE_C_COMPILER_NAME "${CMAKE_C_COMPILER}" NAME)
 
@@ -102,6 +104,7 @@ target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontco
 if (TARGET_WEBOS)
     set(SS4S_MODULES_INI_PATH_RUNTIME "${CMAKE_INSTALL_LIBDIR}/ss4s_modules.ini")
     set(IHSPLAY_FEATURE_RELMOUSE OFF)
+    set(IHSPLAY_FEATURE_LIBCEC OFF)
     set(IHSPLAY_FEATURE_FORCE_FULLSCREEN ON)
     target_link_libraries(ihsplay PRIVATE rt)
     include(PackageWebOS)

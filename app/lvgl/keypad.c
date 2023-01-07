@@ -41,12 +41,12 @@ void app_indev_keypad_deinit(lv_indev_t *indev) {
     free(driver);
 }
 
-void app_indev_set_ignore_input(lv_indev_t *indev, bool ignore) {
+void app_indev_keypad_set_ignore(lv_indev_t *indev, bool ignore) {
     keyboard_state_t *state = indev->driver->user_data;
     state->ignore_input = ignore;
 }
 
-void app_indev_sdl_key_event(lv_indev_t *indev, const SDL_KeyboardEvent *event) {
+void app_indev_keypad_sdl_key_event(lv_indev_t *indev, const SDL_KeyboardEvent *event) {
     keyboard_state_t *state = indev->driver->user_data;
     uint32_t key = key_from_keysym(&event->keysym);
     if (key == 0) {
@@ -73,7 +73,7 @@ void app_indev_sdl_key_event(lv_indev_t *indev, const SDL_KeyboardEvent *event) 
     }
 }
 
-void app_indev_sdl_cbutton_event(lv_indev_t *indev, const SDL_ControllerButtonEvent *event) {
+void app_indev_keypad_sdl_cbutton_event(lv_indev_t *indev, const SDL_ControllerButtonEvent *event) {
     uint32_t key = key_from_cbutton(event->button);
     if (key == 0) {
         return;
@@ -86,6 +86,24 @@ void app_indev_sdl_cbutton_event(lv_indev_t *indev, const SDL_ControllerButtonEv
             state->changed = true;
         }
     } else if (event->state == SDL_RELEASED) {
+        if (state->key == key) {
+            state->ev_key = key;
+            state->key = 0;
+            state->state = LV_INDEV_STATE_RELEASED;
+            state->changed = true;
+        }
+    }
+}
+
+void app_indev_keypad_inject_key(lv_indev_t *indev, lv_key_t key, bool pressed) {
+    keyboard_state_t *state = indev->driver->user_data;
+    if (pressed) {
+        if (state->key == 0) {
+            state->key = state->ev_key = key;
+            state->state = LV_INDEV_STATE_PRESSED;
+            state->changed = true;
+        }
+    } else {
         if (state->key == key) {
             state->ev_key = key;
             state->key = 0;

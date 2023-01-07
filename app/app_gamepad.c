@@ -16,12 +16,12 @@ void app_sdl_input_event(app_t *app, const SDL_Event *event) {
         }
         case SDL_KEYUP:
         case SDL_KEYDOWN: {
-            app_indev_sdl_key_event(app->ui->indev.keypad, &event->key);
+            app_indev_keypad_sdl_key_event(app->ui->indev.keypad, &event->key);
             break;
         }
         case SDL_CONTROLLERBUTTONUP:
         case SDL_CONTROLLERBUTTONDOWN: {
-            app_indev_sdl_cbutton_event(app->ui->indev.keypad, &event->cbutton);
+            app_indev_keypad_sdl_cbutton_event(app->ui->indev.keypad, &event->cbutton);
             break;
         }
     }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <SDL_timer.h>
 #include <SDL_mutex.h>
 
 #include "app_logging.h"
@@ -37,21 +38,21 @@ void app_log_printf(app_log_level level, const char *tag, const char *fmt, ...) 
 static bool log_header(int level, const char *tag) {
     switch (level) {
         case IHS_LogLevelInfo:
-            fprintf(stderr, "[%s]\x1b[36m ", tag);
+            fprintf(stderr, "[%.03f][%s]\x1b[36m ", (float) SDL_GetTicks() / 1000.0f, tag);
             break;
         case IHS_LogLevelWarn:
-            fprintf(stderr, "[%s]\x1b[33m ", tag);
+            fprintf(stderr, "[%.03f][%s]\x1b[33m ", (float) SDL_GetTicks() / 1000.0f, tag);
             break;
         case IHS_LogLevelError:
-            fprintf(stderr, "[%s]\x1b[31m ", tag);
+            fprintf(stderr, "[%.03f][%s]\x1b[31m ", (float) SDL_GetTicks() / 1000.0f, tag);
             break;
         case IHS_LogLevelFatal:
-            fprintf(stderr, "[%s]\x1b[41m ", tag);
+            fprintf(stderr, "[%.03f][%s]\x1b[41m ", (float) SDL_GetTicks() / 1000.0f, tag);
             break;
         case IHS_LogLevelVerbose:
             return false;
         default:
-            fprintf(stderr, "[%s] ", tag);
+            fprintf(stderr, "[%.03f][%s] ", (float) SDL_GetTicks() / 1000.0f, tag);
             break;
     }
     return true;

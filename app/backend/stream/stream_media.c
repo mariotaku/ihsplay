@@ -122,11 +122,12 @@ const IHS_StreamVideoCallbacks *stream_media_video_callbacks() {
 static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
     (void) session;
     app_log_info("Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
-                   config->channels, config->frequency);
+                 config->channels, config->frequency);
     if (config->codec != IHS_StreamAudioCodecOpus) {
         return -1;
     }
     stream_media_session_t *media_session = (stream_media_session_t *) context;
+    SDL_LockMutex(media_session->lock);
     int rc;
     unsigned char mapping[2] = {0, 1};
     const int samples_per_frame = 240;
@@ -142,6 +143,7 @@ static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config
             .sampleRate = (int) config->frequency,
             .samplesPerFrame = samples_per_frame,
     };
+    SDL_UnlockMutex(media_session->lock);
     return SS4S_PlayerAudioOpen(media_session->player, &info);
 }
 
@@ -164,10 +166,6 @@ static int audio_submit(IHS_Session *session, IHS_Buffer *data, void *context) {
 
 static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config, void *context) {
     (void) session;
-    app_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec,
-                   config->width,
-                   config->height);
-    stream_media_session_t *media_session = (stream_media_session_t *) context;
     SS4S_VideoCodec codec;
     switch (config->codec) {
         case IHS_StreamVideoCodecH264:
@@ -179,12 +177,16 @@ static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config
         default:
             return -1;
     }
+    stream_media_session_t *media_session = (stream_media_session_t *) context;
+    SDL_LockMutex(media_session->lock);
+    app_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width, config->height);
     SS4S_VideoInfo info = {
             .codec = codec,
             .width = (int) config->width,
             .height = (int) config->height,
     };
     media_session->video_info = info;
+    SDL_UnlockMutex(media_session->lock);
     return SS4S_PlayerVideoOpen(media_session->player, &info);
 }
 
@@ -199,6 +201,7 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
     stream_media_session_t *media_session = (stream_media_session_t *) context;
     SS4S_VideoFeedFlags sflgs = 0;
     if (flags & IHS_StreamVideoFrameKeyFrame) {
+        SDL_LockMutex(media_session->lock);
         sflgs = SS4S_VIDEO_FEED_DATA_KEYFRAME;
         sps_dimension_t dimension = {0, 0};
         bool dimension_parsed = false;
@@ -212,7 +215,9 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
                 break;
             }
             default: {
-                return -1;
+                app_log_fatal("Media", "Unexpected video codec %s!!",
+                              SS4S_VideoCodecName(media_session->video_info.codec));
+                abort();
             }
         }
         if (!dimension_parsed) {
@@ -222,12 +227,13 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
         if (dimension_parsed && (dimension.width != media_session->video_info.width ||
                                  dimension.height != media_session->video_info.height)) {
             app_log_info("Media", "Size change detected by NAL header. (%d*%d)=>(%d*%d)",
-                           media_session->video_info.width, media_session->video_info.height, dimension.width,
-                           dimension.height);
+                         media_session->video_info.width, media_session->video_info.height, dimension.width,
+                         dimension.height);
             media_session->video_info.width = dimension.width;
             media_session->video_info.height = dimension.height;
             SS4S_PlayerVideoSizeChanged(media_session->player, dimension.width, dimension.height);
         }
+        SDL_UnlockMutex(media_session->lock);
     }
     return SS4S_PlayerVideoFeed(media_session->player, data->data + data->offset, data->size, sflgs);
 }

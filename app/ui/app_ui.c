@@ -77,7 +77,7 @@ void app_ui_resized(app_ui_t *ui, int width, int height) {
 }
 
 void app_ui_set_ignore_keys(app_ui_t *ui, bool ignore) {
-    app_indev_set_ignore_input(ui->indev.keypad, ignore);
+    app_indev_keypad_set_ignore(ui->indev.keypad, ignore);
 }
 
 void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args) {
