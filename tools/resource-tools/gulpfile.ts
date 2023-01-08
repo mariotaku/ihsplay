@@ -5,7 +5,7 @@ import asyncTransform from "./async-transform";
 import rename from "gulp-rename";
 import subsetFont from "./gulp-subset-font";
 
-const outDir = '../app/lvgl/fonts/bootstrap-icons';
+const outDir = '../../app/lvgl/fonts/bootstrap-icons';
 
 function codepointsMetadata(file: any): Record<string, number> {
     return file.codepoints;

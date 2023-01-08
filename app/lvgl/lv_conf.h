@@ -238,4 +238,9 @@
 #define LV_USE_FRAGMENT  1
 #define LV_USE_QRCODE    1
 
+/*----------
+ * Icon font symbol overrides
+ *---------*/
+#define LV_SYMBOL_DOWN "\xef\x88\xa9" /*BS_SYMBOL_CARET_DOWN_FILL*/
+
 #endif /*LV_CONF_H*/

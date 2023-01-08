@@ -1,12 +1,12 @@
 #include "support.h"
 #include "wiki.h"
 #include "feedback.h"
-#include "ui/launcher.h"
 #include "app.h"
 
 typedef struct support_fragment_t {
     lv_fragment_t base;
     lv_coord_t col_dsc[3], row_dsc[4];
+    lv_obj_t *win_content;
     int num_btns;
 } support_fragment_t;
 
@@ -49,21 +49,22 @@ static void constructor(lv_fragment_t *self, void *args) {
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *parent) {
     support_fragment_t *fragment = (support_fragment_t *) self;
-    lv_obj_t *content = lv_obj_create(parent);
-    lv_obj_set_size(content, LV_PCT(100), LV_PCT(100));
-    lv_obj_set_style_pad_hor(content, LV_DPX(30), 0);
-    lv_obj_set_style_pad_ver(content, LV_DPX(15), 0);
-    lv_obj_set_style_pad_row(content, LV_DPX(15), 0);
-    lv_obj_set_style_pad_column(content, LV_DPX(30), 0);
-    lv_obj_set_layout(content, LV_LAYOUT_GRID);
-    lv_obj_set_grid_dsc_array(content, fragment->col_dsc, fragment->row_dsc);
-    lv_obj_add_event_cb(content, btn_click_cb, LV_EVENT_CLICKED, fragment);
-    lv_obj_add_event_cb(content, btn_key_cb, LV_EVENT_KEY, fragment);
+    lv_obj_t *win = lv_win_create(parent, LV_SIZE_CONTENT);
+    lv_win_add_title(win, "Support");
+    lv_obj_set_size(win, LV_PCT(100), LV_PCT(100));
+    fragment->win_content = lv_win_get_content(win);
+    lv_obj_set_style_pad_row(fragment->win_content, LV_DPX(15), 0);
+    lv_obj_set_style_pad_column(fragment->win_content, LV_DPX(30), 0);
+    lv_obj_set_layout(fragment->win_content, LV_LAYOUT_GRID);
+    lv_obj_set_grid_dsc_array(fragment->win_content, fragment->col_dsc, fragment->row_dsc);
+    lv_obj_add_event_cb(fragment->win_content, btn_click_cb, LV_EVENT_CLICKED, fragment);
+    lv_obj_add_event_cb(fragment->win_content, btn_key_cb, LV_EVENT_KEY, fragment);
 
-    add_btn(fragment, content, "Get Help", &wiki_fragment_class);
-    add_btn(fragment, content, "Feedback", &feedback_fragment_class);
 
-    return content;
+    add_btn(fragment, fragment->win_content, "Get Help", &wiki_fragment_class);
+    add_btn(fragment, fragment->win_content, "Feedback", &feedback_fragment_class);
+
+    return win;
 }
 
 static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
@@ -73,7 +74,7 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
 static bool event_cb(lv_fragment_t *self, int code, void *data) {
     (void) data;
     if (code == APP_UI_NAV_BACK) {
-        launcher_fragment_open_home(lv_fragment_get_parent(self));
+        lv_fragment_manager_pop(lv_fragment_get_manager(self));
         return true;
     }
     return false;
@@ -92,8 +93,9 @@ static lv_obj_t *add_btn(support_fragment_t *fragment, lv_obj_t *parent, const c
 }
 
 static void show_page(lv_fragment_t *self, const lv_fragment_class_t *cls) {
+    support_fragment_t *fragment = (support_fragment_t *) self;
     lv_fragment_t *page = lv_fragment_create(cls, NULL);
-    lv_fragment_manager_replace(self->child_manager, page, &self->obj);
+    lv_fragment_manager_replace(self->child_manager, page, &fragment->win_content);
     lv_obj_set_grid_cell(page->obj, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 3);
 }
 
@@ -119,8 +121,6 @@ static void btn_key_cb(lv_event_t *e) {
         case LV_KEY_UP: {
             if (pos > 0) {
                 lv_group_focus_prev(group);
-            } else {
-                launcher_fragment_focus_actions(lv_fragment_get_parent(self));
             }
             break;
         }

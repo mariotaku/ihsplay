@@ -71,7 +71,7 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
 static bool event_cb(lv_fragment_t *self, int code, void *data) {
     (void) data;
     if (code == APP_UI_NAV_BACK) {
-        launcher_fragment_open_home(lv_fragment_get_parent(self));
+        lv_fragment_manager_pop(lv_fragment_get_manager(self));
         return true;
     }
     return false;

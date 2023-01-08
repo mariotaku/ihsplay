@@ -37,4 +37,6 @@ void app_ui_fontset_init_mem(app_ui_fontset_t *set, const char *name, const void
 
 void app_ui_fontset_init_fc(app_ui_fontset_t *set, const char *name);
 
+void app_ui_fontset_apply_fallback(app_ui_fontset_t *set, const app_ui_fontset_t*fallback);
+
 void app_ui_fontset_deinit(app_ui_fontset_t *set);

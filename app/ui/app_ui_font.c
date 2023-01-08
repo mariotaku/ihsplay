@@ -82,6 +82,15 @@ void app_ui_fontset_init_fc(app_ui_fontset_t *set, const char *name) {
 #endif
 }
 
+void app_ui_fontset_apply_fallback(app_ui_fontset_t *set, const app_ui_fontset_t *fallback) {
+    set->small->fallback = fallback->small;
+    set->body->fallback = fallback->body;
+    set->heading3->fallback = fallback->heading3;
+    set->heading2->fallback = fallback->heading2;
+    set->heading1->fallback = fallback->heading1;
+    set->huge->fallback = fallback->huge;
+}
+
 void app_ui_fontset_deinit(app_ui_fontset_t *set) {
     lv_ft_font_destroy(set->small);
     lv_ft_font_destroy(set->body);

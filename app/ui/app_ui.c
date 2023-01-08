@@ -36,6 +36,7 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     app_ui_fontset_init_fc(&ui->font, "sans-serif");
     app_ui_fontset_init_mem(&ui->iconfont, "bootstrap-icons", ttf_bootstrap_icons_data,
                             ttf_bootstrap_icons_size);
+    app_ui_fontset_apply_fallback(&ui->font, &ui->iconfont);
 
     lv_obj_set_style_bg_opa(ui->root, LV_OPA_0, 0);
 
@@ -122,8 +123,7 @@ lv_group_t *app_ui_get_input_group(app_ui_t *ui) {
 void app_ui_update_nav_back(app_ui_t *ui) {
     size_t stack_size = lv_fragment_manager_get_stack_size(ui->fm);
     LV_ASSERT(stack_size > 0);
-    lv_fragment_t *top = lv_fragment_manager_get_top(ui->fm);
-    app_ui_set_handle_nav_back(ui, stack_size > 1 || !launcher_fragment_is_home(top));
+    app_ui_set_handle_nav_back(ui, stack_size > 1);
 }
 
 static void app_input_populate_group(app_ui_t *ui) {

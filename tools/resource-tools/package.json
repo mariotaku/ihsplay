@@ -6,6 +6,9 @@
   "scripts": {
     "iconfonts": "gulp iconfonts"
   },
+  "engines": {
+    "node": ">=14"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {

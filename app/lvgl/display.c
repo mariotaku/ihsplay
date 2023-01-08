@@ -25,8 +25,8 @@ lv_disp_t *app_lv_disp_init(SDL_Window *window) {
     driver->ver_res = height;
     SDL_SetRenderTarget(renderer, texture);
     lv_disp_t *disp = lv_disp_drv_register(driver);
-    disp->bg_color = lv_color_make(0, 0, 0);
-    disp->bg_opa = 0;
+    disp->bg_color = lv_color_black();
+    disp->bg_opa = LV_OPA_TRANSP;
     return disp;
 }
 
