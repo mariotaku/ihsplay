@@ -7,6 +7,7 @@
 #include "ui/app_ui.h"
 
 #include "lvgl/display.h"
+#include "lvgl/ext/lv_dir_focus.h"
 
 #include "ss4s.h"
 
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
     IHS_Init();
     SDL_RegisterEvents((APP_EVENT_LAST - APP_EVENT_BEGIN) + 1);
     lv_init();
+    lv_dir_focus_register();
 
     int w = 1920, h = 1080;
     SDL_DisplayMode mode;

@@ -8,5 +8,6 @@ target_sources(ihsplay PRIVATE
         settings/widgets.c)
 
 add_subdirectory(common)
+add_subdirectory(connection)
 add_subdirectory(session)
 add_subdirectory(support)

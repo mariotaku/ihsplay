@@ -4,5 +4,4 @@
 
 extern const lv_fragment_class_t launcher_fragment_class;
 
-void launcher_fragment_focus_content(lv_fragment_t *self);
-
+void launcher_fragment_set_selected_host(lv_fragment_t *self, uint64_t client_id);

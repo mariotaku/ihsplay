@@ -1,0 +1,1 @@
+target_sources(ihsplay PRIVATE connection_fragment.c pin_fragment.c)

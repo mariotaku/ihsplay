@@ -221,7 +221,7 @@ static void client_host_discovered_main(app_t *app, void *data) {
     *info = *host;
     SDL_free(host);
 
-    listeners_list_notify(manager->listeners, host_manager_listener_t, hosts_reloaded, hosts, change_type,
+    listeners_list_notify(manager->listeners, host_manager_listener_t, hosts_changed, hosts, change_type,
                           change_index);
 }
 

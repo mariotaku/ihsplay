@@ -47,9 +47,13 @@ void app_ui_resized(app_ui_t *ui, int width, int height);
 
 void app_ui_set_ignore_keys(app_ui_t *ui, bool ignore);
 
+lv_fragment_t *app_ui_create_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args);
+
 void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args);
 
-void app_ui_pop_fragment(app_ui_t *ui);
+void app_ui_remove_fragment(app_ui_t *ui, lv_fragment_t *f);
+
+void app_ui_pop_top_fragment(app_ui_t *ui);
 
 /**
  * @warning DO NOT call this directly!

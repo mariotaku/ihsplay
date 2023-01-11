@@ -11,10 +11,13 @@
 #include "lvgl/ext/msgbox_ext.h"
 #include "ui/common/error_messages.h"
 #include "logging/app_logging.h"
+#include "lvgl/theme.h"
+#include "ui/launcher.h"
 
 typedef struct hosts_fragment {
     lv_fragment_t base;
     app_t *app;
+    lv_fragment_t *launcher_fragment;
     lv_obj_t *grid_view;
     lv_obj_t *msgbox;
 } hosts_fragment;
@@ -37,15 +40,9 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj);
 
 static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
-static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context);
+static bool event_cb(lv_fragment_t *self, int code, void *data);
 
-static void session_started(const IHS_HostInfo *host, const IHS_SessionInfo *info, void *context);
-
-static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context);
-
-static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *context);
-
-static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context);
+static void hosts_changed(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context);
 
 static int host_item_count(lv_obj_t *grid, void *data);
 
@@ -67,8 +64,6 @@ static void host_item_bind(lv_obj_t *grid, lv_obj_t *item_view, void *data, int 
 
 static void grid_size_populate(hosts_fragment *fragment);
 
-static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *info);
-
 static lv_obj_t *open_msgbox(hosts_fragment *fragment, const char *title, const char *message, const char *btns[]);
 
 static void close_msgbox(hosts_fragment *fragment);
@@ -86,15 +81,12 @@ const lv_fragment_class_t hosts_fragment_class = {
         .obj_created_cb = obj_created,
         .obj_will_delete_cb = obj_will_delete,
         .obj_deleted_cb = obj_deleted,
+        .event_cb = event_cb,
         .instance_size = sizeof(hosts_fragment),
 };
 
 static const host_manager_listener_t host_manager_listener = {
-        .hosts_reloaded = hosts_reloaded,
-        .session_started = session_started,
-        .session_start_failed = session_start_failed,
-        .authorized = authorized,
-        .authorization_failed = authorization_failed,
+        .hosts_changed = hosts_changed,
 };
 
 static const lv_gridview_adapter_t hosts_adapter = {
@@ -114,7 +106,9 @@ void hosts_fragment_focus_hosts(lv_fragment_t *self) {
 
 static void constructor(lv_fragment_t *self, void *arg) {
     hosts_fragment *fragment = (hosts_fragment *) self;
-    fragment->app = arg;
+    app_ui_fragment_args_t *args = arg;
+    fragment->app = args->app;
+    fragment->launcher_fragment = args->data;
 }
 
 static void destructor(lv_fragment_t *self) {
@@ -123,18 +117,21 @@ static void destructor(lv_fragment_t *self) {
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     hosts_fragment *fragment = (hosts_fragment *) self;
-    fragment->grid_view = lv_gridview_create(container);
+    lv_obj_t *win = app_lv_win_create(container);
+    lv_win_add_title(win, "Select Computer");
+
+    lv_obj_t *content = lv_win_get_content(win);
+    lv_obj_set_style_pad_hor(content, 0, 0);
+
+    fragment->grid_view = lv_gridview_create(content);
     lv_obj_set_size(fragment->grid_view, LV_PCT(100), LV_PCT(100));
     lv_obj_update_layout(fragment->grid_view);
 
     lv_obj_set_user_data(fragment->grid_view, fragment);
-    lv_obj_set_style_pad_top(fragment->grid_view, LV_DPX(10), 0);
     lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), 0);
     lv_obj_set_style_pad_hor(fragment->grid_view, LV_DPX(30), 0);
     lv_obj_set_style_pad_gap(fragment->grid_view, LV_DPX(15), 0);
-    lv_obj_set_style_pad_top(fragment->grid_view, LV_DPX(10), LV_PART_SCROLLBAR);
     lv_obj_set_style_pad_right(fragment->grid_view, LV_DPX(13), LV_PART_SCROLLBAR);
-    lv_obj_set_style_pad_bottom(fragment->grid_view, LV_DPX(30), LV_PART_SCROLLBAR);
     lv_gridview_set_adapter(fragment->grid_view, &hosts_adapter);
 
     grid_size_populate(fragment);
@@ -143,7 +140,8 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_add_event_cb(fragment->grid_view, grid_focused, LV_EVENT_FOCUSED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_unfocused, LV_EVENT_DEFOCUSED, fragment);
     lv_obj_add_event_cb(fragment->grid_view, grid_key_cb, LV_EVENT_KEY, fragment);
-    return fragment->grid_view;
+
+    return win;
 }
 
 static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
@@ -172,7 +170,7 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
     host_manager_unregister_listener(fragment->app->host_manager, &host_manager_listener);
 }
 
-static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context) {
+static void hosts_changed(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context) {
     hosts_fragment *fragment = (hosts_fragment *) context;
     lv_obj_t *grid = fragment->grid_view;
     switch (change_type) {
@@ -191,55 +189,6 @@ static void hosts_reloaded(array_list_t *list, host_manager_hosts_change change_
             break;
         }
     }
-}
-
-static void session_started(const IHS_HostInfo *host, const IHS_SessionInfo *info, void *context) {
-    hosts_fragment *fragment = (hosts_fragment *) context;
-    close_msgbox(fragment);
-    session_fragment_args_t args = {
-            .host = *host,
-            .session = *info,
-    };
-    app_ui_push_fragment(fragment->app->ui, &session_fragment_class, &args);
-}
-
-static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult result, void *context) {
-    hosts_fragment *fragment = (hosts_fragment *) context;
-    if (result == IHS_StreamingUnauthorized) {
-        open_authorization(fragment, host);
-    } else {
-        const char *message = streaming_result_str(result);
-        static const char *btns[] = {"OK", ""};
-        lv_obj_t *mbox = open_msgbox(fragment, "STREAMING FAILED", message, btns);
-        lv_obj_add_event_cb(mbox, msgbox_confirm_cb, LV_EVENT_VALUE_CHANGED, fragment);
-    }
-}
-
-static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *context) {
-    (void) host;
-    (void) steam_id;
-    hosts_fragment *fragment = (hosts_fragment *) context;
-    close_msgbox(fragment);
-}
-
-static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context) {
-    (void) host;
-    hosts_fragment *fragment = (hosts_fragment *) context;
-    const char *message = authorization_result_str(result);
-    static const char *btns[] = {"OK", ""};
-    lv_obj_t *mbox = open_msgbox(fragment, "AUTHORIZATION FAILED", message, btns);
-    lv_obj_add_event_cb(mbox, msgbox_confirm_cb, LV_EVENT_VALUE_CHANGED, fragment);
-}
-
-static void open_authorization(hosts_fragment *fragment, const IHS_HostInfo *info) {
-    char pin[8];
-    random_pin(pin);
-    host_manager_authorization_request(fragment->app->host_manager, info, pin);
-    static char pairing_msg[1024];
-    snprintf(pairing_msg, 1024, "Please type %s on your computer.", pin);
-    static const char *btns[] = {"Cancel", ""};
-    lv_obj_t *mbox = open_msgbox(fragment, "AUTHORIZE DEVICE", pairing_msg, btns);
-    lv_obj_add_event_cb(mbox, authorization_cancel_cb, LV_EVENT_VALUE_CHANGED, fragment);
 }
 
 static lv_obj_t *open_msgbox(hosts_fragment *fragment, const char *title, const char *message, const char *btns[]) {
@@ -357,12 +306,10 @@ static void host_item_clicked(lv_event_t *e) {
     if (target->parent != grid) return;
     int index = lv_gridview_get_item_data_index(grid, target);
     if (index < 0) return;
-    IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), index);
+    const IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), index);
+    launcher_fragment_set_selected_host(fragment->launcher_fragment, item->clientId);
 
-    app_log_info("Hosts", "Selected host #%d: %s", index, item->hostname);
-
-    open_msgbox(fragment, NULL, "Requesting stream", NULL);
-    host_manager_session_request(fragment->app->host_manager, item);
+    lv_fragment_manager_pop(lv_fragment_get_manager((lv_fragment_t *) fragment));
 }
 
 static void size_changed_cb(lv_event_t *e) {
@@ -401,4 +348,13 @@ static void grid_key_cb(lv_event_t *e) {
             break;
         }
     }
+}
+
+static bool event_cb(lv_fragment_t *self, int code, void *data) {
+    (void) data;
+    if (code == APP_UI_NAV_BACK) {
+        lv_fragment_manager_pop(lv_fragment_get_manager(self));
+        return true;
+    }
+    return false;
 }

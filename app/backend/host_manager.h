@@ -12,7 +12,7 @@ typedef enum host_manager_hosts_change {
 } host_manager_hosts_change;
 
 typedef struct host_manager_listener_t {
-    void (*hosts_reloaded)(array_list_t *list, host_manager_hosts_change change, int index, void *context);
+    void (*hosts_changed)(array_list_t *list, host_manager_hosts_change change, int index, void *context);
 
     void (*session_started)(const IHS_HostInfo *host, const IHS_SessionInfo *config, void *context);
 

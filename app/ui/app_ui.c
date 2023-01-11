@@ -81,14 +81,23 @@ void app_ui_set_ignore_keys(app_ui_t *ui, bool ignore) {
     app_indev_keypad_set_ignore(ui->indev.keypad, ignore);
 }
 
-void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args) {
+lv_fragment_t *app_ui_create_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args) {
     app_ui_fragment_args_t fargs = {ui->app, args};
-    lv_fragment_t *f = lv_fragment_create(cls, &fargs);
+    return lv_fragment_create(cls, &fargs);
+}
+
+void app_ui_push_fragment(app_ui_t *ui, const lv_fragment_class_t *cls, void *args) {
+    lv_fragment_t *f = app_ui_create_fragment(ui, cls, args);
     lv_fragment_manager_push(ui->fm, f, &ui->root);
     app_ui_update_nav_back(ui);
 }
 
-void app_ui_pop_fragment(app_ui_t *ui) {
+void app_ui_remove_fragment(app_ui_t *ui, lv_fragment_t *f) {
+    lv_fragment_manager_remove(ui->fm, f);
+    app_ui_update_nav_back(ui);
+}
+
+void app_ui_pop_top_fragment(app_ui_t *ui) {
     lv_fragment_manager_pop(ui->fm);
     app_ui_update_nav_back(ui);
 }

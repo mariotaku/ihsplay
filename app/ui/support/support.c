@@ -2,6 +2,7 @@
 #include "wiki.h"
 #include "feedback.h"
 #include "app.h"
+#include "lvgl/theme.h"
 
 typedef struct support_fragment_t {
     lv_fragment_t base;
@@ -49,7 +50,7 @@ static void constructor(lv_fragment_t *self, void *args) {
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *parent) {
     support_fragment_t *fragment = (support_fragment_t *) self;
-    lv_obj_t *win = lv_win_create(parent, LV_SIZE_CONTENT);
+    lv_obj_t *win = app_lv_win_create(parent);
     lv_win_add_title(win, "Support");
     lv_obj_set_size(win, LV_PCT(100), LV_PCT(100));
     fragment->win_content = lv_win_get_content(win);

@@ -13,6 +13,8 @@ typedef struct theme_context_t {
 
     lv_style_t obj;
 
+    lv_style_t focused;
+
     lv_style_t label;
 
     lv_style_t btn;
@@ -77,6 +79,13 @@ void app_theme_init(lv_theme_t *theme, app_ui_t *ui) {
     lv_style_init(&styles->obj);
     lv_style_set_text_color(&styles->obj, lv_color_white());
     lv_style_set_pad_gap(&styles->obj, LV_DPX(10));
+
+    lv_style_init(&styles->focused);
+    lv_style_set_outline_width(&styles->focused, LV_DPX(2));
+    lv_style_set_outline_opa(&styles->focused, LV_OPA_COVER);
+    lv_style_set_outline_color(&styles->focused, primary_color);
+    lv_style_set_outline_pad(&styles->focused, LV_DPX(5));
+    lv_style_set_radius(&styles->focused, LV_DPX(5));
 
     lv_style_init(&styles->label);
     lv_style_set_text_font(&styles->label, ui->font.body);
@@ -151,6 +160,9 @@ void app_theme_init(lv_theme_t *theme, app_ui_t *ui) {
 
     lv_style_init(&styles->win_btn);
     lv_style_set_text_font(&styles->win_btn, ui->iconfont.heading3);
+    lv_style_set_radius(&styles->win_btn, LV_RADIUS_CIRCLE);
+    lv_style_set_min_height(&styles->win_btn, LV_DPX(40));
+    lv_style_set_max_height(&styles->win_btn, LV_DPX(40));
 
     lv_style_init(&styles->win_header);
     lv_style_set_min_height(&styles->win_header, LV_DPX(60));
@@ -205,10 +217,30 @@ void app_theme_deinit(lv_theme_t *theme) {
     lv_style_reset(&styles->btn_pressed);
     lv_style_reset(&styles->btn);
 
+    lv_style_reset(&styles->focused);
     lv_style_reset(&styles->obj);
     lv_style_reset(&styles->scr);
 
     free(styles);
+}
+
+lv_coord_t app_win_header_size(lv_theme_t *theme) {
+    if (theme->apply_cb != apply_cb) {
+        return LV_SIZE_CONTENT;
+    }
+    theme_context_t *styles = theme->user_data;
+    lv_style_value_t value;
+    if (lv_style_get_prop(&styles->win_header, LV_STYLE_MIN_HEIGHT, &value) != LV_RES_OK) {
+        return LV_SIZE_CONTENT;
+    }
+    return value.num;
+}
+
+lv_obj_t *app_lv_win_create(lv_obj_t *parent) {
+    lv_obj_t *win = lv_win_create(parent, app_win_header_size(lv_disp_get_theme(lv_obj_get_disp(parent))));
+    lv_obj_t *header = lv_win_get_header(win);
+    lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+    return win;
 }
 
 static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
@@ -224,7 +256,9 @@ static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
         lv_obj_add_style(obj, &styles->btn_pressed, LV_STATE_PRESSED);
         lv_obj_add_style(obj, &styles->btn_focused, LV_STATE_FOCUS_KEY);
         if (parent->parent != NULL && lv_obj_check_type(parent->parent, &lv_win_class)) {
-            lv_obj_add_style(obj, &styles->win_btn, 0);
+            if (lv_win_get_header(parent->parent) == obj->parent) {
+                lv_obj_add_style(obj, &styles->win_btn, 0);
+            }
         }
     } else if (lv_obj_has_class(obj, &lv_label_class)) {
         lv_obj_add_style(obj, &styles->label, 0);
@@ -246,6 +280,7 @@ static void apply_cb(lv_theme_t *theme, lv_obj_t *obj) {
         }
     } else if (lv_obj_has_class(obj, &lv_dropdown_class)) {
         lv_obj_add_style(obj, &styles->label, 0);
+        lv_obj_add_style(obj, &styles->focused, LV_STATE_FOCUS_KEY);
     } else if (lv_obj_has_class(obj, &lv_dropdownlist_class)) {
         lv_obj_add_style(obj, &styles->modal_bg, 0);
         lv_obj_add_style(obj, &styles->modal_bg, 0);

@@ -2,10 +2,13 @@
 
 #include "app.h"
 #include "ui/launcher.h"
+#include "lvgl/theme.h"
+#include "basic.h"
 
 typedef struct settings_fragment {
     lv_fragment_t base;
     app_t *app;
+    lv_obj_t *content;
 } settings_fragment;
 
 static void constructor(lv_fragment_t *self, void *arg);
@@ -43,21 +46,16 @@ static void destructor(lv_fragment_t *self) {
 
 static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     settings_fragment *fragment = (settings_fragment *) self;
-    lv_obj_t *tabs = lv_tabview_create(container, LV_DIR_TOP, LV_DPX(40));
-    lv_obj_set_style_bg_color(tabs, lv_color_white(), 0);
-    lv_obj_set_style_bg_opa(tabs, LV_OPA_20, 0);
-    lv_obj_t *basic_tab = lv_tabview_add_tab(tabs, "Basic");
-    lv_obj_t *label1 = lv_label_create(basic_tab);
-    lv_label_set_text_static(label1, "Basic");
-    lv_tabview_add_tab(tabs, "Input");
-    lv_tabview_add_tab(tabs, "Audio");
-    lv_tabview_add_tab(tabs, "Video");
-    lv_tabview_add_tab(tabs, "Advanced");
-    return tabs;
+    lv_obj_t *win = app_lv_win_create(container);
+    lv_win_add_title(win, "Settings");
+    fragment->content = lv_win_get_content(win);
+    return win;
 }
 
 static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
-    LV_UNUSED(obj);
+    settings_fragment *fragment = (settings_fragment *) self;
+    lv_fragment_t *f = lv_fragment_create(&settings_basic_fragment_class, NULL);
+    lv_fragment_manager_replace(self->child_manager, f, &fragment->content);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {

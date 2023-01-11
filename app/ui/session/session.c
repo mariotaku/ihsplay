@@ -188,6 +188,8 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     }
 
     app_ui_set_ignore_keys(fragment->app->ui, true);
+
+    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_TRANSP, 0);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
@@ -196,6 +198,8 @@ static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
     app_ui_set_ignore_keys(fragment->app->ui, false);
 
     stream_manager_unregister_listener(fragment->app->stream_manager, &stream_manager_listener);
+
+    lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_COVER, 0);
 }
 
 static bool event_cb(lv_fragment_t *self, int code, void *userdata) {
@@ -244,7 +248,7 @@ static void session_disconnected_main(const IHS_SessionInfo *info, bool requeste
         lv_obj_add_event_cb(mbox, disconnected_dialog_cb, LV_EVENT_VALUE_CHANGED, NULL);
         lv_obj_center(mbox);
     }
-    app_ui_pop_fragment(fragment->app->ui);
+    app_ui_pop_top_fragment(fragment->app->ui);
 }
 
 static void session_overlay_progress(int percentage, void *context) {

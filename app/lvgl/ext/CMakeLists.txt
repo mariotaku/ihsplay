@@ -1,1 +1,1 @@
-target_sources(ihsplay PRIVATE lv_child_group.c msgbox_ext.c)
+target_sources(ihsplay PRIVATE lv_child_group.c msgbox_ext.c lv_dir_focus.c)
