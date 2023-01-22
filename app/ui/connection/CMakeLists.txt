@@ -1,1 +1,1 @@
-target_sources(ihsplay PRIVATE connection_fragment.c pin_fragment.c)
+target_sources(ihsplay PRIVATE connection_fragment.c pin_fragment.c conn_error_fragment.c)

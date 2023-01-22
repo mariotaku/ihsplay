@@ -8,6 +8,7 @@
 #include "ui/session/session.h"
 #include "util/random.h"
 #include "pin_fragment.h"
+#include "conn_error_fragment.h"
 
 
 typedef struct connection_fragment_t {
@@ -35,6 +36,8 @@ static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *contex
 static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context);
 
 static void open_authorization(connection_fragment_t *fragment, const IHS_HostInfo *info);
+
+static void conn_show_page(connection_fragment_t *fragment, const lv_fragment_class_t *cls, void *data);
 
 const lv_fragment_class_t connection_fragment_class = {
         .constructor_cb = conn_ctor,
@@ -100,8 +103,10 @@ static void session_start_failed(const IHS_HostInfo *host, IHS_StreamingResult r
     if (result == IHS_StreamingUnauthorized) {
         open_authorization(fragment, host);
     } else {
-        const char *message = streaming_result_str(result);
-        // TODO Show streaming error
+        conn_error_fragment_data data = {
+                .message = streaming_result_str(result),
+        };
+        conn_show_page(fragment, &conn_error_fragment_class, &data);
     }
 }
 
@@ -111,21 +116,28 @@ static void authorized(const IHS_HostInfo *host, uint64_t steam_id, void *contex
     connection_fragment_t *fragment = (connection_fragment_t *) context;
     // TODO Hide authorization UI
     // TODO Performance test?
+    host_manager_t *hosts_manager = fragment->app->host_manager;
+    host_manager_session_request(hosts_manager, &fragment->host);
 }
 
 static void authorization_failed(const IHS_HostInfo *host, IHS_AuthorizationResult result, void *context) {
     (void) host;
     connection_fragment_t *fragment = (connection_fragment_t *) context;
-    const char *message = authorization_result_str(result);
-    // TODO Show authorization error
+    conn_error_fragment_data data = {
+            .message = authorization_result_str(result),
+    };
+    conn_show_page(fragment, &conn_error_fragment_class, &data);
 }
 
 static void open_authorization(connection_fragment_t *fragment, const IHS_HostInfo *info) {
     char pin[8];
     random_pin(pin);
     host_manager_authorization_request(fragment->app->host_manager, info, pin);
-    lv_fragment_t *pin_fragment = app_ui_create_fragment(fragment->app->ui, &pin_fragment_class, pin);
+    conn_show_page(fragment, &pin_fragment_class, pin);
+}
+
+static void conn_show_page(connection_fragment_t *fragment, const lv_fragment_class_t *cls, void *data) {
+    lv_fragment_t *pin_fragment = app_ui_create_fragment(fragment->app->ui, cls, data);
     lv_fragment_manager_replace(fragment->base.child_manager, pin_fragment, &fragment->content);
     lv_obj_set_size(pin_fragment->obj, LV_PCT(100), LV_PCT(100));
 }
-
