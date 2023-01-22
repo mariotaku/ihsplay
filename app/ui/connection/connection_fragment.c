@@ -15,6 +15,7 @@ typedef struct connection_fragment_t {
     app_t *app;
     IHS_HostInfo host;
     lv_obj_t *content;
+    lv_obj_t *title;
 } connection_fragment_t;
 
 static void conn_ctor(lv_fragment_t *self, void *arg);
@@ -61,7 +62,8 @@ static void conn_ctor(lv_fragment_t *self, void *arg) {
 static lv_obj_t *conn_create_obj(lv_fragment_t *self, lv_obj_t *container) {
     connection_fragment_t *fragment = (connection_fragment_t *) self;
     lv_obj_t *win = app_lv_win_create(container);
-    fragment->content = win;
+    fragment->title = lv_win_add_title(win, "Connecting");
+    fragment->content = lv_win_get_content(win);
     return win;
 }
 
@@ -76,6 +78,11 @@ static void conn_obj_will_del(lv_fragment_t *self, lv_obj_t *obj) {
     connection_fragment_t *fragment = (connection_fragment_t *) self;
     host_manager_t *hosts_manager = fragment->app->host_manager;
     host_manager_unregister_listener(hosts_manager, &conn_host_listener);
+}
+
+void connection_fragment_set_title(lv_fragment_t *self, const char *title) {
+    connection_fragment_t *fragment = (connection_fragment_t *) self;
+    lv_label_set_text(fragment->title, title);
 }
 
 static void session_started(const IHS_HostInfo *host, const IHS_SessionInfo *info, void *context) {
@@ -119,5 +126,6 @@ static void open_authorization(connection_fragment_t *fragment, const IHS_HostIn
     host_manager_authorization_request(fragment->app->host_manager, info, pin);
     lv_fragment_t *pin_fragment = app_ui_create_fragment(fragment->app->ui, &pin_fragment_class, pin);
     lv_fragment_manager_replace(fragment->base.child_manager, pin_fragment, &fragment->content);
+    lv_obj_set_size(pin_fragment->obj, LV_PCT(100), LV_PCT(100));
 }
 

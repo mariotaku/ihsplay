@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
     lv_disp_set_default(disp);
 
     app = app_create(&settings, disp);
+    app->os_info = os_info;
 
 #if IHSPLAY_FEATURE_LIBCEC
     cec_support_ctx_t *cec = cec_support_create(app);

@@ -237,9 +237,15 @@ lv_coord_t app_win_header_size(lv_theme_t *theme) {
 }
 
 lv_obj_t *app_lv_win_create(lv_obj_t *parent) {
-    lv_obj_t *win = lv_win_create(parent, app_win_header_size(lv_disp_get_theme(lv_obj_get_disp(parent))));
+    lv_theme_t *theme = lv_disp_get_theme(lv_obj_get_disp(parent));
+    lv_obj_t *win = lv_win_create(parent, app_win_header_size(theme));
     lv_obj_t *header = lv_win_get_header(win);
     lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *footer = lv_obj_create(win);
+    lv_obj_set_style_bg_opa(footer, LV_OPA_30, 0);
+    lv_obj_set_style_bg_color(footer, lv_color_black(), 0);
+    lv_obj_set_size(footer, LV_PCT(100), LV_DPX(40));
     return win;
 }
 

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "version_info.h"
 
 int version_info_parse(version_info_t *version, const char *value) {
@@ -30,6 +31,15 @@ int version_info_parse(version_info_t *version, const char *value) {
 
 bool version_info_valid(const version_info_t *version) {
     return version->major >= 0;
+}
+
+char *version_info_str(version_info_t *version) {
+    if (version->major < 0) {
+        return NULL;
+    }
+    char tmp[32];
+    snprintf(tmp, 32, "%d.%d.%d", version->major, version->minor, version->patch);
+    return strndup(tmp, 32);
 }
 
 int version_info_compare(const version_info_t *a, const version_info_t *b) {

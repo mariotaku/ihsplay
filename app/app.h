@@ -7,6 +7,7 @@
 #include "ss4s.h"
 #include "settings/app_settings.h"
 #include "util/client_info.h"
+#include "util/os_info.h"
 
 typedef struct app_ui_t app_ui_t;
 typedef struct stream_manager_t stream_manager_t;
@@ -19,6 +20,7 @@ typedef struct app_t {
     app_ui_t *ui;
     app_settings_t *settings;
     client_info_t client_info;
+    os_info_t os_info;
     host_manager_t *host_manager;
     stream_manager_t *stream_manager;
     input_manager_t *input_manager;

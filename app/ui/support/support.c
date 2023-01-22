@@ -3,12 +3,14 @@
 #include "feedback.h"
 #include "app.h"
 #include "lvgl/theme.h"
+#include "ui/app_ui.h"
 
 typedef struct support_fragment_t {
     lv_fragment_t base;
     lv_coord_t col_dsc[3], row_dsc[4];
     lv_obj_t *win_content;
     int num_btns;
+    app_t *app;
 } support_fragment_t;
 
 static void constructor(lv_fragment_t *self, void *args);
@@ -38,6 +40,7 @@ const lv_fragment_class_t support_fragment_class = {
 
 static void constructor(lv_fragment_t *self, void *args) {
     support_fragment_t *fragment = (support_fragment_t *) self;
+    fragment->app = ((app_ui_fragment_args_t *) args)->app;
     fragment->col_dsc[0] = LV_DPX(200);
     fragment->col_dsc[1] = LV_GRID_FR(1);
     fragment->col_dsc[2] = LV_GRID_TEMPLATE_LAST;
@@ -95,7 +98,7 @@ static lv_obj_t *add_btn(support_fragment_t *fragment, lv_obj_t *parent, const c
 
 static void show_page(lv_fragment_t *self, const lv_fragment_class_t *cls) {
     support_fragment_t *fragment = (support_fragment_t *) self;
-    lv_fragment_t *page = lv_fragment_create(cls, NULL);
+    lv_fragment_t *page = lv_fragment_create(cls, fragment->app);
     lv_fragment_manager_replace(self->child_manager, page, &fragment->win_content);
     lv_obj_set_grid_cell(page->obj, LV_GRID_ALIGN_STRETCH, 1, 1, LV_GRID_ALIGN_STRETCH, 0, 3);
 }
