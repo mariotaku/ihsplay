@@ -94,9 +94,9 @@ static int modules_ini_handler(void *user, const char *section, const char *name
             mpc->current.os_version.operand = VERSION_IGNORE;
         }
     } else if (strcmp("modules", name) == 0) {
-        str_list_parse(&mpc->current.modules, value, ";");
+        str_list_parse(&mpc->current.modules, value, ",");
     } else if (strcmp("conflicts", name) == 0) {
-        str_list_parse(&mpc->current.conflicts, value, ";");
+        str_list_parse(&mpc->current.conflicts, value, ",");
     }
     return 1;
 }
