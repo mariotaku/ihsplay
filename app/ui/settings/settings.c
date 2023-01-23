@@ -4,6 +4,7 @@
 #include "ui/launcher.h"
 #include "lvgl/theme.h"
 #include "basic.h"
+#include "ui/app_ui.h"
 
 typedef struct settings_fragment {
     lv_fragment_t base;
@@ -38,7 +39,7 @@ const lv_fragment_class_t settings_fragment_class = {
 
 static void constructor(lv_fragment_t *self, void *arg) {
     settings_fragment *fragment = (settings_fragment *) self;
-    fragment->app = arg;
+    fragment->app = ((app_ui_fragment_args_t *) arg)->app;
 }
 
 static void destructor(lv_fragment_t *self) {
@@ -68,8 +69,9 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj) {
 
 static bool event_cb(lv_fragment_t *self, int code, void *data) {
     (void) data;
+    settings_fragment *fragment = (settings_fragment *) self;
     if (code == APP_UI_NAV_BACK) {
-        lv_fragment_manager_pop(lv_fragment_get_manager(self));
+        app_ui_pop_top_fragment(fragment->app->ui);
         return true;
     }
     return false;

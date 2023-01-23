@@ -274,12 +274,12 @@ static void focus_content(lv_event_t *e) {
 
 static void open_settings(lv_event_t *e) {
     launcher_fragment *fragment = lv_event_get_user_data(e);
-    app_ui_push_fragment(fragment->app->ui, &settings_fragment_class, fragment->app);
+    app_ui_push_fragment(fragment->app->ui, &settings_fragment_class, NULL);
 }
 
 static void open_support(lv_event_t *e) {
     launcher_fragment *fragment = lv_event_get_user_data(e);
-    app_ui_push_fragment(fragment->app->ui, &support_fragment_class, fragment->app);
+    app_ui_push_fragment(fragment->app->ui, &support_fragment_class, NULL);
 }
 
 static void select_host(lv_event_t *e) {

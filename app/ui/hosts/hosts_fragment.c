@@ -309,7 +309,7 @@ static void host_item_clicked(lv_event_t *e) {
     const IHS_HostInfo *item = array_list_get(lv_gridview_get_data(grid), index);
     launcher_fragment_set_selected_host(fragment->launcher_fragment, item->clientId);
 
-    lv_fragment_manager_pop(lv_fragment_get_manager((lv_fragment_t *) fragment));
+    app_ui_pop_top_fragment(fragment->app->ui);
 }
 
 static void size_changed_cb(lv_event_t *e) {
@@ -352,8 +352,9 @@ static void grid_key_cb(lv_event_t *e) {
 
 static bool event_cb(lv_fragment_t *self, int code, void *data) {
     (void) data;
+    hosts_fragment *fragment = (hosts_fragment *) self;
     if (code == APP_UI_NAV_BACK) {
-        lv_fragment_manager_pop(lv_fragment_get_manager(self));
+        app_ui_pop_top_fragment(fragment->app->ui);
         return true;
     }
     return false;

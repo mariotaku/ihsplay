@@ -77,8 +77,9 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
 
 static bool event_cb(lv_fragment_t *self, int code, void *data) {
     (void) data;
+    support_fragment_t *fragment = (support_fragment_t *) self;
     if (code == APP_UI_NAV_BACK) {
-        lv_fragment_manager_pop(lv_fragment_get_manager(self));
+        app_ui_pop_top_fragment(fragment->app->ui);
         return true;
     }
     return false;
