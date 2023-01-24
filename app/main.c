@@ -38,10 +38,10 @@ int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
 
     os_info_t os_info;
-    os_info_get(&os_info);
-    if (version_info_valid(&os_info.version)) {
-        app_log_info("APP", "System version: %d.%d.%d", os_info.version.major, os_info.version.minor,
-                     os_info.version.patch);
+    if (os_info_get(&os_info) == 0) {
+        char *str = version_info_str(&os_info.version);
+        app_log_info("APP", "System: %s %s", os_info.name, str);
+        free(str);
     }
 
     app_settings_t settings;
