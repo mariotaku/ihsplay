@@ -34,9 +34,3 @@ int os_info_get(os_info_t *info) {
     jdomparser_release(&parser);
     return 0;
 }
-
-void os_info_clear(os_info_t *info) {
-    if (info->name != NULL) {
-        free(info->name);
-    }
-}
