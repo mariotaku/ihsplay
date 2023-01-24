@@ -17,6 +17,7 @@
 #include "lvgl/ext/lv_dir_focus.h"
 #include "lvgl/theme.h"
 #include "ui/connection/connection_fragment.h"
+#include "backend/input_manager.h"
 
 typedef struct launcher_fragment {
     lv_fragment_t base;
@@ -28,6 +29,8 @@ typedef struct launcher_fragment {
     } styles;
     lv_obj_t *nav_content;
     lv_obj_t *selected_host;
+    lv_obj_t *gamepads;
+
     uint64_t selected_host_id;
 
     int num_launch_options;
@@ -47,11 +50,15 @@ static void obj_deleted(lv_fragment_t *self, lv_obj_t *obj);
 
 static void hosts_changed(array_list_t *list, host_manager_hosts_change change_type, int change_index, void *context);
 
+static void launcher_gamepads_changed(launcher_fragment *fragment);;
+
 static bool event_cb(lv_fragment_t *self, int type, void *data);
 
 static lv_obj_t *launch_option_create_label_action(launcher_fragment *fragment, const char *icon, const char *label);
 
-static void *launch_option_set_text(lv_obj_t *obj, const char *label);
+static lv_obj_t *launch_option_get_label(lv_obj_t *obj);
+
+static void launch_option_set_text(lv_obj_t *obj, const char *label);
 
 static void focus_content(lv_event_t *e);
 
@@ -164,7 +171,8 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
 
     lv_obj_add_event_cb(selected_host, select_host, LV_EVENT_CLICKED, fragment);
 
-    lv_obj_t *gamepads = launch_option_create_label_action(fragment, BS_SYMBOL_CONTROLLER, "No gamepad connected");
+    lv_obj_t *gamepads = launch_option_create_label_action(fragment, BS_SYMBOL_CONTROLLER, NULL);
+    fragment->gamepads = gamepads;
 
     lv_obj_set_dir_focus_obj(btn_settings, LV_DIR_RIGHT, btn_support);
     lv_obj_set_dir_focus_obj(btn_settings, LV_DIR_BOTTOM, btn_play);
@@ -196,6 +204,7 @@ static void obj_created(lv_fragment_t *self, lv_obj_t *obj) {
     host_manager_discovery_start(hosts_manager);
 
     hosts_update(fragment);
+    launcher_gamepads_changed(fragment);
 }
 
 static void obj_will_delete(lv_fragment_t *self, lv_obj_t *obj) {
@@ -222,11 +231,26 @@ static void hosts_changed(array_list_t *list, host_manager_hosts_change change_t
     hosts_update(fragment);
 }
 
+static void launcher_gamepads_changed(launcher_fragment *fragment) {
+    input_manager_t *manager = fragment->app->input_manager;
+    size_t count = input_manager_sdl_gamepad_count(manager);
+    lv_obj_t *label = launch_option_get_label(fragment->gamepads);
+    if (count == 0) {
+        lv_label_set_text(label, "No gamepad connected");
+    } else if (count == 1) {
+        lv_label_set_text(label, "1 gamepad connected");
+    } else {
+        lv_label_set_text_fmt(label, "%u gamepads connected", count);
+    }
+}
 
 static bool event_cb(lv_fragment_t *self, int type, void *data) {
     (void) data;
     launcher_fragment *fragment = (launcher_fragment *) self;
     switch (type) {
+        case APP_UI_GAMEPAD_DEVICE_CHANGED:
+            launcher_gamepads_changed(fragment);
+            return true;
         case APP_UI_NAV_QUIT:
             app_quit(fragment->app);
             return true;
@@ -259,8 +283,12 @@ static lv_obj_t *launch_option_create_label_action(launcher_fragment *fragment, 
     return action;
 }
 
-static void *launch_option_set_text(lv_obj_t *obj, const char *label) {
-    lv_label_set_text(lv_obj_get_child(obj, 1), label);
+static lv_obj_t *launch_option_get_label(lv_obj_t *obj) {
+    return lv_obj_get_child(obj, 1);
+}
+
+static void launch_option_set_text(lv_obj_t *obj, const char *label) {
+    lv_label_set_text(launch_option_get_label(obj), label);
 }
 
 static void focus_content(lv_event_t *e) {

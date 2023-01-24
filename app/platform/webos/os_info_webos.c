@@ -8,6 +8,7 @@
 
 int os_info_get(os_info_t *info) {
     memset(info, 0, sizeof(*info));
+    info->name = strdup("webOS");
     char *payload = NULL;
     const char *uri = "luna://com.webos.service.tv.systemproperty/getSystemInfo";
     if (!HLunaServiceCallSync(uri, "{\"keys\":[\"firmwareVersion\", \"sdkVersion\"]}", true, &payload) || !payload) {
@@ -32,4 +33,10 @@ int os_info_get(os_info_t *info) {
     }
     jdomparser_release(&parser);
     return 0;
+}
+
+void os_info_clear(os_info_t *info) {
+    if (info->name != NULL) {
+        free(info->name);
+    }
 }

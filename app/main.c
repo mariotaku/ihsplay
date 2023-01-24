@@ -119,6 +119,7 @@ int main(int argc, char *argv[]) {
 
     SDL_Quit();
     app_logging_deinit();
+    os_info_clear(&os_info);
     return 0;
 }
 

@@ -42,11 +42,11 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *parent) {
     static const char *info_fmt = "Version: %s\n"
                                   "Audio Module: %s\n"
                                   "Video Module: %s\n"
-                                  "System Version: %s\n";
+                                  "%s Version: %s\n";
     lv_obj_t *info_label = lv_label_create(content);
     char *os_version_str = version_info_str(&app->os_info.version);
     lv_label_set_text_fmt(info_label, info_fmt, IHSPLAY_VERSION_STRING, SS4S_GetAudioModuleName(),
-                          SS4S_GetVideoModuleName(), os_version_str);
+                          SS4S_GetVideoModuleName(), app->os_info.name, os_version_str);
     if (os_version_str != NULL) {
         free(os_version_str);
     }

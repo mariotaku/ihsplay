@@ -34,6 +34,7 @@ typedef enum app_event_type_t {
     APP_UI_NAV_BACK,
     APP_UI_REQUEST_OVERLAY,
     APP_UI_CLOSE_OVERLAY,
+    APP_UI_GAMEPAD_DEVICE_CHANGED,
     APP_UI_EVENT_LAST,
     APP_EVENT_LAST,
 } app_event_type_t;

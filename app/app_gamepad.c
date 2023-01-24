@@ -8,10 +8,12 @@ void app_sdl_input_event(app_t *app, const SDL_Event *event) {
     switch (event->type) {
         case SDL_CONTROLLERDEVICEADDED: {
             input_manager_sdl_gamepad_added(app->input_manager, event->cdevice.which);
+            app_post_event(app, APP_UI_GAMEPAD_DEVICE_CHANGED, NULL, NULL);
             break;
         }
         case SDL_CONTROLLERDEVICEREMOVED: {
             input_manager_sdl_gamepad_removed(app->input_manager, event->cdevice.which);
+            app_post_event(app, APP_UI_GAMEPAD_DEVICE_CHANGED, NULL, NULL);
             break;
         }
         case SDL_KEYUP:

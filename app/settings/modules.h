@@ -30,3 +30,5 @@ array_list_t *modules_load(const os_info_t *os_info);
 void modules_destroy(array_list_t *list);
 
 bool module_conflicts(const module_info_t *a, const module_info_t *b);
+
+const char *module_first_available(const module_info_t *info);

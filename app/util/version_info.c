@@ -38,7 +38,13 @@ char *version_info_str(version_info_t *version) {
         return NULL;
     }
     char tmp[32];
-    snprintf(tmp, 32, "%d.%d.%d", version->major, version->minor, version->patch);
+    if (version->minor < 0) {
+        snprintf(tmp, 32, "%d", version->major);
+    } else if (version->patch < 0) {
+        snprintf(tmp, 32, "%d.%d", version->major, version->minor);
+    } else {
+        snprintf(tmp, 32, "%d.%d.%d", version->major, version->minor, version->patch);
+    }
     return strndup(tmp, 32);
 }
 

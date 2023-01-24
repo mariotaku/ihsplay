@@ -66,6 +66,10 @@ void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID 
     app_log_info("Input", "Gamepad #%d removed.", which);
 }
 
+size_t input_manager_sdl_gamepad_count(const input_manager_t *manager) {
+    return manager->controllers_size;
+}
+
 void input_manager_ignore_next_mouse_movement(input_manager_t *manager) {
     manager->ignore_next_mouse_movement = true;
 }

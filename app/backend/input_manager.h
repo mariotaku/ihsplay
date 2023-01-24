@@ -26,6 +26,8 @@ void input_manager_sdl_gamepad_added(input_manager_t *manager, int which);
 
 void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID which);
 
+size_t input_manager_sdl_gamepad_count(const input_manager_t *manager);
+
 /**
  * Tell the app to ignore next mouse movement, for manual moving the cursor position
  * @param manager

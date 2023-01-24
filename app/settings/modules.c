@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "ini.h"
 #include "config.h"
@@ -66,6 +65,16 @@ bool module_conflicts(const module_info_t *a, const module_info_t *b) {
         }
     }
     return false;
+}
+
+const char *module_first_available(const module_info_t *info) {
+    for (int i = 0; i < info->modules.count; ++i) {
+        const char *module = info->modules.elements[i];
+        if (SS4S_IsDriverAvailable(module)) {
+            return module;
+        }
+    }
+    return NULL;
 }
 
 static int modules_ini_handler(void *user, const char *section, const char *name, const char *value) {
