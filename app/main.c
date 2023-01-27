@@ -144,6 +144,16 @@ static void process_events() {
                 stream_manager_handle_event(app->stream_manager, &event);
                 break;
             }
+            case SDL_APP_WILLENTERBACKGROUND: {
+#if IHSPLAY_FEATURE_FORCE_FULLSCREEN
+                stream_manager_stop_active(app->stream_manager);
+#endif
+                break;
+            }
+            case SDL_APP_DIDENTERFOREGROUND: {
+                lv_obj_invalidate(lv_scr_act());
+                break;
+            }
             case SDL_QUIT: {
                 app_quit(app);
                 break;
