@@ -6,7 +6,7 @@
 /* Use 32-bit color depth */
 #define LV_COLOR_DEPTH     32
 
-#define LV_DPI_DEF         320
+#define LV_DPI_DEF         360
 
 /* Use stdlib to allocate/free memory */
 #define LV_MEM_CUSTOM      1

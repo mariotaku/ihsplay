@@ -13,6 +13,8 @@
 
 static void app_input_populate_group(app_ui_t *ui);
 
+static void app_ui_focus_cb(lv_group_t *group);
+
 app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     lv_draw_sdl_drv_param_t *param = disp->driver->user_data;
     app_ui_t *ui = calloc(1, sizeof(app_ui_t));
@@ -22,8 +24,10 @@ app_ui_t *app_ui_create(app_t *app, lv_disp_t *disp) {
     ui->fm = lv_fragment_manager_create(NULL);
 
     lv_group_t *group = lv_group_create();
+    group->user_data = ui;
     lv_group_set_editing(group, 0);
     lv_group_set_default(group);
+    lv_group_set_focus_cb(group, app_ui_focus_cb);
     ui->group = group;
     _lv_ll_init(&ui->modal_groups, sizeof(lv_group_t *));
 
@@ -149,4 +153,8 @@ static void app_input_populate_group(app_ui_t *ui) {
     }
     lv_indev_set_group(ui->indev.keypad, group);
     lv_indev_set_group(ui->indev.mouse, group);
+}
+
+static void app_ui_focus_cb(lv_group_t *group) {
+
 }

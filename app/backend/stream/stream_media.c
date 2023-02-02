@@ -142,6 +142,8 @@ static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config
             .numOfChannels = (int) config->channels,
             .sampleRate = (int) config->frequency,
             .samplesPerFrame = samples_per_frame,
+            .appName = "IHSplay",
+            .streamName = "Streaming",
     };
     SDL_UnlockMutex(media_session->lock);
     return SS4S_PlayerAudioOpen(media_session->player, &info);
