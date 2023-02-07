@@ -80,6 +80,7 @@ if (TARGET_WEBOS)
     add_subdirectory(system/webos/tv-native-apis EXCLUDE_FROM_ALL)
 endif ()
 
+add_subdirectory(third_party/commons)
 add_subdirectory(third_party/ss4s)
 
 set(CMAKE_C_STANDARD 11)
@@ -87,7 +88,7 @@ set(CMAKE_C_STANDARD 11)
 add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s inih)
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s inih commons-os-info)
 target_link_libraries(ihsplay PRIVATE lv_gridview)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
@@ -106,7 +107,7 @@ if (TARGET_WEBOS)
     set(IHSPLAY_FEATURE_RELMOUSE OFF)
     set(IHSPLAY_FEATURE_LIBCEC OFF)
     set(IHSPLAY_FEATURE_FORCE_FULLSCREEN ON)
-    target_link_libraries(ihsplay PRIVATE rt)
+    target_link_libraries(ihsplay PRIVATE rt commons-luna-sync)
     include(PackageWebOS)
 else ()
     # TODO: remove for packaged builds

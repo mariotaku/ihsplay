@@ -1,3 +1,3 @@
-target_sources(ihsplay PRIVATE array_list.c listeners_list.c random.c version_info.c client_info.c os_info.c)
+target_sources(ihsplay PRIVATE array_list.c listeners_list.c random.c client_info.c)
 
 add_subdirectory(video)

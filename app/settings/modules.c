@@ -88,7 +88,7 @@ static int modules_ini_handler(void *user, const char *section, const char *name
     if (strcmp("name", name) == 0) {
         mpc->current.name = strdup(value);
     } else if (strcmp("weight", name) == 0) {
-        mpc->current.weight = strtol(value, NULL, 10);
+        mpc->current.weight = (int) strtol(value, NULL, 10);
         if (mpc->current.weight < 0) {
             mpc->current.weight = 0;
         } else if (mpc->current.weight > 100) {

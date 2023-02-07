@@ -1,1 +1,0 @@
-ihsplay_add_test(version_info SOURCES version_info_test.c ${CMAKE_SOURCE_DIR}/app/util/version_info.c)

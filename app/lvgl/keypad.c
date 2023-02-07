@@ -8,7 +8,14 @@
 typedef struct keyboard_state_t {
     app_t *app;
     bool ignore_input;
-    uint32_t key, ev_key;
+    /**
+     * Key code of last pressed key event, will be 0 if released
+     */
+    uint32_t key;
+    /**
+     * Key code of last key event, no matter its released or not
+     */
+    uint32_t ev_key;
     lv_indev_state_t state;
     bool changed;
 } keyboard_state_t;

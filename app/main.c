@@ -16,7 +16,7 @@
 #include "backend/input_manager.h"
 
 #include "logging/app_logging.h"
-#include "util/os_info.h"
+#include "os_info.h"
 
 #if IHSPLAY_FEATURE_LIBCEC
 

@@ -2,8 +2,8 @@
 
 #include <stdbool.h>
 
-#include "util/os_info.h"
-#include "util/version_info.h"
+#include "os_info.h"
+#include "version_info.h"
 
 typedef struct array_list_t array_list_t;
 
