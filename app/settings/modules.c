@@ -67,10 +67,10 @@ bool module_conflicts(const module_info_t *a, const module_info_t *b) {
     return false;
 }
 
-const char *module_first_available(const module_info_t *info) {
+const char *module_first_available(const module_info_t *info, SS4S_ModuleCheckFlag flags) {
     for (int i = 0; i < info->modules.count; ++i) {
         const char *module = info->modules.elements[i];
-        if (SS4S_IsDriverAvailable(module)) {
+        if (SS4S_ModuleAvailable(module, flags)) {
             return module;
         }
     }

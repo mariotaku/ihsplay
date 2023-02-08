@@ -33,10 +33,10 @@ void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
         first_audio_module = first_video_module;
     }
     if (first_video_module != NULL) {
-        settings->video_driver = module_first_available(first_video_module);
+        settings->video_driver = module_first_available(first_video_module, SS4S_MODULE_CHECK_VIDEO);
     }
     if (first_audio_module != NULL) {
-        settings->audio_driver = module_first_available(first_audio_module);
+        settings->audio_driver = module_first_available(first_audio_module, SS4S_MODULE_CHECK_AUDIO);
     }
 }
 

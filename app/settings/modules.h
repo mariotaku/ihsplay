@@ -4,6 +4,7 @@
 
 #include "os_info.h"
 #include "version_info.h"
+#include "ss4s/module.h"
 
 typedef struct array_list_t array_list_t;
 
@@ -31,4 +32,4 @@ void modules_destroy(array_list_t *list);
 
 bool module_conflicts(const module_info_t *a, const module_info_t *b);
 
-const char *module_first_available(const module_info_t *info);
+const char *module_first_available(const module_info_t *info, SS4S_ModuleCheckFlag flags);
