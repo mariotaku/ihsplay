@@ -116,6 +116,10 @@ else ()
     include(GNUInstallDirs)
 endif ()
 
+if (IHSPLAY_FEATURE_LIBCEC AND TARGET commons-cec)
+    target_link_libraries(ihsplay PRIVATE commons-cec)
+endif()
+
 if (IHSPLAY_SANITIZE_ADDRESS)
     target_compile_options(ihsplay PRIVATE -fsanitize=address)
     target_link_options(ihsplay PRIVATE -fsanitize=address -static-libasan)

@@ -20,7 +20,7 @@
 
 #if IHSPLAY_FEATURE_LIBCEC
 
-#include "cec/cec_support.h"
+#include "cec_support.h"
 
 #endif
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     app->os_info = os_info;
 
 #if IHSPLAY_FEATURE_LIBCEC
-    cec_support_ctx_t *cec = cec_support_create(app);
+    cec_support_ctx_t *cec = cec_support_create();
 #endif
 
     while (app->running) {
@@ -180,6 +180,8 @@ static void process_events() {
 static void logging_init() {
     app_logging_init();
     lv_log_register_print_cb(app_lv_log);
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
+    SDL_LogSetOutputFunction(app_sdl_log, NULL);
 }
 
 static bool use_windowed() {

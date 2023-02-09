@@ -12,6 +12,3 @@ add_subdirectory(ui)
 add_subdirectory(util)
 add_subdirectory(logging)
 add_subdirectory(platform)
-add_subdirectory(cec)
-
-set(IHSPLAY_FEATURE_LIBCEC ${IHSPLAY_FEATURE_LIBCEC} PARENT_SCOPE)

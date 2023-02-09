@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <SDL_log.h>
 #include "ihslib/common.h"
 #include "ss4s/logging.h"
 
@@ -38,3 +39,5 @@ void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
 void app_ss4s_logf(SS4S_LogLevel level, const char *tag, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 void app_lv_log(const char *message);
+
+void app_sdl_log(void *userdata, int category, SDL_LogPriority priority, const char *message);

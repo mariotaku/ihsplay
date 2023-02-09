@@ -245,7 +245,16 @@ lv_obj_t *app_lv_win_create(lv_obj_t *parent) {
     lv_obj_t *footer = lv_obj_create(win);
     lv_obj_set_style_bg_opa(footer, LV_OPA_30, 0);
     lv_obj_set_style_bg_color(footer, lv_color_black(), 0);
+    lv_obj_set_style_pad_hor(footer, lv_obj_get_style_pad_left(header, 0), 0);
     lv_obj_set_size(footer, LV_PCT(100), LV_DPX(40));
+    lv_obj_set_flex_flow(footer, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(footer, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+    lv_obj_t *prompt_a = lv_label_create(footer);
+    lv_label_set_text(prompt_a, "(A) Open");
+
+    lv_obj_t *prompt_b = lv_label_create(footer);
+    lv_label_set_text(prompt_b, "(B) Back");
     return win;
 }
 

@@ -78,6 +78,31 @@ void app_lv_log(const char *message) {
 
 }
 
+void app_sdl_log(void *userdata, int category, SDL_LogPriority priority, const char *message) {
+    (void) userdata;
+    static const app_log_level priority_name[SDL_NUM_LOG_PRIORITIES] = {
+            APP_LOG_LEVEL_VERBOSE,
+            APP_LOG_LEVEL_DEBUG,
+            APP_LOG_LEVEL_INFO,
+            APP_LOG_LEVEL_WARN,
+            APP_LOG_LEVEL_ERROR,
+            APP_LOG_LEVEL_FATAL
+    };
+    static const char *category_name[SDL_LOG_CATEGORY_TEST + 1] = {
+            "SDL.APPLICATION",
+            "SDL.ERROR",
+            "SDL.ASSERT",
+            "SDL.SYSTEM",
+            "SDL.AUDIO",
+            "SDL.VIDEO",
+            "SDL.RENDER",
+            "SDL.INPUT",
+            "SDL.TEST",
+    };
+    const char *tag = category > SDL_LOG_CATEGORY_TEST ? "SDL" : category_name[category];
+    app_log_printf(priority_name[priority - SDL_LOG_PRIORITY_VERBOSE], tag, "%s", message);
+}
+
 static void app_lv_log_line(const char *line, size_t len) {
     const char *start = memchr(line, '\t', len) + 1;
     static const app_log_level level_value[] = {
