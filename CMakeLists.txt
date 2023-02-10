@@ -118,6 +118,8 @@ endif ()
 
 if (IHSPLAY_FEATURE_LIBCEC AND TARGET commons-cec)
     target_link_libraries(ihsplay PRIVATE commons-cec)
+else()
+    set(IHSPLAY_FEATURE_LIBCEC OFF)
 endif()
 
 if (IHSPLAY_SANITIZE_ADDRESS)
