@@ -4,7 +4,7 @@
 #include "ui/app_ui.h"
 #include "app.h"
 #include "ui/common/progress_dialog.h"
-#include "util/array_list.h"
+#include "array_list.h"
 #include "backend/stream_manager.h"
 #include "streaming_overlay.h"
 #include "backend/host_manager.h"

@@ -3,7 +3,7 @@
 #include "app.h"
 #include "host_manager.h"
 
-#include "util/array_list.h"
+#include "array_list.h"
 #include "util/refcounter.h"
 #include "util/listeners_list.h"
 #include "ui/common/error_messages.h"

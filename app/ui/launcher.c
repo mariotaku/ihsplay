@@ -13,7 +13,7 @@
 
 
 #include "backend/host_manager.h"
-#include "util/array_list.h"
+#include "array_list.h"
 #include "lvgl/ext/lv_dir_focus.h"
 #include "lvgl/theme.h"
 #include "ui/connection/connection_fragment.h"

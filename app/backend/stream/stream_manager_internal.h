@@ -3,7 +3,7 @@
 #include "stream_manager.h"
 #include "stream_media.h"
 
-#include "util/array_list.h"
+#include "array_list.h"
 
 typedef enum stream_manager_state_t {
     STREAM_MANAGER_STATE_IDLE,

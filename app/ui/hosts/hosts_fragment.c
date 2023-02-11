@@ -5,7 +5,7 @@
 #include "lv_gridview.h"
 #include "ui/app_ui.h"
 #include "ui/session/session.h"
-#include "util/array_list.h"
+#include "array_list.h"
 #include "lvgl/fonts/bootstrap-icons/symbols.h"
 #include "util/random.h"
 #include "lvgl/ext/msgbox_ext.h"

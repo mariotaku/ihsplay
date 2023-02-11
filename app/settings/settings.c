@@ -2,9 +2,9 @@
 
 #include "app_settings.h"
 
-#include "modules.h"
+#include "ss4s_modules.h"
 
-#include "util/array_list.h"
+#include "array_list.h"
 #include "os_info.h"
 
 void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
