@@ -1,4 +1,5 @@
 #include "theme.h"
+#include "config.h"
 
 #include "ui/app_ui.h"
 
@@ -242,6 +243,7 @@ lv_obj_t *app_lv_win_create(lv_obj_t *parent) {
     lv_obj_t *header = lv_win_get_header(win);
     lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
 
+#if IHSPLAY_WIP_FEATURES
     lv_obj_t *footer = lv_obj_create(win);
     lv_obj_set_style_bg_opa(footer, LV_OPA_30, 0);
     lv_obj_set_style_bg_color(footer, lv_color_black(), 0);
@@ -255,6 +257,7 @@ lv_obj_t *app_lv_win_create(lv_obj_t *parent) {
 
     lv_obj_t *prompt_b = lv_label_create(footer);
     lv_label_set_text(prompt_b, "(B) Back");
+#endif
     return win;
 }
 
