@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ihsplay VERSION 0.2.2 LANGUAGES C)
+execute_process(COMMAND git describe --tags --abbrev=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE IHSPLAY_VERSION ERROR_QUIET)
+if (IHSPLAY_VERSION)
+    string(STRIP "${IHSPLAY_VERSION}" IHSPLAY_VERSION)
+    string(SUBSTRING "${IHSPLAY_VERSION}" 1 -1 IHSPLAY_VERSION)
+else()
+    set(IHSPLAY_VERSION "0.0.0")
+endif ()
+
+project(ihsplay VERSION ${IHSPLAY_VERSION} LANGUAGES C)
 
 enable_testing()
 
@@ -121,9 +130,9 @@ target_compile_definitions(commons-ss4s-modules-list PRIVATE SS4S_MODULES_INI_PA
 
 if (IHSPLAY_FEATURE_LIBCEC AND TARGET commons-cec)
     target_link_libraries(ihsplay PRIVATE commons-cec)
-else()
+else ()
     set(IHSPLAY_FEATURE_LIBCEC OFF)
-endif()
+endif ()
 
 if (IHSPLAY_SANITIZE_ADDRESS)
     target_compile_options(ihsplay PRIVATE -fsanitize=address)
