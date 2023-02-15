@@ -1,7 +1,8 @@
-#include "basic.h"
-
 #include "app.h"
+#include "basic.h"
 #include "widgets.h"
+
+#include "config.h"
 
 typedef struct basic_fragment {
     lv_fragment_t base;
@@ -26,9 +27,11 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_set_style_pad_hor(list, LV_DPX(20), 0);
     lv_obj_set_style_pad_gap(list, LV_DPX(10), 0);
 
+#if IHSPLAY_WIP_FEATURES
     settings_select_create(list, "Resolution");
     settings_select_create(list, "Framerate");
     settings_select_create(list, "Bitrate");
+#endif
     return list;
 }
 

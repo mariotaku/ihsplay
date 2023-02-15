@@ -222,6 +222,9 @@ static bool event_cb(lv_fragment_t *self, int code, void *userdata) {
             }
             return false;
         }
+        case APP_UI_NAV_QUIT: {
+            return true;
+        }
         default:
             break;
     }

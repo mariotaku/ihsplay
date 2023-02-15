@@ -17,7 +17,7 @@ bool client_info_load(client_info_t *info) {
     if (!HLunaServiceCallSync(uri, "{\"configNames\":[\"tv.model.serialnumber\", \"tv.model.modelname\"]}", true,
                               &payload) || !payload) {
         app_log_warn("OSInfo", "Failed to call %s", uri);
-        return -1;
+        return client_info_load_default(info);
     }
 
     JSchemaInfo schemaInfo;
