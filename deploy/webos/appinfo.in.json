@@ -6,5 +6,9 @@
   "largeIcon": "largeIcon.png",
   "iconColor": "#ffffff",
   "title": "IHSplay",
-  "version": "@PROJECT_VERSION@"
+  "version": "@PROJECT_VERSION@",
+  "requiredPermissions": [
+    "settings",
+    "activities.callbacks"
+  ]
 }

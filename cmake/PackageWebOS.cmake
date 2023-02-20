@@ -14,7 +14,7 @@ set(CPACK_PACKAGE_DIRECTORY ${CMAKE_SOURCE_DIR}/dist)
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${PROJECT_VERSION}_${CPACK_PACKAGE_ARCHITECTURE}")
 
 # Copy manifest
-configure_file(deploy/webos/appinfo.json.in ./appinfo.json @ONLY)
+configure_file(deploy/webos/appinfo.in.json ./appinfo.json @ONLY)
 
 install(TARGETS ihsplay RUNTIME DESTINATION .)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/deploy/webos/ DESTINATION . PATTERN ".*" EXCLUDE PATTERN "*.in" EXCLUDE)

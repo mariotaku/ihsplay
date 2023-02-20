@@ -107,7 +107,12 @@ void app_ui_pop_top_fragment(app_ui_t *ui) {
 }
 
 bool app_ui_dispatch_event(app_ui_t *ui, app_event_type_t type, app_ui_event_data_t *data) {
-    return lv_fragment_manager_send_event(ui->fm, type, data);
+    bool handled = lv_fragment_manager_send_event(ui->fm, type, data);
+    if (type == APP_UI_NAV_QUIT && !handled) {
+        app_quit(ui->app);
+        return true;
+    }
+    return handled;
 }
 
 void app_ui_push_modal_group(app_ui_t *ui, lv_group_t *group) {

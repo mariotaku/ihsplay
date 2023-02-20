@@ -12,32 +12,31 @@ void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
     settings->modules = modules_load(os_info);
     settings->relmouse = true;
 
-    // TODO: check if lib available, and handle conflicts
-    const module_info_t *first_video_module = NULL, *first_audio_module = NULL;
+    const module_info_t *selected_video_module = NULL, *selected_audio_module = NULL;
+    const char *selected_video_driver = NULL, *selected_audio_driver = NULL;
     for (int i = 0, j = array_list_size(settings->modules); i < j; ++i) {
         const module_info_t *info = array_list_get(settings->modules, i);
-        if (info->has_video && first_video_module == NULL) {
-            first_video_module = info;
-            if (info->has_audio) {
-                break;
-            }
-        }
-        if (info->has_audio && first_audio_module == NULL) {
-            if (first_video_module != NULL && module_conflicts(first_video_module, info)) {
+        if (info->has_video && selected_video_driver == NULL) {
+            if (selected_audio_module != NULL && module_conflicts(selected_audio_module, info)) {
                 continue;
             }
-            first_audio_module = info;
+            selected_video_driver = module_first_available(info, SS4S_MODULE_CHECK_VIDEO);
+            if (selected_video_driver != NULL) {
+                selected_video_module = info;
+            }
+        }
+        if (info->has_audio && selected_audio_driver == NULL) {
+            if (selected_video_module != NULL && module_conflicts(selected_video_module, info)) {
+                continue;
+            }
+            selected_audio_driver = module_first_available(info, SS4S_MODULE_CHECK_AUDIO);
+            if (selected_audio_driver != NULL) {
+                selected_audio_module = info;
+            }
         }
     }
-    if (first_audio_module == NULL) {
-        first_audio_module = first_video_module;
-    }
-    if (first_video_module != NULL) {
-        settings->video_driver = module_first_available(first_video_module, SS4S_MODULE_CHECK_VIDEO);
-    }
-    if (first_audio_module != NULL) {
-        settings->audio_driver = module_first_available(first_audio_module, SS4S_MODULE_CHECK_AUDIO);
-    }
+    settings->video_driver = selected_video_driver;
+    settings->audio_driver = selected_audio_driver;
 }
 
 void app_settings_deinit(app_settings_t *settings) {

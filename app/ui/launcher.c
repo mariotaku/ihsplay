@@ -251,9 +251,6 @@ static bool event_cb(lv_fragment_t *self, int type, void *data) {
         case APP_UI_GAMEPAD_DEVICE_CHANGED:
             launcher_gamepads_changed(fragment);
             return true;
-        case APP_UI_NAV_QUIT:
-            app_quit(fragment->app);
-            return true;
         case APP_UI_NAV_BACK:
             return true;
         default:
