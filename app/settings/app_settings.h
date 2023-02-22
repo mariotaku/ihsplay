@@ -3,7 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct array_list_t array_list_t;
+#include "array_list.h"
+
 typedef struct os_info_t os_info_t;
 
 typedef struct app_settings_t {
@@ -12,7 +13,7 @@ typedef struct app_settings_t {
     const char *audio_driver;
     /** The pointer references to modules */
     const char *video_driver;
-    array_list_t *modules;
+    array_list_t modules;
     uint64_t selected_client_id;
 } app_settings_t;
 
