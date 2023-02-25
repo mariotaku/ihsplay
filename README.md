@@ -16,7 +16,7 @@ gamepad support.
 
 ---
 
-![Home UI](https://user-images.githubusercontent.com/830358/207047084-8ab2ce4e-daca-4027-aeed-4fc1a441e75e.png)
+![Home UI]([https://user-images.githubusercontent.com/830358/207047084-8ab2ce4e-daca-4027-aeed-4fc1a441e75e.png](https://user-images.githubusercontent.com/830358/219081008-e5eb646a-76fa-4683-9869-35e3923618ce.png))
 
 ![Streaming Overlay](https://user-images.githubusercontent.com/830358/207047480-8cc96496-4fab-4a0e-8d1a-896183c54a6e.png)
 
