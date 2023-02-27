@@ -13,11 +13,11 @@ void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
     modules_load(&settings->modules, os_info);
     settings->relmouse = true;
 
-    module_selection_t selection = {.audio = NULL, .video = NULL};
+    module_selection_t selection = {.audio_driver = NULL, .video_driver = NULL};
     // TODO: check result
     module_select(&settings->modules, &selection);
-    settings->video_driver = selection.video;
-    settings->audio_driver = selection.audio;
+    settings->video_driver = selection.video_driver;
+    settings->audio_driver = selection.audio_driver;
 }
 
 void app_settings_deinit(app_settings_t *settings) {
