@@ -20,7 +20,7 @@
 
 #if IHSPLAY_FEATURE_LIBCEC
 
-#include "cec_support.h"
+#include "cec_sdl.h"
 
 #endif
 
@@ -93,7 +93,8 @@ int main(int argc, char *argv[]) {
     app->os_info = os_info;
 
 #if IHSPLAY_FEATURE_LIBCEC
-    cec_support_ctx_t *cec = cec_support_create();
+    cec_sdl_ctx_t cec;
+    cec_sdl_init(&cec);
 #endif
 
     while (app->running) {
@@ -103,7 +104,7 @@ int main(int argc, char *argv[]) {
     }
 
 #if IHSPLAY_FEATURE_LIBCEC
-    cec_support_destroy(cec);
+    cec_sdl_deinit(&cec);
 #endif
 
     app_destroy(app);

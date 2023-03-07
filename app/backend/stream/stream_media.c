@@ -14,6 +14,7 @@ struct stream_media_session_t {
     stream_manager_t *manager;
     SDL_mutex *lock;
     SS4S_Player *player;
+    SS4S_VideoCapabilities video_cap;
 
     SS4S_VideoInfo video_info;
     OpusMSDecoder *opus_decoder;
@@ -57,6 +58,8 @@ stream_media_session_t *stream_media_create(stream_manager_t *manager) {
     media_session->manager = manager;
     media_session->lock = SDL_CreateMutex();
     media_session->player = SS4S_PlayerOpen();
+
+    SS4S_GetVideoCapabilities(&media_session->video_cap);
     return media_session;
 }
 
@@ -80,8 +83,7 @@ void stream_media_set_overlay_height(stream_media_session_t *media_session, int 
 }
 
 void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool overlay) {
-    SS4S_VideoCapabilities cap = SS4S_GetVideoCapabilities();
-    if (cap & SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING) {
+    if (media_session->video_cap.transform & SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING) {
         return;
     }
     if (overlay) {
@@ -107,8 +109,7 @@ void stream_media_set_overlay_shown(stream_media_session_t *media_session, bool 
 }
 
 bool stream_media_supports_hevc(stream_media_session_t *media_session) {
-    (void) media_session;
-    return SS4S_GetVideoCapabilities() & SS4S_VIDEO_CAP_CODEC_H265;
+    return media_session->video_cap.codecs & SS4S_VIDEO_H265;
 }
 
 const IHS_StreamAudioCallbacks *stream_media_audio_callbacks() {

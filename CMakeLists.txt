@@ -128,8 +128,8 @@ endif ()
 
 target_compile_definitions(commons-ss4s-modules-list PRIVATE SS4S_MODULES_INI_PATH="${SS4S_MODULES_INI_PATH_RUNTIME}")
 
-if (IHSPLAY_FEATURE_LIBCEC AND TARGET commons-cec)
-    target_link_libraries(ihsplay PRIVATE commons-cec)
+if (IHSPLAY_FEATURE_LIBCEC AND TARGET commons-cec-sdl)
+    target_link_libraries(ihsplay PRIVATE commons-cec-sdl)
 else ()
     set(IHSPLAY_FEATURE_LIBCEC OFF)
 endif ()

@@ -5,4 +5,3 @@ target_sources(ihsplay PRIVATE
         theme.c)
 
 add_subdirectory(ext)
-add_subdirectory(widgets)
