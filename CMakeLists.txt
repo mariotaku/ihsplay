@@ -76,14 +76,13 @@ add_subdirectory(core)
 
 add_subdirectory(third_party/lvgl EXCLUDE_FROM_ALL)
 
-include(BuildINIH)
-
 target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
 target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
 target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
 target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
+include(BuildINIH)
 
 if (TARGET_WEBOS)
     add_subdirectory(system/webos/tv-native-apis EXCLUDE_FROM_ALL)
