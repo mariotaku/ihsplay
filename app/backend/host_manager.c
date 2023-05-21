@@ -7,7 +7,7 @@
 #include "util/refcounter.h"
 #include "util/listeners_list.h"
 #include "ui/common/error_messages.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 
 struct host_manager_t {
     app_t *app;
@@ -156,7 +156,7 @@ static void client_authorization_failed(IHS_Client *client, const IHS_HostInfo *
                                         void *context) {
     (void) client;
     host_manager_t *manager = context;
-    app_log_error("Client", "Authorization failed: %u", result);
+    commons_log_error("Client", "Authorization failed: %u", result);
     host_manager_enum_error_t *error = SDL_calloc(1, sizeof(host_manager_enum_error_t));
     error->host = *host;
     error->result = result;
@@ -179,7 +179,7 @@ static void client_streaming_failed(IHS_Client *client, const IHS_HostInfo *host
                                     void *context) {
     (void) client;
     host_manager_t *manager = context;
-    app_log_error("Client", "Failed to start streaming: %s", streaming_result_str(result));
+    commons_log_error("Client", "Failed to start streaming: %s", streaming_result_str(result));
     host_manager_enum_error_t *error = SDL_calloc(1, sizeof(host_manager_enum_error_t));
     error->host = *host;
     error->result = result;
@@ -208,7 +208,7 @@ static void client_host_discovered_main(app_t *app, void *data) {
     host_manager_hosts_change change_type;
     int change_index;
     if (info == NULL) {
-        app_log_debug("Hosts", "New host discovered: %s", host->hostname);
+        commons_log_debug("Hosts", "New host discovered: %s", host->hostname);
         info = array_list_add(hosts, insert_index);
         change_type = HOST_MANAGER_HOSTS_NEW;
         change_index = insert_index < 0 ? old_size : insert_index;

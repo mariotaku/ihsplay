@@ -58,3 +58,5 @@ void app_run_on_main_sync(app_t *app, app_run_action_fn action, void *data);
 void app_sdl_input_event(app_t *app, const SDL_Event *event);
 
 void app_assert_main_thread(app_t *app);
+
+void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message);
