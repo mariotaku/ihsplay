@@ -15,7 +15,7 @@ void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
 
     module_selection_t selection = {.audio_driver = NULL, .video_driver = NULL};
     // TODO: check result
-    module_select(&settings->modules, &selection);
+    module_select(&settings->modules, NULL, &selection);
     settings->video_driver = selection.video_driver;
     settings->audio_driver = selection.audio_driver;
 }

@@ -15,7 +15,7 @@
 #include "backend/stream_manager.h"
 #include "backend/input_manager.h"
 
-#include "logging/app_logging.h"
+#include "logging.h"
 #include "os_info.h"
 
 #if IHSPLAY_FEATURE_LIBCEC
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     os_info_t os_info;
     if (os_info_get(&os_info) == 0) {
         char *str = version_info_str(&os_info.version);
-        app_log_info("APP", "System: %s %s", os_info.name, str);
+        commons_log_info("APP", "System: %s %s", os_info.name, str);
         free(str);
     }
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
     SS4S_Quit();
 
     SDL_Quit();
-    app_logging_deinit();
+    commons_logging_deinit();
     os_info_clear(&os_info);
     return 0;
 }
@@ -169,7 +169,7 @@ static void process_events() {
                 if (event.type > APP_UI_EVENT_BEGIN && event.type < APP_UI_EVENT_LAST) {
                     app_ui_event_data_t data = {.data1 = event.user.data1, .data2 = event.user.data2};
                     if (!app_ui_dispatch_event(app->ui, event.type, &data)) {
-                        app_log_debug("UI", "Unhandled UI event 0x%x", event.type);
+                        commons_log_debug("UI", "Unhandled UI event 0x%x", event.type);
                     }
                 }
                 break;
@@ -179,7 +179,7 @@ static void process_events() {
 }
 
 static void logging_init() {
-    app_logging_init();
+    commons_logging_init();
     lv_log_register_print_cb(app_lv_log);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
     SDL_LogSetOutputFunction(app_sdl_log, NULL);
@@ -191,4 +191,10 @@ static bool use_windowed() {
         return false;
     }
     return strcmp(v, "1") == 0 || strcmp(v, "true") == 0;
+}
+
+void app_ihs_log(IHS_LogLevel level, const char *tag, const char *message) {
+    char app_tag[32] = "IHS.";
+    strncpy(app_tag + 4, tag, 28);
+    commons_log_printf((commons_log_level) level, app_tag, "%s", message);
 }

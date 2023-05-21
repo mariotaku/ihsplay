@@ -14,7 +14,7 @@
 #include "stream_input.h"
 
 #include "backend/input_manager.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 
 static void session_initialized(IHS_Session *session, void *context);
 
@@ -125,7 +125,7 @@ bool stream_manager_start_session(stream_manager_t *manager, const IHS_SessionIn
     IHS_SessionSetVideoCallbacks(session, stream_media_video_callbacks(), media);
     IHS_SessionHIDAddProvider(session, input_manager_get_hid_provider(manager->app->input_manager));
     manager->state = STREAM_MANAGER_STATE_CONNECTING;
-    app_log_info("StreamManager", "Change state to CONNECTING");
+    commons_log_info("StreamManager", "Change state to CONNECTING");
     manager->session = session;
 
     stream_media_set_viewport_size(media, manager->viewport_width, manager->viewport_height);
@@ -272,7 +272,7 @@ static void session_finalized(IHS_Session *session, void *context) {
     assert(manager->state == STREAM_MANAGER_STATE_DISCONNECTING);
     assert(manager->session == session);
     manager->state = STREAM_MANAGER_STATE_IDLE;
-    app_log_info("StreamManager", "Change state to IDLE");
+    commons_log_info("StreamManager", "Change state to IDLE");
     app_run_on_main(manager->app, destroy_session_main, session);
 }
 
@@ -288,7 +288,7 @@ static void session_connected(IHS_Session *session, void *context) {
     assert(manager->state == STREAM_MANAGER_STATE_CONNECTING);
     assert(manager->session == session);
     manager->state = STREAM_MANAGER_STATE_STREAMING;
-    app_log_info("StreamManager", "Change state to STREAMING");
+    commons_log_info("StreamManager", "Change state to STREAMING");
     event_context_t ec = {
             .manager = manager,
             .arg1 = (void *) IHS_SessionGetInfo(session),
@@ -307,7 +307,7 @@ static void session_disconnected(IHS_Session *session, void *context) {
     }
     bool requested = manager->requested_disconnect;
     manager->state = STREAM_MANAGER_STATE_DISCONNECTING;
-    app_log_info("StreamManager", "Change state to DISCONNECTING");
+    commons_log_info("StreamManager", "Change state to DISCONNECTING");
     event_context_t ec = {
             .manager = manager,
             .arg1 = (void *) IHS_SessionGetInfo(session),
@@ -383,7 +383,7 @@ static void controller_back_released(stream_manager_t *manager) {
     }
     SDL_RemoveTimer(manager->back_timer);
     manager->back_timer = 0;
-    app_log_info("Streaming", "Overlay timer cancelled");
+    commons_log_info("Streaming", "Overlay timer cancelled");
     // This function is expected to be called in main thread.
     app_assert_main_thread(manager->app);
     listeners_list_notify(manager->listeners, stream_manager_listener_t, overlay_progress_finished, false);
@@ -411,7 +411,7 @@ static Uint32 back_timer_callback(Uint32 duration, void *param) {
         manager->back_timer = 0;
         manager->back_counter = 0;
         IHS_HIDResetSDLGameControllers(manager->session);
-        app_log_info("Streaming", "Requesting overlay");
+        commons_log_info("Streaming", "Requesting overlay");
         app_run_on_main(manager->app, back_timer_finish_main, manager);
         return 0;
     } else {

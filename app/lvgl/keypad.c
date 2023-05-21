@@ -1,5 +1,5 @@
 #include "mouse.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 #include "app.h"
 #include "ui/app_ui.h"
 

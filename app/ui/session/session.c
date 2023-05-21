@@ -10,7 +10,7 @@
 #include "backend/host_manager.h"
 #include "connection_progress.h"
 #include "backend/input_manager.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 #include "config.h"
 
 typedef struct session_fragment_t {
@@ -269,7 +269,7 @@ static void session_overlay_progress_finished(bool requested, void *context) {
 
 static void session_show_cursor(IHS_Session *session, float x, float y, void *context) {
     session_fragment_t *fragment = context;
-    app_log_info("Session", "show_cursor: x=%f, y=%f", x, y);
+    commons_log_info("Session", "show_cursor: x=%f, y=%f", x, y);
 
     if (!fragment->cursor_visible) {
         fragment->cursor_visible = true;

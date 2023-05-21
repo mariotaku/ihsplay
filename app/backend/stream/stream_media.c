@@ -4,7 +4,7 @@
 #include "ss4s.h"
 #include "stream_manager.h"
 #include "app.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 #include "util/video/sps/include/sps_util.h"
 
 #include <opus_multistream.h>
@@ -122,7 +122,7 @@ const IHS_StreamVideoCallbacks *stream_media_video_callbacks() {
 
 static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
     (void) session;
-    app_log_info("Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
+    commons_log_info("Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
                  config->channels, config->frequency);
     if (config->codec != IHS_StreamAudioCodecOpus) {
         return -1;
@@ -182,7 +182,7 @@ static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config
     }
     stream_media_session_t *media_session = (stream_media_session_t *) context;
     SDL_LockMutex(media_session->lock);
-    app_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width, config->height);
+    commons_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width, config->height);
     SS4S_VideoInfo info = {
             .codec = codec,
             .width = (int) config->width,
@@ -218,18 +218,18 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
                 break;
             }
             default: {
-                app_log_fatal("Media", "Unexpected video codec %s!!",
+                commons_log_fatal("Media", "Unexpected video codec %s!!",
                               SS4S_VideoCodecName(media_session->video_info.codec));
                 abort();
             }
         }
         if (!dimension_parsed) {
-            app_log_warn("Media", "Can't parse NAL Unit.");
-            app_log_hexdump(APP_LOG_LEVEL_WARN, "Media", IHS_BufferPointer(data), data->size);
+            commons_log_warn("Media", "Can't parse NAL Unit.");
+            commons_log_hexdump(COMMONS_LOG_LEVEL_WARN, "Media", IHS_BufferPointer(data), data->size);
         }
         if (dimension_parsed && (dimension.width != media_session->video_info.width ||
                                  dimension.height != media_session->video_info.height)) {
-            app_log_info("Media", "Size change detected by NAL header. (%d*%d)=>(%d*%d)",
+            commons_log_info("Media", "Size change detected by NAL header. (%d*%d)=>(%d*%d)",
                          media_session->video_info.width, media_session->video_info.height, dimension.width,
                          dimension.height);
             media_session->video_info.width = dimension.width;

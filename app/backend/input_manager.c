@@ -3,7 +3,7 @@
 #include "app.h"
 
 #include "ihslib/hid/sdl.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 
 static void insert_controller(input_manager_t *manager, SDL_JoystickID id, SDL_GameController *controller);
 
@@ -55,7 +55,7 @@ void input_manager_sdl_gamepad_added(input_manager_t *manager, int which) {
     SDL_Joystick *joystick = SDL_GameControllerGetJoystick(controller);
     SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
     insert_controller(manager, id, controller);
-    app_log_info("Input", "Gamepad #%d: %s added.", id, SDL_JoystickName(joystick));
+    commons_log_info("Input", "Gamepad #%d: %s added.", id, SDL_JoystickName(joystick));
 }
 
 void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID which) {
@@ -63,7 +63,7 @@ void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID 
     assert(index >= 0);
     SDL_GameControllerClose(manager->controllers[index].controller);
     remove_controller_at(manager, index);
-    app_log_info("Input", "Gamepad #%d removed.", which);
+    commons_log_info("Input", "Gamepad #%d removed.", which);
 }
 
 size_t input_manager_sdl_gamepad_count(const input_manager_t *manager) {

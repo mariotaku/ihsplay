@@ -33,6 +33,10 @@ option(IHSPLAY_FEATURE_FORCE_FULLSCREEN "Force full screen mode" OFF)
 set(IHSPLAY_FEATURE_RELMOUSE ON)
 set(IHSPLAY_FEATURE_LIBCEC ON)
 
+set(COMMONS_LOGGING_SDL ON)
+set(COMMONS_LOGGING_LVGL ON)
+set(COMMONS_LOGGING_SS4S ON)
+
 get_filename_component(CMAKE_C_COMPILER_NAME "${CMAKE_C_COMPILER}" NAME)
 
 if (CMAKE_C_COMPILER_NAME MATCHES "^arm-webos-linux-gnueabi-")
@@ -97,7 +101,7 @@ add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
 target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s inih commons-array-list commons-os-info
-        commons-ss4s-modules-list)
+        commons-logging commons-ss4s-modules-list)
 target_link_libraries(ihsplay PRIVATE lv_gridview)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)

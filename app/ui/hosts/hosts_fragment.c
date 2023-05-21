@@ -10,7 +10,7 @@
 #include "util/random.h"
 #include "lvgl/ext/msgbox_ext.h"
 #include "ui/common/error_messages.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 #include "lvgl/theme.h"
 #include "ui/launcher.h"
 

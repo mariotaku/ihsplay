@@ -5,7 +5,7 @@
 #include <pbnjson.h>
 
 #include "lunasynccall.h"
-#include "logging/app_logging.h"
+#include "logging.h"
 
 #include <mbedtls/sha1.h>
 #include <mbedtls/sha256.h>
@@ -16,7 +16,7 @@ bool client_info_load(client_info_t *info) {
     const char *uri = "luna://com.webos.service.config/getConfigs";
     if (!HLunaServiceCallSync(uri, "{\"configNames\":[\"tv.model.serialnumber\", \"tv.model.modelname\"]}", true,
                               &payload) || !payload) {
-        app_log_warn("OSInfo", "Failed to call %s", uri);
+        commons_log_warn("OSInfo", "Failed to call %s", uri);
         return client_info_load_default(info);
     }
 
