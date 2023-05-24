@@ -5,7 +5,7 @@ execute_process(COMMAND git describe --tags --abbrev=0 WORKING_DIRECTORY ${CMAKE
 if (IHSPLAY_VERSION)
     string(STRIP "${IHSPLAY_VERSION}" IHSPLAY_VERSION)
     string(SUBSTRING "${IHSPLAY_VERSION}" 1 -1 IHSPLAY_VERSION)
-else()
+else ()
     set(IHSPLAY_VERSION "0.0.0")
 endif ()
 
@@ -32,6 +32,8 @@ option(IHSPLAY_FEATURE_FORCE_FULLSCREEN "Force full screen mode" OFF)
 
 set(IHSPLAY_FEATURE_RELMOUSE ON)
 set(IHSPLAY_FEATURE_LIBCEC ON)
+
+option(COMMONS_LV_SDL_IMG_USE_IMAGE "Don't use SDL_Image" OFF)
 
 set(COMMONS_LOGGING_SDL ON)
 set(COMMONS_LOGGING_LVGL ON)
