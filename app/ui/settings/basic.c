@@ -32,6 +32,8 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     settings_select_create(list, "Framerate");
     settings_select_create(list, "Bitrate");
 #endif
+    settings_select_create(list, "Audio Backend");
+    settings_select_create(list, "Video Decoder");
     return list;
 }
 

@@ -30,19 +30,18 @@ static const IHS_HIDProviderSDLDeviceList hid_device_list = {
 
 input_manager_t *input_manager_create() {
     input_manager_t *manager = calloc(1, sizeof(input_manager_t));
-    manager->controllers_size = 0;
-    manager->controllers_cap = 8;
-    manager->controllers = calloc(manager->controllers_cap, sizeof(opened_controller_t));
+    array_list_init(&manager->controllers, sizeof(opened_controller_t), 8);
     manager->hid_provider = IHS_HIDProviderSDLCreateUnmanaged(&hid_device_list, manager);
     return manager;
 }
 
 void input_manager_destroy(input_manager_t *manager) {
     IHS_HIDProviderSDLDestroy(manager->hid_provider);
-    for (int i = 0; i < manager->controllers_size; i++) {
-        SDL_GameControllerClose(manager->controllers[i].controller);
+    for (int i = 0, j = array_list_size(&manager->controllers); i < j; i++) {
+        opened_controller_t *controller = array_list_get(&manager->controllers, i);
+        SDL_GameControllerClose(controller->controller);
     }
-    free(manager->controllers);
+    array_list_deinit(&manager->controllers);
     free(manager);
 }
 
@@ -61,13 +60,14 @@ void input_manager_sdl_gamepad_added(input_manager_t *manager, int which) {
 void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID which) {
     int index = manager_index(manager, which);
     assert(index >= 0);
-    SDL_GameControllerClose(manager->controllers[index].controller);
+    opened_controller_t *controller = array_list_get(&manager->controllers, index);
+    SDL_GameControllerClose(controller->controller);
     remove_controller_at(manager, index);
     commons_log_info("Input", "Gamepad #%d removed.", which);
 }
 
 size_t input_manager_sdl_gamepad_count(const input_manager_t *manager) {
-    return manager->controllers_size;
+    return array_list_size(&manager->controllers);
 }
 
 void input_manager_ignore_next_mouse_movement(input_manager_t *manager) {
@@ -81,52 +81,36 @@ bool input_manager_get_and_reset_mouse_movement(input_manager_t *manager) {
 }
 
 static void insert_controller(input_manager_t *manager, SDL_JoystickID id, SDL_GameController *controller) {
-    if (manager->controllers_size + 1 > manager->controllers_cap) {
-        manager->controllers_cap = manager->controllers_cap * 2;
-        manager->controllers = realloc(manager->controllers, manager->controllers_cap * sizeof(opened_controller_t));
-    }
     int insert_after;
-    for (insert_after = (int) (manager->controllers_size - 1); insert_after >= 0; insert_after--) {
-        if (id >= manager->controllers[insert_after].id) {
+    for (insert_after = (int) (array_list_size(&manager->controllers) - 1); insert_after >= 0; insert_after--) {
+        opened_controller_t *item = array_list_get(&manager->controllers, insert_after);
+        if (id >= item->id) {
             break;
         }
     }
-    int move_count = (int) manager->controllers_size - insert_after - 1;
-    if (move_count > 0) {
-        memmove(&manager->controllers[insert_after + 2], &manager->controllers[insert_after + 1],
-                move_count * sizeof(opened_controller_t));
-    }
-    manager->controllers[insert_after + 1].id = id;
-    manager->controllers[insert_after + 1].controller = controller;
-    manager->controllers_size += 1;
+    opened_controller_t *new_item = array_list_add(&manager->controllers, insert_after + 1);
+    new_item->id = id;
+    new_item->controller = controller;
 }
 
 static void remove_controller_at(input_manager_t *manager, size_t index) {
-    if (index < manager->controllers_size - 1) {
-        memmove(&manager->controllers[index], &manager->controllers[index + 1],
-                (manager->controllers_size - index - 1) * sizeof(opened_controller_t));
-    }
-    manager->controllers_size -= 1;
+    array_list_remove(&manager->controllers, (int) index);
 }
 
 static int manager_index(const input_manager_t *manager, SDL_JoystickID id) {
-    void *offset = bsearch(&id, manager->controllers, manager->controllers_size, sizeof(opened_controller_t),
-                           instance_id_compar);
-    if (offset == NULL) {
-        return -1;
-    }
-    return (int) ((offset - (void *) manager->controllers) / sizeof(opened_controller_t));
+    return array_list_bsearch(&manager->controllers, &id, instance_id_compar);
 }
 
 static int js_count(void *context) {
     input_manager_t *manager = context;
-    return (int) manager->controllers_size;
+    return (int) array_list_size(&manager->controllers);
 }
 
 static int js_index(SDL_JoystickID instance_id, void *context) {
     input_manager_t *manager = context;
-    for (int i = 0; i < manager->controllers_size; i++) {
-        if (manager->controllers[i].id == instance_id) {
+    for (int i = 0, j = array_list_size(&manager->controllers); i < j; i++) {
+        opened_controller_t *item = array_list_get(&manager->controllers, i);
+        if (item->id == instance_id) {
             return i;
         }
     }
@@ -135,18 +119,20 @@ static int js_index(SDL_JoystickID instance_id, void *context) {
 
 static SDL_JoystickID js_instance_id(int index, void *context) {
     input_manager_t *manager = context;
-    if (index < 0 || index >= manager->controllers_size) {
+    opened_controller_t *item = array_list_get(&manager->controllers, index);
+    if (item == NULL) {
         return -1;
     }
-    return manager->controllers[index].id;
+    return item->id;
 }
 
 static SDL_GameController *js_controller(int index, void *context) {
     input_manager_t *manager = context;
-    if (index < 0 || index >= manager->controllers_size) {
+    opened_controller_t *item = array_list_get(&manager->controllers, index);
+    if (item == NULL) {
         return NULL;
     }
-    return manager->controllers[index].controller;
+    return item->controller;
 }
 
 static int instance_id_compar(const void *id, const void *item) {

@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include "ihslib/hid/sdl.h"
+#include "array_list.h"
 
 typedef struct opened_controller_t {
     SDL_GameController *controller;
@@ -10,9 +11,8 @@ typedef struct opened_controller_t {
 } opened_controller_t;
 
 typedef struct input_manager_t {
-    opened_controller_t *controllers;
+    array_list_t controllers;
     IHS_HIDProvider *hid_provider;
-    size_t controllers_size, controllers_cap;
     bool ignore_next_mouse_movement;
 } input_manager_t;
 
