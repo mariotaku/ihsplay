@@ -21,6 +21,11 @@ bool stream_input_handle_key_event(stream_manager_t *manager, const SDL_Keyboard
         }
     }
 #endif
+    if (event->state == SDL_PRESSED) {
+        IHS_SessionSendKeyDown(manager->session, event->keysym.scancode);
+    } else {
+        IHS_SessionSendKeyUp(manager->session, event->keysym.scancode);
+    }
     return true;
 }
 
