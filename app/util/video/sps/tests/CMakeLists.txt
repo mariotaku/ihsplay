@@ -7,3 +7,9 @@ add_executable(test_sps_parsing sps_parser_tests.c)
 target_link_libraries(test_sps_parsing sps_util)
 
 add_test(test_sps_parsing test_sps_parsing)
+
+add_executable(test_nal_start_code test_nal_start_code.c)
+target_link_libraries(test_nal_start_code sps_util)
+target_include_directories(test_nal_start_code PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../)
+
+add_test(test_nal_start_code test_nal_start_code)
