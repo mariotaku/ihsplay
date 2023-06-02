@@ -124,7 +124,7 @@ static bool parse_profile_tier_level(bitstream_t *buf, uint8_t max_sub_layers_mi
 
     for (int i = 0; i < max_sub_layers_minus1; i++) {
         bitstream_read1_checked(buf, &sub_layer_profile_present_flag[i]);
-        bitstream_read1_checked(buf, &sub_layer_profile_present_flag[i]);
+        bitstream_read1_checked(buf, &sub_layer_level_present_flag[i]);
     }
 
     if (max_sub_layers_minus1 > 0) {
