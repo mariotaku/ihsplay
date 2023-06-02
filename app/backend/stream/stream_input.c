@@ -21,6 +21,15 @@ bool stream_input_handle_key_event(stream_manager_t *manager, const SDL_Keyboard
         }
     }
 #endif
+    if (event->keysym.sym == SDLK_ESCAPE) {
+        if (event->state == SDL_RELEASED) {
+            stream_manager_set_overlay_opened(manager, true);
+        }
+        return true;
+    }
+    if (!manager->app->settings->enable_input) {
+        return true;
+    }
     if (event->state == SDL_PRESSED) {
         IHS_SessionSendKeyDown(manager->session, event->keysym.scancode);
     } else {
@@ -30,6 +39,9 @@ bool stream_input_handle_key_event(stream_manager_t *manager, const SDL_Keyboard
 }
 
 bool stream_input_handle_mouse_event(stream_manager_t *manager, const SDL_Event *event) {
+    if (!manager->app->settings->enable_input) {
+        return true;
+    }
     switch (event->type) {
         case SDL_MOUSEMOTION: {
             if (input_manager_get_and_reset_mouse_movement(manager->app->input_manager)) {

@@ -8,6 +8,7 @@
 typedef struct os_info_t os_info_t;
 
 typedef struct app_settings_t {
+    bool enable_input;
     bool relmouse;
     /** The pointer references to modules */
     const char *audio_driver;

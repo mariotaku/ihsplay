@@ -102,6 +102,8 @@ int main(int argc, char *argv[]) {
         uint32_t next_delay = lv_task_handler();
         SDL_Delay(stream_manager_is_active(app->stream_manager) ? 1 : next_delay);
     }
+    // Drain remaining events
+    process_events();
 
 #if IHSPLAY_FEATURE_LIBCEC
     cec_sdl_deinit(&cec);

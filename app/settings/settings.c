@@ -10,17 +10,18 @@
 void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
     memset(settings, 0, sizeof(app_settings_t));
     // TODO: check result
-    modules_load(&settings->modules, os_info);
+    SS4S_ModulesList(&settings->modules, os_info);
+    settings->enable_input = true;
     settings->relmouse = true;
 
-    module_preferences_t preferences = {.audio_module = NULL, .video_module = NULL};
-    module_selection_t selection = {.audio_module = NULL, .video_module = NULL};
+    SS4S_ModulePreferences preferences = {.audio_module = NULL, .video_module = NULL};
+    SS4S_ModuleSelection selection = {.audio_module = NULL, .video_module = NULL};
     // TODO: check result
-    module_select(&settings->modules, &preferences, &selection);
-    settings->video_driver = module_info_get_id(selection.video_module);
-    settings->audio_driver = module_info_get_id(selection.audio_module);
+    SS4S_ModulesSelect(&settings->modules, &preferences, &selection, true);
+    settings->video_driver = SS4S_ModuleInfoGetId(selection.video_module);
+    settings->audio_driver = SS4S_ModuleInfoGetId(selection.audio_module);
 }
 
 void app_settings_deinit(app_settings_t *settings) {
-    modules_clear(&settings->modules);
+    SS4S_ModulesListClear(&settings->modules);
 }

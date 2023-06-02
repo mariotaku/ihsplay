@@ -211,7 +211,9 @@ void stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
             break;
         }
     }
-    IHS_HIDHandleSDLEvent(manager->session, event);
+    if (manager->app->settings->enable_input) {
+        IHS_HIDHandleSDLEvent(manager->session, event);
+    }
 }
 
 void stream_manager_set_viewport_size(stream_manager_t *manager, int width, int height) {
@@ -294,12 +296,14 @@ static void session_connected(IHS_Session *session, void *context) {
             .arg1 = (void *) IHS_SessionGetInfo(session),
     };
     app_run_on_main_sync(manager->app, session_connected_main, &ec);
-    IHS_SessionHIDNotifyDeviceChange(session);
+    if (manager->app->settings->enable_input) {
+        IHS_SessionHIDNotifyDeviceChange(session);
+    }
 }
 
 static void session_disconnected(IHS_Session *session, void *context) {
     stream_manager_t *manager = (stream_manager_t *) context;
-    assert(manager->state == STREAM_MANAGER_STATE_STREAMING);
+    assert(manager->state != STREAM_MANAGER_STATE_DISCONNECTING);
     assert(manager->session == session);
     if (manager->back_timer != 0) {
         SDL_RemoveTimer(manager->back_timer);
