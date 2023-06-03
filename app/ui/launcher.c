@@ -134,6 +134,9 @@ static lv_obj_t *create_obj(lv_fragment_t *self, lv_obj_t *container) {
     lv_obj_t *btn_settings = lv_win_add_btn(win, BS_SYMBOL_GEAR_FILL, LV_DPX(40));
     lv_obj_add_event_cb(btn_settings, open_settings, LV_EVENT_CLICKED, fragment);
     lv_obj_add_flag(btn_settings, LV_OBJ_FLAG_EVENT_BUBBLE);
+#if !IHSPLAY_WIP_FEATURES
+    lv_obj_add_flag(btn_settings, LV_OBJ_FLAG_HIDDEN);
+#endif
 
     lv_obj_t *btn_support = lv_win_add_btn(win, BS_SYMBOL_QUESTION_CIRCLE_FILL, LV_DPX(40));
     lv_obj_add_event_cb(btn_support, open_support, LV_EVENT_CLICKED, fragment);
