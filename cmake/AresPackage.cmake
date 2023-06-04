@@ -1,4 +1,9 @@
-execute_process(COMMAND ares-package "${CPACK_TEMPORARY_DIRECTORY}" -o "${CPACK_PACKAGE_DIRECTORY}")
+execute_process(COMMAND ares-package "${CPACK_TEMPORARY_DIRECTORY}" -o "${CPACK_PACKAGE_DIRECTORY}"
+        -e include
+        -e cmake
+        -e "libmbedtls[.].*"
+        -e "libmbedx509[.].*"
+        )
 
 find_program(GEN_MANIFEST_CMD webosbrew-gen-manifest)
 if (GEN_MANIFEST_CMD)

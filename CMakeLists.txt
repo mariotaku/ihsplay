@@ -13,19 +13,19 @@ project(ihsplay VERSION ${IHSPLAY_VERSION} LANGUAGES C)
 
 enable_testing()
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/core/scripts
+        ${CMAKE_SOURCE_DIR}/third_party/commons/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
 
 # Use `pkg-config` to link needed libraries.
 find_package(PkgConfig REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Fontconfig REQUIRED)
+find_package(MbedTLS)
 
 # Use SDL2 for window creation and event handling.
 pkg_check_modules(SDL2 REQUIRED sdl2)
 pkg_check_modules(PROTOBUF_C libprotobuf-c)
 pkg_check_modules(OPUS opus)
-
-find_library(MBEDCRYPTO_LIBRARY mbedcrypto)
 
 option(IHSPLAY_WIP_FEATURES "Enable Work-in-Progress Features" OFF)
 option(IHSPLAY_FEATURE_FORCE_FULLSCREEN "Force full screen mode" OFF)
@@ -46,7 +46,7 @@ if (CMAKE_C_COMPILER_NAME MATCHES "^arm-webos-linux-gnueabi-")
 endif ()
 
 if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
-    message("Using protobuf-c submodule")
+    message(STATUS "Using protobuf-c submodule")
     option(BUILD_PROTOC "Disable protoc-c" OFF)
     option(BUILD_TESTS "Disable protoc-c tests" OFF)
     add_subdirectory(third_party/protobuf-c/build-cmake EXCLUDE_FROM_ALL)
@@ -56,21 +56,17 @@ if (NOT PROTOBUF_C_LIBRARIES OR NOT PROTOBUF_C_INCLUDEDIR)
 endif ()
 
 if (NOT OPUS_FOUND)
-    message("Using opus submodule")
-    set(BUILD_TESTING OFF)
-    add_subdirectory(third_party/opus EXCLUDE_FROM_ALL)
-    unset(BUILD_TESTING)
-    set(OPUS_FOUND 1)
-    set(OPUS_LIBRARIES opus)
-    set(OPUS_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/third_party/opus/include)
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    message(STATUS "Including opus from source...")
+    include(ExternalOPUS)
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
 endif ()
 
-if (NOT MBEDCRYPTO_LIBRARY)
-    option(ENABLE_TESTING "Disable MbedTLS testing" OFF)
-    option(ENABLE_PROGRAMS "Disable MbedTLS programs" OFF)
-    add_subdirectory(third_party/mbedtls EXCLUDE_FROM_ALL)
-    set(MBEDTLS_FOUND 1)
-    set(MBEDCRYPTO_LIBRARY mbedcrypto)
+if (NOT MBEDTLS_FOUND)
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    message(STATUS "Including mbedtls from source...")
+    include(ExternalMbedTLS)
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
 endif ()
 
 if (TARGET_WEBOS)
@@ -113,7 +109,7 @@ set_target_properties(ihsplay PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
         INSTALL_RPATH "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
 
-target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS} ${MBEDCRYPTO_INCLUDE_DIRS})
+target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS} ${MBEDTLS_INCLUDE_DIRS})
 target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontconfig::Fontconfig Freetype::Freetype
         ${MBEDCRYPTO_LIBRARY})
 
