@@ -1,6 +1,7 @@
 execute_process(COMMAND ares-package "${CPACK_TEMPORARY_DIRECTORY}" -o "${CPACK_PACKAGE_DIRECTORY}"
         -e include
         -e cmake
+        -e pkgconfig
         -e "libmbedtls[.].*"
         -e "libmbedx509[.].*"
         )

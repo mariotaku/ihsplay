@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
 
     os_info_t os_info;
     if (os_info_get(&os_info) == 0) {
-        char *str = version_info_str(&os_info.version);
-        commons_log_info("APP", "System: %s %s", os_info.name, str);
+        char *str = os_info_str(&os_info);
+        commons_log_info("APP", "System: %s", str);
         free(str);
     }
 

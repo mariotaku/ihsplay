@@ -1,12 +1,14 @@
 #include "display.h"
 
 #include <src/draw/sdl/lv_draw_sdl.h>
+#include <assert.h>
 
 static void flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *src);
 
 lv_disp_t *app_lv_disp_init(SDL_Window *window) {
     int width, height;
     SDL_GetWindowSize(window, &width, &height);
+    assert(width > 0 || height > 0);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     lv_disp_draw_buf_t *draw_buf = malloc(sizeof(lv_disp_draw_buf_t));
@@ -20,6 +22,7 @@ lv_disp_t *app_lv_disp_init(SDL_Window *window) {
     param->user_data = window;
     driver->user_data = param;
     driver->draw_buf = draw_buf;
+    driver->dpi = (int) (width / 5.333333);
     driver->flush_cb = flush_cb;
     driver->hor_res = width;
     driver->ver_res = height;

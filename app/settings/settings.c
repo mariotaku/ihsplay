@@ -6,11 +6,14 @@
 
 #include "array_list.h"
 #include "os_info.h"
+#include "logging.h"
 
 void app_settings_init(app_settings_t *settings, const os_info_t *os_info) {
     memset(settings, 0, sizeof(app_settings_t));
-    // TODO: check result
-    SS4S_ModulesList(&settings->modules, os_info);
+    int errno;
+    if ((errno = SS4S_ModulesList(&settings->modules, os_info)) != 0) {
+        commons_log_error("SS4S", "Can't load modules list: %s", strerror(errno));
+    }
     settings->enable_input = true;
     settings->relmouse = true;
 
