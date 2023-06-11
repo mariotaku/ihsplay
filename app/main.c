@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 
 #if IHSPLAY_FEATURE_LIBCEC
     cec_sdl_ctx_t cec;
-    cec_sdl_init(&cec);
+    cec_sdl_init(&cec, "IHSplay");
 #endif
 
     while (app->running) {
@@ -181,7 +181,7 @@ static void process_events() {
 }
 
 static void logging_init() {
-    commons_logging_init();
+    commons_logging_init("ihsplay");
     lv_log_register_print_cb(app_lv_log);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
     SDL_LogSetOutputFunction(app_sdl_log, NULL);

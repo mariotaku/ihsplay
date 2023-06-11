@@ -58,6 +58,7 @@ stream_media_session_t *stream_media_create(stream_manager_t *manager) {
     media_session->manager = manager;
     media_session->lock = SDL_CreateMutex();
     media_session->player = SS4S_PlayerOpen();
+    SS4S_PlayerSetWaitAudioVideoReady(media_session->player, true);
 
     SS4S_GetVideoCapabilities(&media_session->video_cap);
     return media_session;
@@ -123,7 +124,7 @@ const IHS_StreamVideoCallbacks *stream_media_video_callbacks() {
 static int audio_start(IHS_Session *session, const IHS_StreamAudioConfig *config, void *context) {
     (void) session;
     commons_log_info("Media", "Audio start. codec=%u, channels=%u, sampleRate=%u", config->codec,
-                 config->channels, config->frequency);
+                     config->channels, config->frequency);
     if (config->codec != IHS_StreamAudioCodecOpus) {
         return -1;
     }
@@ -182,7 +183,8 @@ static int video_start(IHS_Session *session, const IHS_StreamVideoConfig *config
     }
     stream_media_session_t *media_session = (stream_media_session_t *) context;
     SDL_LockMutex(media_session->lock);
-    commons_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width, config->height);
+    commons_log_info("Media", "Video start. codec=%u, width=%u, height=%u", config->codec, config->width,
+                     config->height);
     SS4S_VideoInfo info = {
             .codec = codec,
             .width = (int) config->width,
@@ -219,7 +221,7 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
             }
             default: {
                 commons_log_fatal("Media", "Unexpected video codec %s!!",
-                              SS4S_VideoCodecName(media_session->video_info.codec));
+                                  SS4S_VideoCodecName(media_session->video_info.codec));
                 abort();
             }
         }
@@ -230,8 +232,8 @@ static int video_submit(IHS_Session *session, IHS_Buffer *data, IHS_StreamVideoF
         if (dimension_parsed && (dimension.width != media_session->video_info.width ||
                                  dimension.height != media_session->video_info.height)) {
             commons_log_info("Media", "Size change detected by NAL header. (%d*%d)=>(%d*%d)",
-                         media_session->video_info.width, media_session->video_info.height, dimension.width,
-                         dimension.height);
+                             media_session->video_info.width, media_session->video_info.height, dimension.width,
+                             dimension.height);
             media_session->video_info.width = dimension.width;
             media_session->video_info.height = dimension.height;
             SS4S_PlayerVideoSizeChanged(media_session->player, dimension.width, dimension.height);
