@@ -11,16 +11,26 @@ endif ()
 
 project(ihsplay VERSION ${IHSPLAY_VERSION} LANGUAGES C)
 
+# To suppress warnings for MbedTLS
+if (POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW)
+endif ()
+# To suppress warnings for ExternalProject DOWNLOAD_EXTRACT_TIMESTAMP
+if (POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif ()
+
 enable_testing()
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/core/scripts
-        ${CMAKE_SOURCE_DIR}/third_party/commons/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
+# Somehow the directory containing FindMbedTLS.cmake must be in the first place
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/core/scripts ${CMAKE_SOURCE_DIR}/third_party/commons/cmake
+        ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
 
 # Use `pkg-config` to link needed libraries.
 find_package(PkgConfig REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Fontconfig REQUIRED)
-find_package(MbedTLS)
+find_package(MbedTLS REQUIRED)
 
 # Use SDL2 for window creation and event handling.
 pkg_check_modules(SDL2 REQUIRED sdl2)
