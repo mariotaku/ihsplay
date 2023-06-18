@@ -16,6 +16,9 @@
 #include "backend/input_manager.h"
 
 #include "logging.h"
+#include "logging_ext_ss4s.h"
+#include "logging_ext_sdl.h"
+#include "logging_ext_lvgl.h"
 #include "os_info.h"
 
 #if IHSPLAY_FEATURE_LIBCEC
@@ -50,7 +53,7 @@ int main(int argc, char *argv[]) {
     SS4S_Config ss4s_config = {
             .audioDriver = settings.audio_driver,
             .videoDriver = settings.video_driver,
-            .loggingFunction = app_ss4s_logf,
+            .loggingFunction = commons_ss4s_logf,
     };
     SS4S_Init(argc, argv, &ss4s_config);
     IHS_Init();
@@ -182,9 +185,9 @@ static void process_events() {
 
 static void logging_init() {
     commons_logging_init("ihsplay");
-    lv_log_register_print_cb(app_lv_log);
+    lv_log_register_print_cb(commons_lv_log);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
-    SDL_LogSetOutputFunction(app_sdl_log, NULL);
+    SDL_LogSetOutputFunction(commons_sdl_log, NULL);
 }
 
 static bool use_windowed() {
