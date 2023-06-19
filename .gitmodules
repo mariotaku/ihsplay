@@ -4,9 +4,6 @@
 [submodule "third_party/ihslib"]
 	path = core
 	url = git@github.com:mariotaku/ihslib.git
-[submodule "system/webos/tv-native-apis"]
-	path = system/webos/tv-native-apis
-	url = https://github.com/webosbrew/tv-native-apis.git
 [submodule "cmake/sanitizers"]
 	path = cmake/sanitizers
 	url = https://github.com/arsenm/sanitizers-cmake.git
