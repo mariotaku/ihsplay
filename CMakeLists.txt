@@ -30,7 +30,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/core/scripts ${CMAKE_SOURCE_DI
 find_package(PkgConfig REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Fontconfig REQUIRED)
-find_package(MbedTLS REQUIRED)
+find_package(MbedTLS)
 
 # Use SDL2 for window creation and event handling.
 pkg_check_modules(SDL2 REQUIRED sdl2)
