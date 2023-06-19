@@ -1,5 +1,4 @@
 pkg_check_modules(PBNJSON_C REQUIRED pbnjson_c)
-pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 target_sources(ihsplay PRIVATE app_webos.c client_info_webos.c)
-target_include_directories(ihsplay PRIVATE ${PBNJSON_C_INCLUDE_DIRS} ${GLIB2_INCLUDE_DIRS})
-target_link_libraries(ihsplay PRIVATE ${PBNJSON_C_LIBRARIES} ${GLIB2_LIBRARIES} helpers)
+target_include_directories(ihsplay PRIVATE ${PBNJSON_C_INCLUDE_DIRS})
+target_link_libraries(ihsplay PRIVATE ${PBNJSON_C_LIBRARIES})

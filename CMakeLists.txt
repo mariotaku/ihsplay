@@ -93,10 +93,6 @@ target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
 include(BuildINIH)
 
-if (TARGET_WEBOS)
-    add_subdirectory(system/webos/tv-native-apis EXCLUDE_FROM_ALL)
-endif ()
-
 add_subdirectory(third_party/ss4s)
 add_subdirectory(third_party/commons)
 
