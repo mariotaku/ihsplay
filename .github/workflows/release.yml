@@ -17,30 +17,43 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: robinraju/release-downloader@v1.8
+      - name: Download ares-cli-rs
+        uses: robinraju/release-downloader@v1.8
         with:
           repository: "webosbrew/ares-cli-rs"
           latest: true
           fileName: "ares-package_*.deb"
           out-file-path: "temp"
 
-      - name: Install webOS CLI
+      - name: Download Homebrew Toolbox
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: "webosbrew/dev-toolbox-cli"
+          latest: true
+          fileName: "webosbrew-toolbox-gen-manifest.deb"
+          out-file-path: "temp"
+
+      - name: Install Tools
         run: sudo apt-get install ./temp/*.deb
 
-      - uses: actions/setup-node@v3
+      - name: Download webOS NDK
+        uses: robinraju/release-downloader@v1.8
         with:
-          node-version: 16
+          repository: "openlgtv/buildroot-nc4"
+          latest: true
+          fileName: "arm-webos-linux-gnueabi_sdk-buildroot.tar.gz"
+          out-file-path: "/tmp"
 
-      - name: Install webOS NDK
-        id: webos-ndk
-        uses: webosbrew/setup-webos-ndk-action@main
-
-      - name: Install webOS Homebrew Publish Tools
-        run: sudo npm install -g @webosbrew/pub-utils
+      - name: Extract webOS NDK
+        shell: bash
+        working-directory: /tmp
+        run: |
+          tar xzf arm-webos-linux-gnueabi_sdk-buildroot.tar.gz
+          ./arm-webos-linux-gnueabi_sdk-buildroot/relocate-sdk.sh
 
       - name: Build
         env:
-          TOOLCHAIN_FILE: ${{steps.webos-ndk.outputs.cmake-toolchain}}
+          TOOLCHAIN_FILE: /tmp/arm-webos-linux-gnueabi_sdk-buildroot/usr/share/buildroot/toolchainfile.cmake
         run: ./tools/webos/easy_build.sh -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
       - name: Create Release (webOS)
