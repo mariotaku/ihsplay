@@ -91,8 +91,6 @@ target_include_directories(lvgl SYSTEM PRIVATE ${FREETYPE_INCLUDE_DIRS})
 target_link_libraries(lvgl PRIVATE ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
 target_compile_definitions(lvgl PUBLIC LV_CONF_PATH=../../../app/lvgl/lv_conf.h)
 
-include(BuildINIH)
-
 add_subdirectory(third_party/ss4s)
 add_subdirectory(third_party/commons)
 
@@ -101,7 +99,7 @@ set(CMAKE_C_STANDARD 11)
 add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s inih commons-array-list commons-os-info
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s commons-array-list commons-os-info
         commons-logging commons-ss4s-modules-list)
 target_link_libraries(ihsplay PRIVATE lv_gridview)
 
@@ -117,20 +115,15 @@ target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontco
         ${MBEDCRYPTO_LIBRARY})
 
 if (TARGET_WEBOS)
-    set(SS4S_MODULES_INI_PATH_RUNTIME "lib/ss4s_modules.ini")
     set(IHSPLAY_FEATURE_RELMOUSE OFF)
     set(IHSPLAY_FEATURE_LIBCEC OFF)
     set(IHSPLAY_FEATURE_FORCE_FULLSCREEN ON)
-    target_link_libraries(ihsplay PRIVATE rt commons-luna-sync)
+    target_link_libraries(ihsplay PRIVATE commons-luna-sync)
     include(PackageWebOS)
 else ()
-    # TODO: remove for packaged builds
-    set(SS4S_MODULES_INI_PATH_RUNTIME ${SS4S_MODULES_INI_OUTPUT_FILE})
     set(CMAKE_INSTALL_PREFIX /usr)
     include(GNUInstallDirs)
 endif ()
-
-target_compile_definitions(commons-ss4s-modules-list PRIVATE SS4S_MODULES_INI_PATH="${SS4S_MODULES_INI_PATH_RUNTIME}")
 
 if (IHSPLAY_FEATURE_LIBCEC AND TARGET commons-cec-sdl)
     target_link_libraries(ihsplay PRIVATE commons-cec-sdl)
