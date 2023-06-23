@@ -30,7 +30,7 @@ jobs:
         with:
           repository: "webosbrew/dev-toolbox-cli"
           latest: true
-          fileName: "webosbrew-toolbox-gen-manifest.deb"
+          fileName: "webosbrew-toolbox-gen-manifest_*.deb"
           out-file-path: "temp"
 
       - name: Install Tools
