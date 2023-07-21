@@ -99,7 +99,7 @@ set(CMAKE_C_STANDARD 11)
 add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s commons-array-list commons-os-info
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ihslib-hid-hidapi ss4s commons-array-list commons-os-info
         commons-logging commons-ss4s-modules-list)
 target_link_libraries(ihsplay PRIVATE lv_gridview)
 

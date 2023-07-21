@@ -1,9 +1,9 @@
-#include <assert.h>
+#include "logging.h"
 #include "input_manager.h"
-#include "app.h"
+
+#include <assert.h>
 
 #include "ihslib/hid/sdl.h"
-#include "logging.h"
 
 static void insert_controller(input_manager_t *manager, SDL_JoystickID id, SDL_GameController *controller);
 
