@@ -1,3 +1,4 @@
 #!/bin/sh
 
-ARES_DEVICE=$(ares-device -d | xargs) cmake --build .. --target ihsplay-launch
+TARGET="$1"
+ARES_DEVICE=$(ares-device -d | xargs) cmake --build .. --target "webos-launch-${TARGET}"

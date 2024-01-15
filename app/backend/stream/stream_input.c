@@ -6,16 +6,16 @@
 #include "backend/input_manager.h"
 
 bool stream_input_handle_key_event(stream_manager_t *manager, const SDL_KeyboardEvent *event) {
-#ifdef SDL_WEBOS_SCANCODE_EXIT
+#ifdef __WEBOS__
     SDL_Keysym keysym = event->keysym;
     switch ((int) keysym.scancode) {
-        case SDL_WEBOS_SCANCODE_EXIT: {
+        case SDL_SCANCODE_WEBOS_EXIT: {
             if (event->state == SDL_RELEASED) {
                 stream_manager_set_overlay_opened(manager, true);
             }
             return true;
         }
-        case SDL_WEBOS_SCANCODE_BACK: {
+        case SDL_SCANCODE_WEBOS_BACK: {
             // TODO: Send ESC key
             return true;
         }

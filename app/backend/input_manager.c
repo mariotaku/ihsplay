@@ -51,6 +51,10 @@ IHS_HIDProvider *input_manager_get_hid_provider(input_manager_t *manager) {
 
 void input_manager_sdl_gamepad_added(input_manager_t *manager, int which) {
     SDL_GameController *controller = SDL_GameControllerOpen(which);
+    if (controller == NULL) {
+        commons_log_error("Input", "Failed to open gamepad #%d: %s", which, SDL_GetError());
+        return;
+    }
     SDL_Joystick *joystick = SDL_GameControllerGetJoystick(controller);
     SDL_JoystickID id = SDL_JoystickInstanceID(joystick);
     insert_controller(manager, id, controller);
@@ -58,6 +62,7 @@ void input_manager_sdl_gamepad_added(input_manager_t *manager, int which) {
 }
 
 void input_manager_sdl_gamepad_removed(input_manager_t *manager, SDL_JoystickID which) {
+    commons_log_info("Input", "Removing gamepad, instance_id: #%d.", which);
     int index = manager_index(manager, which);
     assert(index >= 0);
     opened_controller_t *controller = array_list_get(&manager->controllers, index);

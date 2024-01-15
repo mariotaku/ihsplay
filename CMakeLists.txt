@@ -26,17 +26,6 @@ enable_testing()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/core/scripts ${CMAKE_SOURCE_DIR}/third_party/commons/cmake
         ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/sanitizers/cmake)
 
-# Use `pkg-config` to link needed libraries.
-find_package(PkgConfig REQUIRED)
-find_package(Freetype REQUIRED)
-find_package(Fontconfig REQUIRED)
-find_package(MbedTLS)
-
-# Use SDL2 for window creation and event handling.
-pkg_check_modules(SDL2 REQUIRED sdl2)
-pkg_check_modules(PROTOBUF_C libprotobuf-c)
-pkg_check_modules(OPUS opus)
-
 option(IHSPLAY_WIP_FEATURES "Enable Work-in-Progress Features" OFF)
 option(IHSPLAY_FEATURE_FORCE_FULLSCREEN "Force full screen mode" OFF)
 
@@ -54,6 +43,24 @@ get_filename_component(CMAKE_C_COMPILER_NAME "${CMAKE_C_COMPILER}" NAME)
 if (CMAKE_C_COMPILER_NAME MATCHES "^arm-webos-linux-gnueabi-")
     set(TARGET_WEBOS TRUE)
 endif ()
+
+# Use `pkg-config` to link needed libraries.
+find_package(PkgConfig REQUIRED)
+find_package(Freetype REQUIRED)
+find_package(Fontconfig REQUIRED)
+find_package(MbedTLS)
+
+# Use SDL2 for window creation and event handling.
+if (TARGET_WEBOS)
+    set(CMAKE_INSTALL_LIBDIR lib/backports)
+    set(SDL2_BACKPORT_REVISION "a18683eded16fa4590c418068b68f195b5de7124")
+    include(ExternalSDL2BackportForWebOS)
+    unset(CMAKE_INSTALL_LIBDIR)
+else ()
+    pkg_check_modules(SDL2 REQUIRED sdl2>=2.0.14)
+endif()
+pkg_check_modules(PROTOBUF_C libprotobuf-c)
+pkg_check_modules(OPUS opus)
 
 if (NOT PROTOBUF_C_FOUND)
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
@@ -77,7 +84,7 @@ if (NOT MBEDTLS_FOUND)
 endif ()
 
 if (TARGET_WEBOS)
-    set(IHSLIB_SDL_TARGETVERSION "2.0.0")
+#    set(IHSLIB_SDL_TARGETVERSION "2.28.0")
     set(SS4S_MODULE_DISABLE_MMAL ON)
 endif ()
 
@@ -99,16 +106,11 @@ set(CMAKE_C_STANDARD 11)
 add_subdirectory(app)
 target_include_directories(ihsplay PRIVATE app)
 
-target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ihslib-hid-hidapi ss4s commons-array-list commons-os-info
+target_link_libraries(ihsplay PRIVATE lvgl ihslib ihslib-hid-sdl ss4s commons-array-list commons-os-info
         commons-logging commons-ss4s-modules-list)
 target_link_libraries(ihsplay PRIVATE lv_gridview)
 
 get_target_property(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ss4s SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY)
-
-set_target_properties(ihsplay PROPERTIES
-        BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH_USE_LINK_PATH TRUE
-        INSTALL_RPATH "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
 
 target_include_directories(ihsplay SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS} ${MBEDTLS_INCLUDE_DIRS})
 target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontconfig::Fontconfig Freetype::Freetype
@@ -119,6 +121,11 @@ if (TARGET_WEBOS)
     set(IHSPLAY_FEATURE_LIBCEC OFF)
     set(IHSPLAY_FEATURE_FORCE_FULLSCREEN ON)
     target_link_libraries(ihsplay PRIVATE commons-luna-sync)
+
+    set_target_properties(ihsplay PROPERTIES
+            BUILD_WITH_INSTALL_RPATH TRUE
+            INSTALL_RPATH_USE_LINK_PATH TRUE
+            INSTALL_RPATH "$ORIGIN/lib/backports:$ORIGIN")
     include(PackageWebOS)
 else ()
     set(CMAKE_INSTALL_PREFIX /usr)
@@ -133,7 +140,7 @@ endif ()
 
 if (IHSPLAY_SANITIZE_ADDRESS)
     target_compile_options(ihsplay PRIVATE -fsanitize=address)
-    target_link_options(ihsplay PRIVATE -fsanitize=address -static-libasan)
+    target_link_options(ihsplay PRIVATE -fsanitize=address)
     target_link_libraries(ihsplay PRIVATE asan)
 endif ()
 
