@@ -53,7 +53,7 @@ find_package(MbedTLS)
 # Use SDL2 for window creation and event handling.
 if (TARGET_WEBOS)
     set(CMAKE_INSTALL_LIBDIR lib/backports)
-    set(SDL2_BACKPORT_REVISION "a18683eded16fa4590c418068b68f195b5de7124")
+    set(SDL2_BACKPORT_REVISION "c09bcf19e0839c86278b688d49b649399111f80c")
     include(ExternalSDL2BackportForWebOS)
     unset(CMAKE_INSTALL_LIBDIR)
 else ()

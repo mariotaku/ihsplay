@@ -89,6 +89,7 @@ jobs:
         id: pi-sysroot
         uses: mariotaku/raspbian-sysroot-action@v1.1
         with:
+          release: bullseye
           packages: ${{github.workspace}}/deploy/raspbian/sysroot-packages.list
 
       - name: Install Build Tools
