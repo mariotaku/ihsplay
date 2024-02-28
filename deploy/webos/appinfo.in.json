@@ -10,5 +10,6 @@
   "requiredPermissions": [
     "settings",
     "activities.callbacks"
-  ]
+  ],
+  "supportTouchMode": "full"
 }
