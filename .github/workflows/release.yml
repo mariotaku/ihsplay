@@ -13,12 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Download ares-cli-rs
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1
         with:
           repository: "webosbrew/ares-cli-rs"
           latest: true
@@ -26,7 +26,7 @@ jobs:
           out-file-path: "temp"
 
       - name: Download Homebrew Toolbox
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1
         with:
           repository: "webosbrew/dev-toolbox-cli"
           latest: true
@@ -37,7 +37,7 @@ jobs:
         run: sudo apt-get install ./temp/*.deb
 
       - name: Download webOS NDK
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1
         with:
           repository: "openlgtv/buildroot-nc4"
           latest: true

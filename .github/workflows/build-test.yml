@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
 
       - name: Download ares-cli-rs
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1
         with:
           repository: "webosbrew/ares-cli-rs"
           latest: true
@@ -30,7 +30,7 @@ jobs:
           out-file-path: "temp"
 
       - name: Download Homebrew Toolbox
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1
         with:
           repository: "webosbrew/dev-toolbox-cli"
           latest: true
@@ -41,7 +41,7 @@ jobs:
         run: sudo apt-get install ./temp/*.deb
 
       - name: Download webOS NDK
-        uses: robinraju/release-downloader@v1.8
+        uses: robinraju/release-downloader@v1
         with:
           repository: "openlgtv/buildroot-nc4"
           latest: true
@@ -65,7 +65,7 @@ jobs:
         working-directory: dist
         run: for file in *.ipk ; do mv $file ${file//_arm/-${GITHUB_SHA:0:8}_arm} ; done
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: webos-snapshot
           path: dist/*.ipk
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -87,7 +87,7 @@ jobs:
 
       - name: Prepare Sysroot
         id: pi-sysroot
-        uses: mariotaku/raspbian-sysroot-action@v1.1
+        uses: mariotaku/raspbian-sysroot-action@v1.2
         with:
           release: bullseye
           packages: ${{github.workspace}}/deploy/raspbian/sysroot-packages.list
