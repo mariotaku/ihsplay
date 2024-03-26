@@ -394,13 +394,11 @@ static void controller_back_released(stream_manager_t *manager) {
 }
 
 static void grab_mouse(stream_manager_t *manager, bool grab) {
-#if IHSPLAY_FEATURE_RELMOUSE
     if (manager->state != STREAM_MANAGER_STATE_STREAMING) {
         SDL_SetRelativeMouseMode(SDL_FALSE);
         return;
     }
     SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
-#endif
 }
 
 
