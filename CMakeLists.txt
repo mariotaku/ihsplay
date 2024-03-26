@@ -29,7 +29,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/core/scripts ${CMAKE_SOURCE_DI
 option(IHSPLAY_WIP_FEATURES "Enable Work-in-Progress Features" OFF)
 option(IHSPLAY_FEATURE_FORCE_FULLSCREEN "Force full screen mode" OFF)
 
-set(IHSPLAY_FEATURE_RELMOUSE ON)
 set(IHSPLAY_FEATURE_LIBCEC ON)
 
 option(COMMONS_LV_SDL_IMG_USE_IMAGE "Don't use SDL_Image" OFF)
@@ -117,7 +116,6 @@ target_link_libraries(ihsplay PRIVATE ${SDL2_LIBRARIES} ${OPUS_LIBRARIES} Fontco
         ${MBEDCRYPTO_LIBRARY})
 
 if (TARGET_WEBOS)
-    set(IHSPLAY_FEATURE_RELMOUSE OFF)
     set(IHSPLAY_FEATURE_LIBCEC OFF)
     set(IHSPLAY_FEATURE_FORCE_FULLSCREEN ON)
     target_link_libraries(ihsplay PRIVATE commons-luna-sync)
