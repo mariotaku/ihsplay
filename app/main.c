@@ -142,7 +142,10 @@ static void process_events() {
             case SDL_CONTROLLERBUTTONDOWN:
             case SDL_CONTROLLERBUTTONUP:
             case SDL_CONTROLLERDEVICEADDED:
-            case SDL_CONTROLLERDEVICEREMOVED: {
+            case SDL_CONTROLLERDEVICEREMOVED:
+            case SDL_FINGERDOWN:
+            case SDL_FINGERUP:
+            case SDL_FINGERMOTION: {
                 bool intercept_by_stream = stream_manager_intercept_event(app->stream_manager, &event);
                 if (!intercept_by_stream) {
                     app_sdl_input_event(app, &event);

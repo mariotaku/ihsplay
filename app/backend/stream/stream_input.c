@@ -42,6 +42,9 @@ bool stream_input_handle_mouse_event(stream_manager_t *manager, const SDL_Event 
     if (!manager->app->settings->enable_input) {
         return true;
     }
+    if (event->motion.which == SDL_TOUCH_MOUSEID) {
+        return true;
+    }
     switch (event->type) {
         case SDL_MOUSEMOTION: {
             if (input_manager_get_and_reset_mouse_movement(manager->app->input_manager)) {
@@ -102,4 +105,20 @@ bool stream_input_handle_mouse_event(stream_manager_t *manager, const SDL_Event 
         }
     }
     return false;
+}
+
+bool stream_input_handle_touch_event(stream_manager_t *manager, const SDL_TouchFingerEvent *event) {
+    if (!manager->app->settings->enable_input) {
+        return true;
+    }
+    if (event->type == SDL_FINGERDOWN) {
+        IHS_SessionSendTouchDown(manager->session, event->fingerId, event->x, event->y);
+    } else if (event->type == SDL_FINGERUP) {
+        IHS_SessionSendTouchUp(manager->session, event->fingerId, event->x, event->y);
+    } else if (event->type == SDL_FINGERMOTION) {
+        IHS_SessionSendTouchMotion(manager->session, event->fingerId, event->x, event->y);
+    } else {
+        return false;
+    }
+    return true;
 }
