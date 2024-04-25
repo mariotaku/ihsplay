@@ -3,7 +3,7 @@
 	url = https://github.com/lvgl/lvgl.git
 [submodule "third_party/ihslib"]
 	path = core
-	url = git@github.com:mariotaku/ihslib.git
+	url = https://github.com/mariotaku/ihslib.git
 [submodule "cmake/sanitizers"]
 	path = cmake/sanitizers
 	url = https://github.com/arsenm/sanitizers-cmake.git
