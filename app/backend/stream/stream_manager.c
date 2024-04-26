@@ -198,6 +198,12 @@ void stream_manager_handle_event(stream_manager_t *manager, const SDL_Event *eve
             stream_input_handle_mouse_event(manager, event);
             break;
         }
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP:
+        case SDL_FINGERMOTION: {
+            stream_input_handle_touch_event(manager, &event->tfinger);
+            break;
+        }
         case SDL_CONTROLLERBUTTONDOWN: {
             if (event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK) {
                 controller_back_pressed(manager);
